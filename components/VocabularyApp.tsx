@@ -1,0 +1,610 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { Download, Home, Plus, Upload } from "lucide-react";
+import { BrandLogo } from "@/components/BrandLogo";
+import { FlashcardMode } from "@/components/FlashcardMode";
+import { ListDetail } from "@/components/ListDetail";
+import { ListFormModal } from "@/components/ListFormModal";
+import { ListLibrary } from "@/components/ListLibrary";
+import { QuizRunner } from "@/components/QuizRunner";
+import { ScoreScreen } from "@/components/ScoreScreen";
+import { WordFormModal } from "@/components/WordFormModal";
+import { Button } from "@/components/ui";
+import { useVocabularyStore } from "@/lib/useVocabularyStore";
+import {
+  createExportPayload,
+  isPublicListId,
+  parseExportPayload
+} from "@/lib/vocabulary-storage";
+import type {
+  QuizAttempt,
+  QuizMode,
+  TestHistoryEntry,
+  VocabularyItem,
+  WordList
+} from "@/types/vocabulary";
+
+const AJWordsScene = dynamic(
+  () => import("@/components/AJWordsScene").then((mod) => mod.AJWordsScene),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="aj-scene-fallback" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+    )
+  }
+);
+
+type AppView = "home" | "list" | "flashcards" | "quiz" | "score";
+
+type ListFormState =
+  | { mode: "create" }
+  | { mode: "edit"; list: WordList }
+  | null;
+
+type TransferNotice = {
+  tone: "success" | "error";
+  message: string;
+} | null;
+
+const UI_STATE_KEY = "ajwords.v1.ui";
+
+const readPreferredListId = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const url = new URL(window.location.href);
+  const urlListId = url.searchParams.get("list");
+
+  if (urlListId) {
+    return urlListId;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(UI_STATE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return typeof parsed?.selectedListId === "string" ? parsed.selectedListId : null;
+  } catch {
+    return null;
+  }
+};
+
+const writePreferredListId = (listId: string | null) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+
+  if (listId) {
+    window.localStorage.setItem(UI_STATE_KEY, JSON.stringify({ selectedListId: listId }));
+    url.searchParams.set("list", listId);
+  } else {
+    window.localStorage.removeItem(UI_STATE_KEY);
+    url.searchParams.delete("list");
+  }
+
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+};
+
+export function VocabularyApp() {
+  const store = useVocabularyStore();
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  const [view, setView] = useState<AppView>("home");
+  const [uiHydrated, setUiHydrated] = useState(false);
+  const [transferNotice, setTransferNotice] = useState<TransferNotice>(null);
+  const [listFormState, setListFormState] = useState<ListFormState>(null);
+  const [wordFormOpen, setWordFormOpen] = useState(false);
+  const [wordFormListId, setWordFormListId] = useState<string | null>(null);
+  const [editingWord, setEditingWord] = useState<VocabularyItem | null>(null);
+  const [wordFormSession, setWordFormSession] = useState(0);
+  const [quizMode, setQuizMode] = useState<QuizMode>("written");
+  const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
+
+  const selectedList = selectedListId
+    ? store.listMap.get(selectedListId) ?? null
+    : null;
+  const hasSelectedList = Boolean(selectedListId);
+
+  useEffect(() => {
+    if (!store.hydrated || uiHydrated) {
+      return;
+    }
+
+    const preferredListId = readPreferredListId();
+
+    if (preferredListId && store.listMap.has(preferredListId)) {
+      setSelectedListId(preferredListId);
+      setView("list");
+    } else if (preferredListId) {
+      writePreferredListId(null);
+    }
+
+    setUiHydrated(true);
+  }, [store.hydrated, store.listMap, uiHydrated]);
+
+  useEffect(() => {
+    if (!transferNotice) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setTransferNotice(null), 5200);
+    return () => window.clearTimeout(timeout);
+  }, [transferNotice]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const isLocalhost = ["localhost", "127.0.0.1", "[::1]"].includes(
+      window.location.hostname
+    );
+    const canRegister = window.location.protocol === "https:" || isLocalhost;
+
+    if (process.env.NODE_ENV !== "production" || !canRegister) {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((registrations) =>
+          registrations.forEach((registration) => registration.unregister())
+        )
+        .catch(() => undefined);
+      return;
+    }
+
+    const registerServiceWorker = () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .catch(() => undefined);
+    };
+
+    if (document.readyState === "complete") {
+      registerServiceWorker();
+      return;
+    }
+
+    window.addEventListener("load", registerServiceWorker);
+    return () => window.removeEventListener("load", registerServiceWorker);
+  }, []);
+
+  const showList = (listId: string) => {
+    setSelectedListId(listId);
+    setView("list");
+    writePreferredListId(listId);
+  };
+
+  const goHome = () => {
+    setSelectedListId(null);
+    setView("home");
+    writePreferredListId(null);
+  };
+
+  const openList = (listId: string) => {
+    showList(listId);
+  };
+
+  const deleteList = (listId: string) => {
+    const list = store.listMap.get(listId);
+    if (!list) {
+      return;
+    }
+
+    if (isPublicListId(listId)) {
+      setTransferNotice({
+        tone: "error",
+        message:
+          "Online lists stay available for everyone. Edit or add a word to create your local copy."
+      });
+      return;
+    }
+
+    if (window.confirm(`Delete "${list.title}" and all of its words?`)) {
+      const result = store.deleteList(listId);
+      if (result.deleted && selectedListId === listId) {
+        goHome();
+      }
+    }
+  };
+
+  const submitListForm = (input: {
+    title: string;
+    language?: string;
+  }) => {
+    if (listFormState?.mode === "edit") {
+      const result = store.updateList(listFormState.list.id, input);
+      if (result.copied) {
+        showList(result.listId);
+        setTransferNotice({
+          tone: "success",
+          message: "Created a local copy for your edits."
+        });
+      }
+      setListFormState(null);
+      return;
+    }
+
+    const nextList = store.addList(input);
+    showList(nextList.id);
+    setListFormState(null);
+  };
+
+  const openAddWord = (listId = selectedListId) => {
+    if (!listId) {
+      return;
+    }
+
+    showList(listId);
+    setListFormState(null);
+    setWordFormListId(listId);
+    setEditingWord(null);
+    setWordFormSession((session) => session + 1);
+    setWordFormOpen(true);
+  };
+
+  const submitWordForm = (input: {
+    word: string;
+    translation: string;
+  }) => {
+    const activeListId = wordFormListId ?? selectedListId;
+
+    if (!activeListId) {
+      return;
+    }
+
+    showList(activeListId);
+    setListFormState(null);
+
+    const result = editingWord
+      ? store.updateWord(activeListId, editingWord.id, input)
+      : store.addWord(activeListId, input);
+
+    if (result.copied) {
+      showList(result.listId);
+      setTransferNotice({
+        tone: "success",
+        message: "Created a local copy for your word changes."
+      });
+    }
+
+    setWordFormOpen(false);
+    setWordFormListId(null);
+    setEditingWord(null);
+  };
+
+  const startQuiz = (mode: QuizMode) => {
+    setQuizMode(mode);
+    setQuizAttempts([]);
+    setView("quiz");
+  };
+
+  const exportLists = () => {
+    if (!store.lists.length) {
+      setTransferNotice({
+        tone: "error",
+        message: "Create a list before exporting."
+      });
+      return;
+    }
+
+    const payload = createExportPayload(store.lists);
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const stamp = new Date()
+      .toISOString()
+      .slice(0, 19)
+      .replace(/[:T]/g, "-");
+
+    link.href = url;
+    link.download = `aj-words-${stamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    setTransferNotice({
+      tone: "success",
+      message: `Exported ${store.lists.length} ${
+        store.lists.length === 1 ? "list" : "lists"
+      }.`
+    });
+  };
+
+  const importListsFromFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      let payload: unknown;
+
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        throw new Error("This file is not valid JSON.");
+      }
+
+      const parsed = parseExportPayload(payload);
+
+      if (!parsed.lists.length) {
+        throw new Error("This export does not contain any lists.");
+      }
+
+      const existingCount = parsed.lists.filter(
+        (list) => !isPublicListId(list.id) && store.listMap.has(list.id)
+      ).length;
+
+      if (
+        existingCount &&
+        !window.confirm(
+          `Importing this file will replace ${existingCount} existing ${
+            existingCount === 1 ? "list" : "lists"
+          }. Continue?`
+        )
+      ) {
+        setTransferNotice({
+          tone: "error",
+          message: "Import cancelled."
+        });
+        return;
+      }
+
+      const summary = store.importLists(parsed.lists);
+      showList(summary.listIds[0]);
+      setTransferNotice({
+        tone: "success",
+        message: `Imported ${summary.total} ${
+          summary.total === 1 ? "list" : "lists"
+        }: ${summary.added} added, ${summary.replaced} replaced.`
+      });
+    } catch (error) {
+      setTransferNotice({
+        tone: "error",
+        message:
+          error instanceof Error
+            ? error.message
+            : "This file could not be imported."
+      });
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const reviewTest = (entry: TestHistoryEntry) => {
+    setQuizMode(entry.mode);
+    setQuizAttempts(entry.attempts);
+    setView("score");
+  };
+
+  const deleteWord = (listId: string, itemId: string) => {
+    const result = store.deleteWord(listId, itemId);
+    if (result.copied) {
+      showList(result.listId);
+      setTransferNotice({
+        tone: "success",
+        message: "Created a local copy for your word changes."
+      });
+    }
+  };
+
+  if (!store.hydrated || !uiHydrated) {
+    return (
+      <main className="loading-screen">
+        <div className="loading-card">
+          <BrandLogo />
+          <span>Loading AJ Words</span>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <div className="app-shell">
+      <header className="app-topbar">
+        <button type="button" className="brand-button" onClick={goHome}>
+          <BrandLogo />
+          <strong>AJ Words</strong>
+        </button>
+        <div className="topbar-actions">
+          <Button variant="ghost" size="sm" icon={<Home size={17} />} onClick={goHome}>
+            Home
+          </Button>
+          <Button
+            className="topbar-transfer"
+            variant="secondary"
+            size="sm"
+            icon={<Download size={17} />}
+            onClick={exportLists}
+            disabled={!store.lists.length}
+          >
+            <span className="topbar-action-label">Export</span>
+          </Button>
+          <Button
+            className="topbar-transfer"
+            variant="secondary"
+            size="sm"
+            icon={<Upload size={17} />}
+            onClick={() => importInputRef.current?.click()}
+          >
+            <span className="topbar-action-label">Import</span>
+          </Button>
+          <Button
+            className="topbar-new-list"
+            size="sm"
+            icon={<Plus size={17} />}
+            onClick={() => setListFormState({ mode: "create" })}
+          >
+            <span className="topbar-new-label">New list</span>
+          </Button>
+          <input
+            ref={importInputRef}
+            className="sr-only"
+            type="file"
+            accept="application/json,.json"
+            onChange={importListsFromFile}
+            aria-label="Import AJ Words JSON file"
+          />
+        </div>
+      </header>
+
+      {transferNotice ? (
+        <div
+          className={`transfer-notice transfer-notice-${transferNotice.tone}`}
+          role={transferNotice.tone === "error" ? "alert" : "status"}
+        >
+          {transferNotice.message}
+        </div>
+      ) : null}
+
+      <main className={`workspace ${hasSelectedList ? "has-selection" : ""}`}>
+        <aside className="library-panel">
+          <ListLibrary
+            lists={store.lists}
+            selectedListId={selectedListId}
+            onCreate={() => setListFormState({ mode: "create" })}
+            onDelete={deleteList}
+            onEdit={(list) => setListFormState({ mode: "edit", list })}
+            onSelect={openList}
+          />
+        </aside>
+
+        <section className="workspace-panel">
+          {!hasSelectedList ? (
+            <section className="welcome-panel" aria-labelledby="welcome-title">
+              <div className="welcome-copy">
+                <p className="eyebrow">AJ Words</p>
+                <h1 id="welcome-title">Learn words with focus and rhythm</h1>
+                <p>
+                  Build local word lists, flip tactile cards, and test recall
+                  without losing speed.
+                </p>
+                <div className="welcome-actions">
+                  <Button
+                    icon={<Plus size={18} />}
+                    onClick={() => setListFormState({ mode: "create" })}
+                  >
+                    Create list
+                  </Button>
+                  <span className="welcome-metric">
+                    <strong>{store.lists.length}</strong>
+                    {store.lists.length === 1 ? " saved list" : " saved lists"}
+                  </span>
+                </div>
+              </div>
+              <AJWordsScene />
+            </section>
+          ) : null}
+
+          {hasSelectedList && !selectedList ? (
+            <section className="detail" aria-labelledby="list-loading-title">
+              <div className="empty-state">
+                <h2 id="list-loading-title">Loading list</h2>
+              </div>
+            </section>
+          ) : null}
+
+          {selectedList && view === "list" ? (
+            <ListDetail
+              list={selectedList}
+              onAddWord={() => openAddWord(selectedList.id)}
+              onBack={goHome}
+              onDeleteList={() => deleteList(selectedList.id)}
+              onDeleteWord={(itemId) => deleteWord(selectedList.id, itemId)}
+              onEditList={() => setListFormState({ mode: "edit", list: selectedList })}
+              onEditWord={(item) => {
+                setWordFormListId(selectedList.id);
+                setEditingWord(item);
+                setWordFormSession((session) => session + 1);
+                setWordFormOpen(true);
+              }}
+              onReviewTest={reviewTest}
+              onStartFlashcards={() => setView("flashcards")}
+              onStartQuiz={startQuiz}
+            />
+          ) : null}
+
+          {selectedList && view === "flashcards" ? (
+            <FlashcardMode
+              list={selectedList}
+              onBack={() => setView("list")}
+            />
+          ) : null}
+
+          {selectedList && view === "quiz" ? (
+            <QuizRunner
+              list={selectedList}
+              mode={quizMode}
+              onBack={() => setView("list")}
+              onFinish={(attempts) => {
+                const correctIds = attempts
+                  .filter((attempt) => attempt.isCorrect)
+                  .map((attempt) => attempt.itemId);
+                const mistakeIds = attempts
+                  .filter((attempt) => !attempt.isCorrect)
+                  .map((attempt) => attempt.itemId);
+
+                if (correctIds.length) {
+                  store.updateWordStatus(selectedList.id, correctIds, "mastered");
+                }
+                if (mistakeIds.length) {
+                  store.updateWordStatus(selectedList.id, mistakeIds, "learning");
+                }
+
+                store.addTestHistory(selectedList.id, {
+                  attempts,
+                  mode: quizMode
+                });
+                setQuizAttempts(attempts);
+                setView("score");
+              }}
+            />
+          ) : null}
+
+          {selectedList && view === "score" ? (
+            <ScoreScreen
+              list={selectedList}
+              mode={quizMode}
+              attempts={quizAttempts}
+              onBack={() => setView("list")}
+              onRepeat={() => setView("quiz")}
+            />
+          ) : null}
+        </section>
+      </main>
+
+      <ListFormModal
+        open={Boolean(listFormState)}
+        list={listFormState?.mode === "edit" ? listFormState.list : null}
+        onClose={() => setListFormState(null)}
+        onAddWord={(list) => {
+          openAddWord(list.id);
+        }}
+        onSubmit={submitListForm}
+      />
+
+      <WordFormModal
+        key={wordFormSession}
+        open={wordFormOpen}
+        item={editingWord}
+        onClose={() => {
+          setWordFormOpen(false);
+          setWordFormListId(null);
+          setEditingWord(null);
+        }}
+        onSubmit={submitWordForm}
+      />
+    </div>
+  );
+}
