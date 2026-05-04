@@ -28,7 +28,8 @@ const modeTitles: Record<QuizMode, string> = {
   written: "Written quiz",
   choice: "Multiple choice",
   mixed: "Mixed test",
-  test: "Test me"
+  test: "Test me",
+  "full-review": "Full review"
 };
 
 const shuffle = <T,>(values: T[]) => {
@@ -45,26 +46,82 @@ const normalizeAnswer = (value: string) =>
 
 const buildOptions = (item: VocabularyItem, items: VocabularyItem[]) => {
   const wrongAnswers = shuffle(
-    items
-      .filter((candidate) => candidate.id !== item.id)
-      .map((candidate) => candidate.translation)
-      .filter(Boolean)
+    Array.from(
+      new Set(
+        items
+          .filter((candidate) => candidate.id !== item.id)
+          .map((candidate) => candidate.translation)
+          .filter(Boolean)
+      )
+    )
   ).slice(0, 3);
 
-  return shuffle([item.translation, ...wrongAnswers]).slice(0, 4);
+  return shuffle(Array.from(new Set([item.translation, ...wrongAnswers]))).slice(0, 4);
+};
+
+const getAdaptivePriority = (item: VocabularyItem) => {
+  const parsedLastWrongTime = item.lastWrongAt
+    ? new Date(item.lastWrongAt).getTime()
+    : 0;
+  const lastWrongTime = Number.isFinite(parsedLastWrongTime)
+    ? parsedLastWrongTime
+    : 0;
+  const recentWrongBoost = lastWrongTime ? lastWrongTime / 100000000 : 0;
+
+  if (item.wrongStreak > 0) {
+    return 100000 + item.wrongStreak * 2000 + item.wrongCount * 100 + recentWrongBoost;
+  }
+
+  if (item.lastWrongAt && item.status !== "mastered") {
+    return 90000 + item.wrongCount * 120 + recentWrongBoost;
+  }
+
+  if (item.status === "learning") {
+    return 70000 + item.wrongCount * 150 - item.correctStreak * 50;
+  }
+
+  if (item.status === "new") {
+    return 50000 - item.attempts * 100;
+  }
+
+  return 1000 + item.wrongCount * 50;
+};
+
+const getSessionItems = (items: VocabularyItem[], mode: QuizMode) => {
+  if (mode === "full-review") {
+    return shuffle(items);
+  }
+
+  const activeItems = items.filter((item) => item.status !== "mastered");
+  const pool = activeItems.length ? activeItems : items;
+
+  return shuffle(pool).sort(
+    (first, second) => getAdaptivePriority(second) - getAdaptivePriority(first)
+  );
+};
+
+const getQuestionType = (
+  mode: QuizMode,
+  index: number,
+  canUseChoice: boolean
+): QuizQuestionType => {
+  if (mode === "choice") {
+    return canUseChoice ? "choice" : "written";
+  }
+
+  if (mode === "written") {
+    return "written";
+  }
+
+  return index % 2 === 0 && canUseChoice ? "choice" : "written";
 };
 
 const buildQuestions = (list: WordList, mode: QuizMode): BuiltQuestion[] => {
-  const items = shuffle(list.items);
+  const items = getSessionItems(list.items, mode);
   const canUseChoice = list.items.length >= 4;
 
   return items.map((item, index) => {
-    const type: QuizQuestionType =
-      mode === "mixed" || mode === "test"
-        ? index % 2 === 0 && canUseChoice
-          ? "choice"
-          : "written"
-        : mode;
+    const type = getQuestionType(mode, index, canUseChoice);
 
     return {
       item,

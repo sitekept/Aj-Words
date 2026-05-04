@@ -120,6 +120,14 @@ export function ListDetail({
         >
           Mixed test
         </Button>
+        <Button
+          variant="secondary"
+          icon={<BookOpen size={18} />}
+          onClick={() => onStartQuiz("full-review")}
+          disabled={!hasWords}
+        >
+          Full review
+        </Button>
       </div>
 
       <TestHistory entries={list.testHistory} onReview={onReviewTest} />

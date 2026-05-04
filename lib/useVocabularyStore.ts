@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  applyAttemptsToItems,
   createItem,
   createList,
   createLocalCopy,
@@ -12,7 +13,6 @@ import {
   touchList
 } from "@/lib/vocabulary-storage";
 import type {
-  LearningStatus,
   QuizAttempt,
   QuizMode,
   WordList
@@ -212,30 +212,18 @@ export const useVocabularyStore = () => {
     return { copied: false, listId };
   }, [lists]);
 
-  const updateWordStatus = useCallback(
-    (listId: string, itemIds: string[], status: LearningStatus) => {
-      const ids = new Set(itemIds);
-      setLists((current) =>
-        current.map((list) =>
-          list.id === listId
-            ? touchList({
-                ...list,
-                items: list.items.map((item) =>
-                  ids.has(item.id)
-                    ? {
-                        ...item,
-                        status,
-                        updatedAt: new Date().toISOString()
-                      }
-                    : item
-                )
-              })
-            : list
-        )
-      );
-    },
-    []
-  );
+  const recordQuizProgress = useCallback((listId: string, attempts: QuizAttempt[]) => {
+    setLists((current) =>
+      current.map((list) =>
+        list.id === listId
+          ? touchList({
+              ...list,
+              items: applyAttemptsToItems(list.items, attempts)
+            })
+          : list
+      )
+    );
+  }, []);
 
   const addTestHistory = useCallback(
     (listId: string, input: { attempts: QuizAttempt[]; mode: QuizMode }) => {
@@ -312,7 +300,7 @@ export const useVocabularyStore = () => {
     addWord,
     updateWord,
     deleteWord,
-    updateWordStatus,
+    recordQuizProgress,
     addTestHistory,
     importLists
   };

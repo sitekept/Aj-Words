@@ -1,6 +1,6 @@
 export type LearningStatus = "new" | "learning" | "mastered";
 
-export type QuizMode = "written" | "choice" | "mixed" | "test";
+export type QuizMode = "written" | "choice" | "mixed" | "test" | "full-review";
 
 export type QuizQuestionType = "written" | "choice";
 
@@ -9,6 +9,13 @@ export interface VocabularyItem {
   word: string;
   translation: string;
   status: LearningStatus;
+  attempts: number;
+  correctCount: number;
+  wrongCount: number;
+  correctStreak: number;
+  wrongStreak: number;
+  lastTestedAt?: string;
+  lastWrongAt?: string;
   createdAt: string;
   updatedAt: string;
 }

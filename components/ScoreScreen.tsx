@@ -17,7 +17,8 @@ const modeLabels: Record<QuizMode, string> = {
   written: "Written quiz",
   choice: "Multiple choice",
   mixed: "Mixed test",
-  test: "Test me"
+  test: "Test me",
+  "full-review": "Full review"
 };
 
 const questionTypeLabels = {
@@ -50,6 +51,30 @@ export function ScoreScreen({
         return true;
       });
   }, [list.items, mistakes]);
+
+  const progressInsights = useMemo(() => {
+    const attemptedIds = new Set(attempts.map((attempt) => attempt.itemId));
+    const correctIds = new Set(
+      attempts
+        .filter((attempt) => attempt.isCorrect)
+        .map((attempt) => attempt.itemId)
+    );
+    const attemptedWords = list.items.filter((item) => attemptedIds.has(item.id));
+
+    return {
+      frequentErrors: attemptedWords
+        .filter((item) => item.wrongStreak > 0 || item.wrongCount >= 2)
+        .sort((first, second) => second.wrongCount - first.wrongCount)
+        .slice(0, 4),
+      learningWords: attemptedWords
+        .filter((item) => item.status === "learning")
+        .sort((first, second) => second.wrongStreak - first.wrongStreak)
+        .slice(0, 4),
+      masteredWords: attemptedWords
+        .filter((item) => item.status === "mastered" && correctIds.has(item.id))
+        .slice(0, 4)
+    };
+  }, [attempts, list.items]);
 
   return (
     <section className="study-view score-view" aria-labelledby="score-title">
@@ -86,6 +111,45 @@ export function ScoreScreen({
           Repeat
         </Button>
       </div>
+
+      <section className="progress-insights" aria-labelledby="progress-insights-heading">
+        <h2 id="progress-insights-heading">Progress update</h2>
+        <div className="insight-grid">
+          <article className="insight-card">
+            <strong>{progressInsights.frequentErrors.length}</strong>
+            <span>Frequent errors</span>
+            <p>
+              {progressInsights.frequentErrors.length
+                ? progressInsights.frequentErrors
+                    .map((item) => item.word)
+                    .join(", ")
+                : "No repeated errors detected."}
+            </p>
+          </article>
+          <article className="insight-card">
+            <strong>{progressInsights.learningWords.length}</strong>
+            <span>Still learning</span>
+            <p>
+              {progressInsights.learningWords.length
+                ? progressInsights.learningWords
+                    .map((item) => item.word)
+                    .join(", ")
+                : "No active learning words in this result."}
+            </p>
+          </article>
+          <article className="insight-card">
+            <strong>{progressInsights.masteredWords.length}</strong>
+            <span>Mastered now</span>
+            <p>
+              {progressInsights.masteredWords.length
+                ? progressInsights.masteredWords
+                    .map((item) => item.word)
+                    .join(", ")
+                : "No new mastered words yet."}
+            </p>
+          </article>
+        </div>
+      </section>
 
       <div className="result-grid">
         <section className="result-panel" aria-labelledby="correct-heading">

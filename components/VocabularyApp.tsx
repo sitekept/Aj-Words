@@ -548,20 +548,7 @@ export function VocabularyApp() {
               mode={quizMode}
               onBack={() => setView("list")}
               onFinish={(attempts) => {
-                const correctIds = attempts
-                  .filter((attempt) => attempt.isCorrect)
-                  .map((attempt) => attempt.itemId);
-                const mistakeIds = attempts
-                  .filter((attempt) => !attempt.isCorrect)
-                  .map((attempt) => attempt.itemId);
-
-                if (correctIds.length) {
-                  store.updateWordStatus(selectedList.id, correctIds, "mastered");
-                }
-                if (mistakeIds.length) {
-                  store.updateWordStatus(selectedList.id, mistakeIds, "learning");
-                }
-
+                store.recordQuizProgress(selectedList.id, attempts);
                 store.addTestHistory(selectedList.id, {
                   attempts,
                   mode: quizMode

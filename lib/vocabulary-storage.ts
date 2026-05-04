@@ -16,6 +16,8 @@ import {
 const STORAGE_KEY = "worddeck.v1.lists";
 export const EXPORT_APP_ID = "aj-words";
 export const EXPORT_VERSION = 1;
+const MASTERED_STREAK = 3;
+const MIN_MASTERED_ATTEMPTS = 3;
 
 const now = () => new Date().toISOString();
 
@@ -40,20 +42,83 @@ export const createId = () => {
 
 export const initialLists: WordList[] = builtinLists;
 
-const isStatus = (value: unknown): value is LearningStatus =>
-  value === "new" || value === "learning" || value === "mastered";
-
 const isQuizMode = (value: unknown): value is QuizMode =>
-  value === "written" || value === "choice" || value === "mixed" || value === "test";
+  value === "written" ||
+  value === "choice" ||
+  value === "mixed" ||
+  value === "test" ||
+  value === "full-review";
 
-const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => ({
-  id: typeof item.id === "string" ? item.id : createId(),
-  word: typeof item.word === "string" ? item.word : "",
-  translation: typeof item.translation === "string" ? item.translation : "",
-  status: isStatus(item.status) ? item.status : "new",
-  createdAt: typeof item.createdAt === "string" ? item.createdAt : now(),
-  updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : now()
+const normalizeCount = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : 0;
+
+const normalizeDate = (value: unknown) =>
+  typeof value === "string" && value.trim() ? value : undefined;
+
+const hasProgressStats = (item: Partial<VocabularyItem>) =>
+  typeof item.attempts === "number" ||
+  typeof item.correctCount === "number" ||
+  typeof item.wrongCount === "number" ||
+  typeof item.correctStreak === "number" ||
+  typeof item.wrongStreak === "number" ||
+  typeof item.lastTestedAt === "string" ||
+  typeof item.lastWrongAt === "string";
+
+const deriveLearningStatus = (item: Pick<
+  VocabularyItem,
+  "attempts" | "correctStreak" | "wrongStreak"
+>): LearningStatus => {
+  if (item.attempts <= 0) {
+    return "new";
+  }
+
+  if (item.wrongStreak > 0) {
+    return "learning";
+  }
+
+  if (
+    item.correctStreak >= MASTERED_STREAK &&
+    item.attempts >= MIN_MASTERED_ATTEMPTS
+  ) {
+    return "mastered";
+  }
+
+  return "learning";
+};
+
+const createInitialProgress = () => ({
+  attempts: 0,
+  correctCount: 0,
+  wrongCount: 0,
+  correctStreak: 0,
+  wrongStreak: 0
 });
+
+const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => {
+  const hasStats = hasProgressStats(item);
+  const normalized = {
+    id: typeof item.id === "string" ? item.id : createId(),
+    word: typeof item.word === "string" ? item.word : "",
+    translation: typeof item.translation === "string" ? item.translation : "",
+    status: "new" as LearningStatus,
+    attempts: hasStats ? normalizeCount(item.attempts) : 0,
+    correctCount: hasStats ? normalizeCount(item.correctCount) : 0,
+    wrongCount: hasStats ? normalizeCount(item.wrongCount) : 0,
+    correctStreak: hasStats ? normalizeCount(item.correctStreak) : 0,
+    wrongStreak: hasStats ? normalizeCount(item.wrongStreak) : 0,
+    lastTestedAt: hasStats ? normalizeDate(item.lastTestedAt) : undefined,
+    lastWrongAt: hasStats ? normalizeDate(item.lastWrongAt) : undefined,
+    createdAt: typeof item.createdAt === "string" ? item.createdAt : now(),
+    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : now()
+  };
+
+  return {
+    ...normalized,
+    status: hasStats ? deriveLearningStatus(normalized) : "new"
+  };
+};
 
 const normalizeAttempt = (attempt: Partial<QuizAttempt>): QuizAttempt => ({
   itemId: typeof attempt.itemId === "string" ? attempt.itemId : createId(),
@@ -125,6 +190,13 @@ const mergeBuiltinListWithLocalState = (storedList: WordList): WordList => {
       return {
         ...item,
         status: storedItem.status,
+        attempts: storedItem.attempts,
+        correctCount: storedItem.correctCount,
+        wrongCount: storedItem.wrongCount,
+        correctStreak: storedItem.correctStreak,
+        wrongStreak: storedItem.wrongStreak,
+        lastTestedAt: storedItem.lastTestedAt,
+        lastWrongAt: storedItem.lastWrongAt,
         updatedAt: storedItem.updatedAt
       };
     }),
@@ -244,6 +316,7 @@ export const createList = (input: {
       word: item.word.trim(),
       translation: item.translation.trim(),
       status: "new",
+      ...createInitialProgress(),
       createdAt: timestamp,
       updatedAt: timestamp
     })),
@@ -282,9 +355,66 @@ export const createItem = (input: {
     word: input.word.trim(),
     translation: input.translation.trim(),
     status: "new",
+    ...createInitialProgress(),
     createdAt: timestamp,
     updatedAt: timestamp
   };
+};
+
+export const applyAttemptsToItems = (
+  items: VocabularyItem[],
+  attempts: QuizAttempt[],
+  timestamp = now()
+): VocabularyItem[] => {
+  if (!attempts.length) {
+    return items;
+  }
+
+  const attemptsByItem = new Map<string, QuizAttempt[]>();
+  attempts.forEach((attempt) => {
+    attemptsByItem.set(attempt.itemId, [
+      ...(attemptsByItem.get(attempt.itemId) ?? []),
+      attempt
+    ]);
+  });
+
+  return items.map((item) => {
+    const itemAttempts = attemptsByItem.get(item.id);
+
+    if (!itemAttempts?.length) {
+      return item;
+    }
+
+    return itemAttempts.reduce<VocabularyItem>((nextItem, attempt) => {
+      const nextAttempts = nextItem.attempts + 1;
+      const progress = attempt.isCorrect
+        ? {
+            attempts: nextAttempts,
+            correctCount: nextItem.correctCount + 1,
+            wrongCount: nextItem.wrongCount,
+            correctStreak: nextItem.correctStreak + 1,
+            wrongStreak: 0,
+            lastTestedAt: timestamp,
+            lastWrongAt: nextItem.lastWrongAt
+          }
+        : {
+            attempts: nextAttempts,
+            correctCount: nextItem.correctCount,
+            wrongCount: nextItem.wrongCount + 1,
+            correctStreak: 0,
+            wrongStreak: nextItem.wrongStreak + 1,
+            lastTestedAt: timestamp,
+            lastWrongAt: timestamp
+          };
+
+      return {
+        ...nextItem,
+        ...progress,
+        status: deriveLearningStatus(progress),
+        updatedAt: timestamp
+      };
+    }, item);
+  });
 };
 
 export const touchList = (list: WordList): WordList => ({

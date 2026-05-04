@@ -25,6 +25,11 @@ const makeItems = (
     word: item.word,
     translation: item.translation,
     status: "new",
+    attempts: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    correctStreak: 0,
+    wrongStreak: 0,
     createdAt: BUILTIN_CREATED_AT,
     updatedAt: BUILTIN_CREATED_AT
   }));

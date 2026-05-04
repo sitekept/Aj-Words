@@ -328,7 +328,7 @@ blockquote {
 }
 
 .button-sm {
-  min-height: 40px;
+  min-height: 44px;
   padding: 8px 12px;
   font-size: 0.92rem;
 }
@@ -431,7 +431,8 @@ blockquote {
 .review-panel,
 .history-row,
 .attempt-card,
-.test-review-panel {
+.test-review-panel,
+.insight-card {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.9);
@@ -1073,6 +1074,43 @@ blockquote {
   gap: 12px;
 }
 
+.progress-insights {
+  display: grid;
+  gap: 12px;
+}
+
+.progress-insights h2 {
+  margin-bottom: 0;
+}
+
+.insight-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.insight-card {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+}
+
+.insight-card strong {
+  color: var(--primary-strong);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.insight-card span {
+  color: var(--text);
+  font-weight: 850;
+}
+
+.insight-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .result-panel,
 .review-panel {
   padding: 16px;
@@ -1477,7 +1515,8 @@ blockquote {
   }
 
   .choice-grid,
-  .result-grid {
+  .result-grid,
+  .insight-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1498,6 +1537,10 @@ blockquote {
 
   .welcome-panel {
     grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  }
+
+  .insight-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
