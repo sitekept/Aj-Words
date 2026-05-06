@@ -1,4 +1,4 @@
-const CACHE_NAME = "aj-words-v1";
+const CACHE_NAME = "aj-words-v2";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -78,6 +78,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (url.pathname.startsWith("/_next/")) {
+    return;
+  }
+
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
@@ -91,11 +95,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname.startsWith("/icons/") ||
-    url.pathname === "/apple-touch-icon.png"
-  ) {
+  if (url.pathname.startsWith("/icons/") || url.pathname === "/apple-touch-icon.png") {
     event.respondWith(staleWhileRevalidate(request));
     return;
   }

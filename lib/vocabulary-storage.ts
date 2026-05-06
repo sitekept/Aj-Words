@@ -1,4 +1,5 @@
 import type {
+  FlashcardAssessment,
   LearningStatus,
   ListProgress,
   QuizAttempt,
@@ -416,6 +417,46 @@ export const applyAttemptsToItems = (
     }, item);
   });
 };
+
+export const applyFlashcardAssessmentToItems = (
+  items: VocabularyItem[],
+  itemId: string,
+  outcome: FlashcardAssessment,
+  timestamp = now()
+): VocabularyItem[] =>
+  items.map((item) => {
+    if (item.id !== itemId) {
+      return item;
+    }
+
+    const progress =
+      outcome === "mastered"
+        ? {
+            attempts: Math.max(item.attempts + 1, MIN_MASTERED_ATTEMPTS),
+            correctCount: Math.max(item.correctCount + 1, MIN_MASTERED_ATTEMPTS),
+            wrongCount: item.wrongCount,
+            correctStreak: Math.max(item.correctStreak + 1, MASTERED_STREAK),
+            wrongStreak: 0,
+            lastTestedAt: timestamp,
+            lastWrongAt: item.lastWrongAt
+          }
+        : {
+            attempts: item.attempts + 1,
+            correctCount: item.correctCount,
+            wrongCount: item.wrongCount + 1,
+            correctStreak: 0,
+            wrongStreak: item.wrongStreak + 1,
+            lastTestedAt: timestamp,
+            lastWrongAt: timestamp
+          };
+
+    return {
+      ...item,
+      ...progress,
+      status: deriveLearningStatus(progress),
+      updatedAt: timestamp
+    };
+  });
 
 export const touchList = (list: WordList): WordList => ({
   ...list,

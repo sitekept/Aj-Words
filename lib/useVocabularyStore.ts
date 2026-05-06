@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  applyFlashcardAssessmentToItems,
   applyAttemptsToItems,
   createItem,
   createList,
@@ -13,6 +14,7 @@ import {
   touchList
 } from "@/lib/vocabulary-storage";
 import type {
+  FlashcardAssessment,
   QuizAttempt,
   QuizMode,
   WordList
@@ -225,6 +227,26 @@ export const useVocabularyStore = () => {
     );
   }, []);
 
+  const recordFlashcardProgress = useCallback(
+    (listId: string, itemId: string, outcome: FlashcardAssessment) => {
+      setLists((current) =>
+        current.map((list) =>
+          list.id === listId
+            ? touchList({
+                ...list,
+                items: applyFlashcardAssessmentToItems(
+                  list.items,
+                  itemId,
+                  outcome
+                )
+              })
+            : list
+        )
+      );
+    },
+    []
+  );
+
   const addTestHistory = useCallback(
     (listId: string, input: { attempts: QuizAttempt[]; mode: QuizMode }) => {
       const nextEntry = createTestHistoryEntry(input);
@@ -301,6 +323,7 @@ export const useVocabularyStore = () => {
     updateWord,
     deleteWord,
     recordQuizProgress,
+    recordFlashcardProgress,
     addTestHistory,
     importLists
   };

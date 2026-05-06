@@ -874,7 +874,103 @@ blockquote {
 }
 
 .flashcard-shell {
+  display: grid;
+  gap: 10px;
+  overflow: hidden;
+  padding: 4px;
   perspective: 1600px;
+}
+
+.flashcard-swipe-rail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flashcard-swipe-rail span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.flashcard-swipe-rail .learning {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.flashcard-swipe-rail .mastered {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.flashcard-stage {
+  position: relative;
+  min-height: 360px;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 210ms ease,
+    transform 240ms ease;
+  touch-action: pan-y;
+  will-change: transform, opacity;
+}
+
+.flashcard-stage.is-dragging {
+  transition: none;
+}
+
+.flashcard-stage.is-exiting-learning {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(-120vw, 0, 0) rotate(-18deg);
+}
+
+.flashcard-stage.is-exiting-mastered {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(120vw, 0, 0) rotate(18deg);
+}
+
+.flashcard-decision {
+  position: absolute;
+  top: 24px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.84rem;
+  font-weight: 900;
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+  pointer-events: none;
+}
+
+.flashcard-decision-learning {
+  left: 20px;
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.flashcard-decision-mastered {
+  right: 20px;
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.flashcard-stage.intent-learning .flashcard-decision-learning,
+.flashcard-stage.intent-mastered .flashcard-decision-mastered {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .flashcard {
@@ -885,8 +981,14 @@ blockquote {
   border: 0;
   background: transparent;
   padding: 0;
+  cursor: grab;
   transform-style: preserve-3d;
   transition: transform 300ms ease;
+  touch-action: pan-y;
+}
+
+.flashcard:active {
+  cursor: grabbing;
 }
 
 .flashcard.is-flipped {
@@ -954,6 +1056,55 @@ blockquote {
 
 .flashcard-actions .button {
   flex: 1 1 140px;
+}
+
+.flashcard-summary {
+  display: grid;
+  gap: 16px;
+  border: 1px solid rgba(24, 45, 54, 0.08);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--primary-soft), var(--surface-warm));
+  padding: 18px;
+  box-shadow: var(--shadow-3d);
+}
+
+.flashcard-summary h2 {
+  margin-bottom: 0;
+}
+
+.flashcard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flashcard-summary-card {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.88);
+  padding: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.flashcard-summary-card span {
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.flashcard-summary-card strong {
+  color: var(--text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.flashcard-summary-card.learning span {
+  color: var(--warning);
+}
+
+.flashcard-summary-card.mastered span {
+  color: var(--success);
 }
 
 .question-card {

@@ -144,10 +144,14 @@ export function VocabularyApp() {
       return;
     }
 
-    const isLocalhost = ["localhost", "127.0.0.1", "[::1]"].includes(
-      window.location.hostname
-    );
-    const canRegister = window.location.protocol === "https:" || isLocalhost;
+    const host = window.location.hostname;
+    const isLocalDevHost =
+      ["localhost", "127.0.0.1", "::1"].includes(host) ||
+      /^10\./.test(host) ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host) ||
+      /^192\.168\./.test(host) ||
+      /\.local$/.test(host);
+    const canRegister = window.location.protocol === "https:" || isLocalDevHost;
 
     if (process.env.NODE_ENV !== "production" || !canRegister) {
       navigator.serviceWorker
@@ -538,6 +542,9 @@ export function VocabularyApp() {
           {selectedList && view === "flashcards" ? (
             <FlashcardMode
               list={selectedList}
+              onAssess={(itemId, outcome) =>
+                store.recordFlashcardProgress(selectedList.id, itemId, outcome)
+              }
               onBack={() => setView("list")}
             />
           ) : null}

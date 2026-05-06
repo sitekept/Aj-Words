@@ -1,5 +1,7 @@
 export type LearningStatus = "new" | "learning" | "mastered";
 
+export type FlashcardAssessment = "learning" | "mastered";
+
 export type QuizMode = "written" | "choice" | "mixed" | "test" | "full-review";
 
 export type QuizQuestionType = "written" | "choice";
