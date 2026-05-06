@@ -12,9 +12,11 @@ import { Button, cx } from "@/components/ui";
 import type { FlashcardAssessment, WordList } from "@/types/vocabulary";
 
 interface FlashcardModeProps {
+  initialIndex: number;
   list: WordList;
   onAssess: (itemId: string, outcome: FlashcardAssessment) => void;
   onBack: () => void;
+  onPositionChange: (nextIndex: number) => void;
 }
 
 interface DragState {
@@ -37,12 +39,26 @@ const initialDrag: DragState = {
   startY: 0
 };
 
+const getSafeInitialIndex = (value: number, total: number) => {
+  if (!total || !Number.isFinite(value)) {
+    return 0;
+  }
+
+  const nextIndex = Math.floor(value);
+  return nextIndex >= 0 && nextIndex < total ? nextIndex : 0;
+};
+
 export function FlashcardMode({
+  initialIndex,
   list,
   onAssess,
-  onBack
+  onBack,
+  onPositionChange
 }: FlashcardModeProps) {
-  const [index, setIndex] = useState(0);
+  const cards = useMemo(() => list.items, [list.items]);
+  const [index, setIndex] = useState(() =>
+    getSafeInitialIndex(initialIndex, list.items.length)
+  );
   const [flipped, setFlipped] = useState(false);
   const [drag, setDrag] = useState<DragState>(initialDrag);
   const [exitDirection, setExitDirection] = useState<FlashcardAssessment | null>(null);
@@ -50,18 +66,17 @@ export function FlashcardMode({
   const [summary, setSummary] = useState({ learning: 0, mastered: 0 });
   const suppressClickRef = useRef(false);
   const resolvingRef = useRef(false);
-  const cards = useMemo(() => list.items, [list.items]);
   const current = cards[index];
 
   useEffect(() => {
-    setIndex(0);
+    setIndex(getSafeInitialIndex(initialIndex, cards.length));
     setFlipped(false);
     setDrag(initialDrag);
     setExitDirection(null);
     setComplete(false);
     setSummary({ learning: 0, mastered: 0 });
     resolvingRef.current = false;
-  }, [list.id]);
+  }, [cards.length, initialIndex, list.id]);
 
   const resetDrag = () => {
     setDrag(initialDrag);
@@ -81,11 +96,13 @@ export function FlashcardMode({
 
     resolvingRef.current = true;
     const isLastCard = index >= cards.length - 1;
+    const nextIndex = isLastCard ? 0 : index + 1;
     setExitDirection(outcome);
     setSummary((value) => ({
       ...value,
       [outcome]: value[outcome] + 1
     }));
+    onPositionChange(nextIndex);
     onAssess(current.id, outcome);
 
     window.setTimeout(() => {
@@ -105,6 +122,7 @@ export function FlashcardMode({
   };
 
   const restart = () => {
+    onPositionChange(0);
     setIndex(0);
     setFlipped(false);
     setDrag(initialDrag);

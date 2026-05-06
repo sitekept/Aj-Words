@@ -53,6 +53,63 @@ type TransferNotice = {
 } | null;
 
 const UI_STATE_KEY = "ajwords.v1.ui";
+const FLASHCARD_STATE_KEY = "ajwords.v1.flashcards";
+
+type FlashcardPositionStore = Record<
+  string,
+  {
+    nextIndex: number;
+    updatedAt: string;
+  }
+>;
+
+const readFlashcardPositions = (): FlashcardPositionStore => {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    const raw = window.localStorage.getItem(FLASHCARD_STATE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as FlashcardPositionStore)
+      : {};
+  } catch {
+    return {};
+  }
+};
+
+const normalizeFlashcardIndex = (value: unknown, total: number) => {
+  if (!total || typeof value !== "number" || !Number.isFinite(value)) {
+    return 0;
+  }
+
+  const nextIndex = Math.floor(value);
+  return nextIndex >= 0 && nextIndex < total ? nextIndex : 0;
+};
+
+const readFlashcardPosition = (listId: string, total: number) => {
+  const positions = readFlashcardPositions();
+  return normalizeFlashcardIndex(positions[listId]?.nextIndex, total);
+};
+
+const writeFlashcardPosition = (listId: string, nextIndex: number) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const positions = readFlashcardPositions();
+  const safeNextIndex = Number.isFinite(nextIndex)
+    ? Math.max(0, Math.floor(nextIndex))
+    : 0;
+
+  positions[listId] = {
+    nextIndex: safeNextIndex,
+    updatedAt: new Date().toISOString()
+  };
+  window.localStorage.setItem(FLASHCARD_STATE_KEY, JSON.stringify(positions));
+};
 
 const readPreferredListId = () => {
   if (typeof window === "undefined") {
@@ -107,6 +164,7 @@ export function VocabularyApp() {
   const [wordFormSession, setWordFormSession] = useState(0);
   const [quizMode, setQuizMode] = useState<QuizMode>("written");
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
+  const [flashcardInitialIndex, setFlashcardInitialIndex] = useState(0);
 
   const selectedList = selectedListId
     ? store.listMap.get(selectedListId) ?? null
@@ -286,6 +344,11 @@ export function VocabularyApp() {
     setQuizMode(mode);
     setQuizAttempts([]);
     setView("quiz");
+  };
+
+  const startFlashcards = (list: WordList) => {
+    setFlashcardInitialIndex(readFlashcardPosition(list.id, list.items.length));
+    setView("flashcards");
   };
 
   const exportLists = () => {
@@ -534,18 +597,22 @@ export function VocabularyApp() {
                 setWordFormOpen(true);
               }}
               onReviewTest={reviewTest}
-              onStartFlashcards={() => setView("flashcards")}
+              onStartFlashcards={() => startFlashcards(selectedList)}
               onStartQuiz={startQuiz}
             />
           ) : null}
 
           {selectedList && view === "flashcards" ? (
             <FlashcardMode
+              initialIndex={flashcardInitialIndex}
               list={selectedList}
               onAssess={(itemId, outcome) =>
                 store.recordFlashcardProgress(selectedList.id, itemId, outcome)
               }
               onBack={() => setView("list")}
+              onPositionChange={(nextIndex) =>
+                writeFlashcardPosition(selectedList.id, nextIndex)
+              }
             />
           ) : null}
 
