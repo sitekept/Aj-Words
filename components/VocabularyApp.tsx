@@ -12,6 +12,11 @@ import { QuizRunner } from "@/components/QuizRunner";
 import { ScoreScreen } from "@/components/ScoreScreen";
 import { WordFormModal } from "@/components/WordFormModal";
 import { Button } from "@/components/ui";
+import {
+  clearQuizSession,
+  readQuizSession,
+  writeQuizSession
+} from "@/lib/quiz-session-storage";
 import { useVocabularyStore } from "@/lib/useVocabularyStore";
 import {
   createExportPayload,
@@ -21,6 +26,7 @@ import {
 import type {
   QuizAttempt,
   QuizMode,
+  QuizSessionState,
   TestHistoryEntry,
   VocabularyItem,
   WordList
@@ -164,6 +170,8 @@ export function VocabularyApp() {
   const [wordFormSession, setWordFormSession] = useState(0);
   const [quizMode, setQuizMode] = useState<QuizMode>("written");
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
+  const [quizInitialSession, setQuizInitialSession] =
+    useState<QuizSessionState | null>(null);
   const [flashcardInitialIndex, setFlashcardInitialIndex] = useState(0);
 
   const selectedList = selectedListId
@@ -341,6 +349,11 @@ export function VocabularyApp() {
   };
 
   const startQuiz = (mode: QuizMode) => {
+    if (!selectedList) {
+      return;
+    }
+
+    setQuizInitialSession(readQuizSession(selectedList.id, mode));
     setQuizMode(mode);
     setQuizAttempts([]);
     setView("quiz");
@@ -450,6 +463,7 @@ export function VocabularyApp() {
   };
 
   const reviewTest = (entry: TestHistoryEntry) => {
+    setQuizInitialSession(null);
     setQuizMode(entry.mode);
     setQuizAttempts(entry.attempts);
     setView("score");
@@ -618,18 +632,24 @@ export function VocabularyApp() {
 
           {selectedList && view === "quiz" ? (
             <QuizRunner
+              initialSession={quizInitialSession}
               list={selectedList}
               mode={quizMode}
+              onAttemptFinalized={(attempt) =>
+                store.recordQuizProgress(selectedList.id, [attempt])
+              }
               onBack={() => setView("list")}
               onFinish={(attempts) => {
-                store.recordQuizProgress(selectedList.id, attempts);
+                clearQuizSession(selectedList.id, quizMode);
                 store.addTestHistory(selectedList.id, {
                   attempts,
                   mode: quizMode
                 });
                 setQuizAttempts(attempts);
+                setQuizInitialSession(null);
                 setView("score");
               }}
+              onSessionChange={writeQuizSession}
             />
           ) : null}
 
@@ -639,7 +659,12 @@ export function VocabularyApp() {
               mode={quizMode}
               attempts={quizAttempts}
               onBack={() => setView("list")}
-              onRepeat={() => setView("quiz")}
+              onRepeat={() => {
+                clearQuizSession(selectedList.id, quizMode);
+                setQuizAttempts([]);
+                setQuizInitialSession(null);
+                setView("quiz");
+              }}
             />
           ) : null}
         </section>
