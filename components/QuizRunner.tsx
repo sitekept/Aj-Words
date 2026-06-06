@@ -1,12 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { Button, cx } from "@/components/ui";
 import type {
   QuizAttempt,
   QuizMode,
   QuizQuestionType,
+  QuizSessionState,
   VocabularyItem,
   WordList
 } from "@/types/vocabulary";
@@ -18,10 +19,13 @@ interface BuiltQuestion {
 }
 
 interface QuizRunnerProps {
+  initialSession: QuizSessionState | null;
   list: WordList;
   mode: QuizMode;
   onBack: () => void;
+  onAttemptFinalized: (attempt: QuizAttempt) => void;
   onFinish: (attempts: QuizAttempt[]) => void;
+  onSessionChange: (session: QuizSessionState) => void;
 }
 
 const modeTitles: Record<QuizMode, string> = {
@@ -131,22 +135,114 @@ const buildQuestions = (list: WordList, mode: QuizMode): BuiltQuestion[] => {
   });
 };
 
-export function QuizRunner({ list, mode, onBack, onFinish }: QuizRunnerProps) {
-  const questions = useMemo(() => buildQuestions(list, mode), [list, mode]);
-  const [index, setIndex] = useState(0);
-  const [typedAnswer, setTypedAnswer] = useState("");
-  const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
-  const [feedback, setFeedback] = useState<QuizAttempt | null>(null);
+const hydrateQuestions = (
+  list: WordList,
+  session: QuizSessionState | null
+): BuiltQuestion[] => {
+  if (!session?.questions.length) {
+    return [];
+  }
+
+  const itemsById = new Map(list.items.map((item) => [item.id, item]));
+
+  return session.questions.flatMap((question) => {
+    const item = itemsById.get(question.itemId);
+
+    return item
+      ? [{
+          item,
+          type: question.type,
+          options: question.options
+        }]
+      : [];
+  });
+};
+
+const createInitialState = (
+  list: WordList,
+  mode: QuizMode,
+  session: QuizSessionState | null
+) => {
+  const savedQuestions = hydrateQuestions(list, session);
+  const questions = savedQuestions.length ? savedQuestions : buildQuestions(list, mode);
+  const validQuestionIds = new Set(questions.map((question) => question.item.id));
+  const attempts =
+    session?.attempts.filter((attempt) => validQuestionIds.has(attempt.itemId)) ?? [];
+  const feedback =
+    session?.feedback && validQuestionIds.has(session.feedback.itemId)
+      ? session.feedback
+      : null;
+  const safeIndex =
+    session && questions.length
+      ? Math.min(Math.max(0, session.index), questions.length - 1)
+      : 0;
+
+  return {
+    attempts,
+    feedback,
+    index: safeIndex,
+    questions,
+    selectedAnswer: session?.selectedAnswer ?? "",
+    typedAnswer: session?.typedAnswer ?? ""
+  };
+};
+
+const serializeQuestions = (questions: BuiltQuestion[]) =>
+  questions.map((question) => ({
+    itemId: question.item.id,
+    type: question.type,
+    options: question.options
+  }));
+
+export function QuizRunner({
+  initialSession,
+  list,
+  mode,
+  onBack,
+  onAttemptFinalized,
+  onFinish,
+  onSessionChange
+}: QuizRunnerProps) {
+  const [sessionState, setSessionState] = useState(() =>
+    createInitialState(list, mode, initialSession)
+  );
+  const { attempts, feedback, index, questions, selectedAnswer, typedAnswer } =
+    sessionState;
   const current = questions[index];
 
   useEffect(() => {
-    setIndex(0);
-    setTypedAnswer("");
-    setSelectedAnswer("");
-    setAttempts([]);
-    setFeedback(null);
-  }, [list.id, mode]);
+    setSessionState(createInitialState(list, mode, initialSession));
+    // Progress updates replace the list object; resetting here would restart the quiz.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSession, list.id, mode]);
+
+  useEffect(() => {
+    if (!questions.length) {
+      return;
+    }
+
+    onSessionChange({
+      attempts,
+      feedback,
+      index,
+      listId: list.id,
+      mode,
+      questions: serializeQuestions(questions),
+      selectedAnswer,
+      typedAnswer,
+      updatedAt: new Date().toISOString()
+    });
+  }, [
+    attempts,
+    feedback,
+    index,
+    list.id,
+    mode,
+    onSessionChange,
+    questions,
+    selectedAnswer,
+    typedAnswer
+  ]);
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -170,8 +266,11 @@ export function QuizRunner({ list, mode, onBack, onFinish }: QuizRunnerProps) {
       options: current.options
     };
 
-    setAttempts((value) => [...value, attempt]);
-    setFeedback(attempt);
+    setSessionState((value) => ({
+      ...value,
+      attempts: [...value.attempts, attempt],
+      feedback: attempt
+    }));
   };
 
   const handleNext = () => {
@@ -180,15 +279,51 @@ export function QuizRunner({ list, mode, onBack, onFinish }: QuizRunnerProps) {
         ? [...attempts, feedback]
         : attempts;
 
+    if (feedback) {
+      onAttemptFinalized(feedback);
+    }
+
     if (index === questions.length - 1) {
       onFinish(latestAttempts);
       return;
     }
 
-    setIndex((value) => value + 1);
-    setTypedAnswer("");
-    setSelectedAnswer("");
-    setFeedback(null);
+    setSessionState((value) => ({
+      ...value,
+      feedback: null,
+      index: value.index + 1,
+      selectedAnswer: "",
+      typedAnswer: ""
+    }));
+  };
+
+  const markCurrentAnswerCorrect = () => {
+    if (
+      !feedback ||
+      feedback.isCorrect ||
+      feedback.questionType !== "written" ||
+      mode === "test"
+    ) {
+      return;
+    }
+
+    const correctedAttempt = {
+      ...feedback,
+      isCorrect: true
+    };
+
+    setSessionState((value) => ({
+      ...value,
+      attempts: value.attempts.map((attempt) =>
+        attempt === feedback ||
+        (attempt.itemId === feedback.itemId &&
+          attempt.prompt === feedback.prompt &&
+          attempt.userAnswer === feedback.userAnswer)
+          ? correctedAttempt
+          : attempt
+      ),
+      feedback: correctedAttempt
+    }));
   };
 
   if (!current) {
@@ -205,6 +340,11 @@ export function QuizRunner({ list, mode, onBack, onFinish }: QuizRunnerProps) {
   }
 
   const answered = Boolean(feedback);
+  const canMarkRight =
+    Boolean(feedback) &&
+    !feedback?.isCorrect &&
+    feedback?.questionType === "written" &&
+    mode !== "test";
   const canSubmit =
     current.type === "choice" ? Boolean(selectedAnswer) : Boolean(typedAnswer.trim());
 
@@ -248,7 +388,12 @@ export function QuizRunner({ list, mode, onBack, onFinish }: QuizRunnerProps) {
                 )}
                 disabled={answered}
                 aria-pressed={selectedAnswer === option}
-                onClick={() => setSelectedAnswer(option)}
+                onClick={() =>
+                  setSessionState((value) => ({
+                    ...value,
+                    selectedAnswer: option
+                  }))
+                }
               >
                 <Circle size={15} />
                 {option}
@@ -263,7 +408,12 @@ export function QuizRunner({ list, mode, onBack, onFinish }: QuizRunnerProps) {
               value={typedAnswer}
               disabled={answered}
               autoComplete="off"
-              onChange={(event) => setTypedAnswer(event.target.value)}
+              onChange={(event) =>
+                setSessionState((value) => ({
+                  ...value,
+                  typedAnswer: event.target.value
+                }))
+              }
             />
           </label>
         )}
@@ -288,9 +438,20 @@ export function QuizRunner({ list, mode, onBack, onFinish }: QuizRunnerProps) {
               Check
             </Button>
           ) : (
-            <Button type="button" onClick={handleNext}>
-              {index === questions.length - 1 ? "Finish" : "Next"}
-            </Button>
+            <>
+              {canMarkRight ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={markCurrentAnswerCorrect}
+                >
+                  J&apos;avais raison
+                </Button>
+              ) : null}
+              <Button type="button" onClick={handleNext}>
+                {index === questions.length - 1 ? "Finish" : "Next"}
+              </Button>
+            </>
           )}
         </div>
       </form>

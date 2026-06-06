@@ -49,6 +49,24 @@ export interface QuizAttempt {
   options?: string[];
 }
 
+export interface QuizSessionQuestion {
+  itemId: string;
+  type: QuizQuestionType;
+  options?: string[];
+}
+
+export interface QuizSessionState {
+  attempts: QuizAttempt[];
+  feedback: QuizAttempt | null;
+  index: number;
+  listId: string;
+  mode: QuizMode;
+  questions: QuizSessionQuestion[];
+  selectedAnswer: string;
+  typedAnswer: string;
+  updatedAt: string;
+}
+
 export interface TestHistoryEntry {
   id: string;
   mode: QuizMode;

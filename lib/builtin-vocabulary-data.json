@@ -4,7 +4,7 @@
     "title": "Mots Darija",
     "language": "Darija",
     "createdAt": "2026-04-30T00:00:00.000Z",
-    "updatedAt": "2026-05-07T02:56:10.391Z",
+    "updatedAt": "2026-05-18T13:57:56.260Z",
     "items": [
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-001",
@@ -1747,6 +1747,19 @@
         "wrongStreak": 0,
         "createdAt": "2026-04-30T00:00:00.000Z",
         "updatedAt": "2026-04-30T00:00:00.000Z"
+      },
+      {
+        "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-134",
+        "word": "sali",
+        "translation": "prier",
+        "status": "new",
+        "attempts": 0,
+        "correctCount": 0,
+        "wrongCount": 0,
+        "correctStreak": 0,
+        "wrongStreak": 0,
+        "createdAt": "2026-05-18T13:57:56.260Z",
+        "updatedAt": "2026-05-18T13:57:56.260Z"
       }
     ],
     "testHistory": []
