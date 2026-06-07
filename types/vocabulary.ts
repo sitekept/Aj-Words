@@ -2,7 +2,7 @@ export type LearningStatus = "new" | "learning" | "mastered";
 
 export type FlashcardAssessment = "learning" | "mastered";
 
-export type QuizMode = "written" | "choice" | "mixed" | "test" | "full-review";
+export type QuizMode = "written" | "choice" | "mixed" | "test" | "full-review" | "review-due";
 
 export type QuizQuestionType = "written" | "choice";
 

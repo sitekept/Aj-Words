@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { Download, Home, Plus, Upload } from "lucide-react";
+import { BellRing, Download, Home, Plus, Upload } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { FlashcardMode } from "@/components/FlashcardMode";
 import { ListDetail } from "@/components/ListDetail";
@@ -17,6 +17,7 @@ import {
   readQuizSession,
   writeQuizSession
 } from "@/lib/quiz-session-storage";
+import { countDue, getDueItems } from "@/lib/srs";
 import { useVocabularyStore } from "@/lib/useVocabularyStore";
 import {
   createExportPayload,
@@ -32,6 +33,9 @@ import type {
   WordList
 } from "@/types/vocabulary";
 
+// Synthetic list id used for cross-list daily-review sessions.
+const REVIEW_LIST_ID = "__review__";
+
 const AJWordsScene = dynamic(
   () => import("@/components/AJWordsScene").then((mod) => mod.AJWordsScene),
   {
@@ -46,7 +50,7 @@ const AJWordsScene = dynamic(
   }
 );
 
-type AppView = "home" | "list" | "flashcards" | "quiz" | "score";
+type AppView = "home" | "list" | "flashcards" | "quiz" | "score" | "review";
 
 type ListFormState =
   | { mode: "create" }
@@ -173,6 +177,9 @@ export function VocabularyApp() {
   const [quizInitialSession, setQuizInitialSession] =
     useState<QuizSessionState | null>(null);
   const [flashcardInitialIndex, setFlashcardInitialIndex] = useState(0);
+  // Cross-list daily review state.
+  const [reviewList, setReviewList] = useState<WordList | null>(null);
+  const reviewItemListMapRef = useRef<Map<string, string>>(new Map());
 
   const selectedList = selectedListId
     ? store.listMap.get(selectedListId) ?? null
@@ -253,6 +260,7 @@ export function VocabularyApp() {
   const goHome = () => {
     setSelectedListId(null);
     setView("home");
+    setReviewList(null);
     writePreferredListId(null);
   };
 
@@ -362,6 +370,35 @@ export function VocabularyApp() {
   const startFlashcards = (list: WordList) => {
     setFlashcardInitialIndex(readFlashcardPosition(list.id, list.items.length));
     setView("flashcards");
+  };
+
+  const startCrossListReview = () => {
+    const now = new Date().toISOString();
+    const itemListMap = new Map<string, string>();
+    const allDueItems: VocabularyItem[] = [];
+
+    for (const list of store.lists) {
+      for (const item of getDueItems(list.items, now)) {
+        itemListMap.set(item.id, list.id);
+        allDueItems.push(item);
+      }
+    }
+
+    if (!allDueItems.length) {
+      return;
+    }
+
+    reviewItemListMapRef.current = itemListMap;
+    setReviewList({
+      id: REVIEW_LIST_ID,
+      title: "Daily review",
+      items: allDueItems,
+      testHistory: [],
+      createdAt: now,
+      updatedAt: now
+    });
+    setSelectedListId(null);
+    setView("review");
   };
 
   const exportLists = () => {
@@ -549,7 +586,7 @@ export function VocabularyApp() {
         </div>
       ) : null}
 
-      <main className={`workspace ${hasSelectedList ? "has-selection" : ""}`}>
+      <main className={`workspace ${hasSelectedList || view === "review" ? "has-selection" : ""}`}>
         <aside className="library-panel">
           <ListLibrary
             lists={store.lists}
@@ -562,7 +599,7 @@ export function VocabularyApp() {
         </aside>
 
         <section className="workspace-panel">
-          {!hasSelectedList ? (
+          {!hasSelectedList && view !== "review" ? (
             <section className="welcome-panel" aria-labelledby="welcome-title">
               <div className="welcome-copy">
                 <p className="eyebrow">AJ Words</p>
@@ -578,6 +615,22 @@ export function VocabularyApp() {
                   >
                     Create list
                   </Button>
+                  {(() => {
+                    const now = new Date().toISOString();
+                    const totalDue = store.lists.reduce(
+                      (sum, list) => sum + countDue(list.items, now),
+                      0
+                    );
+                    return totalDue > 0 ? (
+                      <Button
+                        variant="secondary"
+                        icon={<BellRing size={18} />}
+                        onClick={startCrossListReview}
+                      >
+                        Review due ({totalDue})
+                      </Button>
+                    ) : null;
+                  })()}
                   <span className="welcome-metric">
                     <strong>{store.lists.length}</strong>
                     {store.lists.length === 1 ? " saved list" : " saved lists"}
@@ -586,6 +639,23 @@ export function VocabularyApp() {
               </div>
               <AJWordsScene />
             </section>
+          ) : null}
+
+          {view === "review" && reviewList ? (
+            <QuizRunner
+              initialSession={null}
+              list={reviewList}
+              mode="review-due"
+              onAttemptFinalized={(attempt) => {
+                const listId = reviewItemListMapRef.current.get(attempt.itemId);
+                if (listId) {
+                  store.recordQuizProgress(listId, [attempt]);
+                }
+              }}
+              onBack={goHome}
+              onFinish={goHome}
+              onSessionChange={() => {}}
+            />
           ) : null}
 
           {hasSelectedList && !selectedList ? (
