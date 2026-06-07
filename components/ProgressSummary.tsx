@@ -1,4 +1,5 @@
-import { CheckCircle2, Circle, Clock3 } from "lucide-react";
+import { BellRing, CheckCircle2, Circle, Clock3 } from "lucide-react";
+import { countDue } from "@/lib/srs";
 import { getProgress } from "@/lib/vocabulary-storage";
 import type { VocabularyItem } from "@/types/vocabulary";
 
@@ -9,6 +10,7 @@ interface ProgressSummaryProps {
 
 export function ProgressSummary({ items, compact }: ProgressSummaryProps) {
   const progress = getProgress(items);
+  const dueCount = countDue(items, new Date().toISOString());
   const masteredWidth = progress.total
     ? `${(progress.mastered / progress.total) * 100}%`
     : "0%";
@@ -46,6 +48,12 @@ export function ProgressSummary({ items, compact }: ProgressSummaryProps) {
           <dd>{progress.fresh}</dd>
         </div>
       </dl>
+      {dueCount > 0 ? (
+        <p className="due-badge" aria-live="polite">
+          <BellRing size={13} aria-hidden="true" />
+          {dueCount} due for review
+        </p>
+      ) : null}
     </div>
   );
 }

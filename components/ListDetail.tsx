@@ -1,5 +1,6 @@
 import {
   ArrowLeft,
+  BellRing,
   BookOpen,
   Brain,
   ClipboardCheck,
@@ -10,6 +11,7 @@ import {
   Shuffle,
   Trash2
 } from "lucide-react";
+import { countDue } from "@/lib/srs";
 import { ProgressSummary } from "@/components/ProgressSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TestHistory } from "@/components/TestHistory";
@@ -48,6 +50,7 @@ export function ListDetail({
 }: ListDetailProps) {
   const hasWords = list.items.length > 0;
   const hasChoiceSet = list.items.length >= 4;
+  const dueCount = countDue(list.items, new Date().toISOString());
 
   const confirmWordDelete = (item: VocabularyItem) => {
     if (window.confirm(`Delete "${item.word}" from this list?`)) {
@@ -81,6 +84,14 @@ export function ListDetail({
       <ProgressSummary items={list.items} />
 
       <div className="mode-grid" aria-label="Study modes">
+        {dueCount > 0 ? (
+          <Button
+            icon={<BellRing size={18} />}
+            onClick={() => onStartQuiz("review-due")}
+          >
+            Review due ({dueCount})
+          </Button>
+        ) : null}
         <Button
           icon={<ClipboardCheck size={18} />}
           onClick={() => onStartQuiz("test")}

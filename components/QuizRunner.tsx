@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { Button, cx } from "@/components/ui";
+import { isDue } from "@/lib/srs";
 import type {
   QuizAttempt,
   QuizMode,
@@ -33,7 +34,8 @@ const modeTitles: Record<QuizMode, string> = {
   choice: "Multiple choice",
   mixed: "Mixed test",
   test: "Test me",
-  "full-review": "Full review"
+  "full-review": "Full review",
+  "review-due": "Daily review"
 };
 
 const shuffle = <T,>(values: T[]) => {
@@ -91,17 +93,39 @@ const getAdaptivePriority = (item: VocabularyItem) => {
   return 1000 + item.wrongCount * 50;
 };
 
-const getSessionItems = (items: VocabularyItem[], mode: QuizMode) => {
+const getSessionItems = (
+  items: VocabularyItem[],
+  mode: QuizMode,
+  now: string
+) => {
   if (mode === "full-review") {
     return shuffle(items);
   }
 
-  const activeItems = items.filter((item) => item.status !== "mastered");
-  const pool = activeItems.length ? activeItems : items;
+  // "review-due": strictly only due cards (button is disabled when none are due).
+  if (mode === "review-due") {
+    return shuffle(items.filter((item) => isDue(item, now)));
+  }
 
-  return shuffle(pool).sort(
-    (first, second) => getAdaptivePriority(second) - getAdaptivePriority(first)
-  );
+  // Prioritize cards that are due for spaced-repetition review (this re-includes
+  // mastered-but-due cards). Fall back to any non-mastered card, then to all,
+  // so a session is never empty.
+  const dueItems = items.filter((item) => isDue(item, now));
+  const activeItems = items.filter((item) => item.status !== "mastered");
+  const pool = dueItems.length
+    ? dueItems
+    : activeItems.length
+      ? activeItems
+      : items;
+
+  return shuffle(pool).sort((first, second) => {
+    const firstDue = first.dueAt ? new Date(first.dueAt).getTime() : 0;
+    const secondDue = second.dueAt ? new Date(second.dueAt).getTime() : 0;
+    if (firstDue !== secondDue) {
+      return firstDue - secondDue;
+    }
+    return getAdaptivePriority(second) - getAdaptivePriority(first);
+  });
 };
 
 const getQuestionType = (
@@ -113,7 +137,7 @@ const getQuestionType = (
     return canUseChoice ? "choice" : "written";
   }
 
-  if (mode === "written") {
+  if (mode === "written" || mode === "review-due") {
     return "written";
   }
 
@@ -121,7 +145,8 @@ const getQuestionType = (
 };
 
 const buildQuestions = (list: WordList, mode: QuizMode): BuiltQuestion[] => {
-  const items = getSessionItems(list.items, mode);
+  const now = new Date().toISOString();
+  const items = getSessionItems(list.items, mode, now);
   const canUseChoice = list.items.length >= 4;
 
   return items.map((item, index) => {

@@ -2,7 +2,7 @@ export type LearningStatus = "new" | "learning" | "mastered";
 
 export type FlashcardAssessment = "learning" | "mastered";
 
-export type QuizMode = "written" | "choice" | "mixed" | "test" | "full-review";
+export type QuizMode = "written" | "choice" | "mixed" | "test" | "full-review" | "review-due";
 
 export type QuizQuestionType = "written" | "choice";
 
@@ -18,6 +18,9 @@ export interface VocabularyItem {
   wrongStreak: number;
   lastTestedAt?: string;
   lastWrongAt?: string;
+  // Spaced-repetition scheduling (Leitner). See lib/srs.ts.
+  box: number;
+  dueAt: string;
   createdAt: string;
   updatedAt: string;
 }
