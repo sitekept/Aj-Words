@@ -144,6 +144,12 @@ const normalizeItem = (item, listId, index) => {
     ...(optionalString(source.lastWrongAt)
       ? { lastWrongAt: optionalString(source.lastWrongAt) }
       : {}),
+    // Preserve spaced-repetition scheduling when an export carries it; absent
+    // values are derived on load by lib/builtin-vocabulary.ts.
+    ...(typeof source.box === "number" ? { box: count(source.box) } : {}),
+    ...(optionalString(source.dueAt)
+      ? { dueAt: optionalString(source.dueAt) }
+      : {}),
     createdAt: requiredString(source.createdAt, new Date().toISOString()),
     updatedAt: requiredString(source.updatedAt, new Date().toISOString())
   };

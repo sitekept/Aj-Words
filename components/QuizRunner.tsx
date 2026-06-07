@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { Button, cx } from "@/components/ui";
+import { isDue } from "@/lib/srs";
 import type {
   QuizAttempt,
   QuizMode,
@@ -91,17 +92,34 @@ const getAdaptivePriority = (item: VocabularyItem) => {
   return 1000 + item.wrongCount * 50;
 };
 
-const getSessionItems = (items: VocabularyItem[], mode: QuizMode) => {
+const getSessionItems = (
+  items: VocabularyItem[],
+  mode: QuizMode,
+  now: string
+) => {
   if (mode === "full-review") {
     return shuffle(items);
   }
 
+  // Prioritize cards that are due for spaced-repetition review (this re-includes
+  // mastered-but-due cards). Fall back to any non-mastered card, then to all,
+  // so a session is never empty.
+  const dueItems = items.filter((item) => isDue(item, now));
   const activeItems = items.filter((item) => item.status !== "mastered");
-  const pool = activeItems.length ? activeItems : items;
+  const pool = dueItems.length
+    ? dueItems
+    : activeItems.length
+      ? activeItems
+      : items;
 
-  return shuffle(pool).sort(
-    (first, second) => getAdaptivePriority(second) - getAdaptivePriority(first)
-  );
+  return shuffle(pool).sort((first, second) => {
+    const firstDue = first.dueAt ? new Date(first.dueAt).getTime() : 0;
+    const secondDue = second.dueAt ? new Date(second.dueAt).getTime() : 0;
+    if (firstDue !== secondDue) {
+      return firstDue - secondDue;
+    }
+    return getAdaptivePriority(second) - getAdaptivePriority(first);
+  });
 };
 
 const getQuestionType = (
@@ -121,7 +139,8 @@ const getQuestionType = (
 };
 
 const buildQuestions = (list: WordList, mode: QuizMode): BuiltQuestion[] => {
-  const items = getSessionItems(list.items, mode);
+  const now = new Date().toISOString();
+  const items = getSessionItems(list.items, mode, now);
   const canUseChoice = list.items.length >= 4;
 
   return items.map((item, index) => {

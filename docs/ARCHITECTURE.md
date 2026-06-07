@@ -74,7 +74,7 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | Type | Key fields | Notes |
 | --- | --- | --- |
 | `WordList` | `id`, `title`, `language?`, `items[]`, `testHistory[]`, `createdAt`, `updatedAt` | Top-level container. |
-| `VocabularyItem` | `id`, `word`, `translation`, `status`, `attempts`, `correctCount`, `wrongCount`, `correctStreak`, `wrongStreak`, `lastTestedAt?`, `lastWrongAt?`, `createdAt`, `updatedAt` | `status` is `new \| learning \| mastered`, always derived. |
+| `VocabularyItem` | `id`, `word`, `translation`, `status`, `attempts`, `correctCount`, `wrongCount`, `correctStreak`, `wrongStreak`, `lastTestedAt?`, `lastWrongAt?`, `box`, `dueAt`, `createdAt`, `updatedAt` | `status` is `new \| learning \| mastered`, always derived from `box`. `box`/`dueAt` drive spaced repetition (see [§7](#7-progress-and-mastery)). |
 | `TestHistoryEntry` | `id`, `mode`, `attempts[]`, `correctCount`, `total`, `score`, `createdAt` | One completed quiz; `score` is a 0–100 percentage. |
 | `QuizAttempt` | `itemId`, `questionType`, `prompt`, `correctAnswer`, `userAnswer`, `isCorrect`, `options?` | `questionType` is `written \| choice`; `options` only for choice. |
 | `ListProgress` | `total`, `mastered`, `learning`, `fresh` | **Derived** (via `getProgress`), never stored. |
@@ -88,6 +88,7 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | `worddeck.v1.lists` | `WordList[]` — every list, including local copies and the progress overlay for builtin lists | `saveLists` (via the store) |
 | `ajwords.v1.ui` | `{ selectedListId }` — last opened list (also mirrored to the `?list=` URL param) | `VocabularyApp` |
 | `ajwords.v1.flashcards` | `{ [listId]: { nextIndex, updatedAt } }` — per-list flashcard resume position | `VocabularyApp` |
+| `ajwords.v1.quizSessions` | `{ [listId:mode]: QuizSessionState }` — in-progress quiz, resumed after reload | `lib/quiz-session-storage.ts` |
 
 ## 4. State and persistence
 
@@ -170,30 +171,37 @@ flowchart TD
 
 ## 7. Progress and mastery
 
-A word's `status` is **always derived** by `deriveLearningStatus`, never read from input:
+Mastery is driven by a **Leitner spaced-repetition engine**
+([`lib/srs.ts`](../lib/srs.ts)). Each `VocabularyItem` carries a `box` (0…`MAX_BOX`) and a
+`dueAt` date. `scheduleNext` promotes a card one box on a correct answer — each box has a
+longer interval (`LEITNER_INTERVALS`, in days) — and demotes it one box, due immediately,
+on a miss.
+
+`status` is **always derived** from the box by `deriveStatusFromBox`, never read from input:
 
 - `attempts <= 0` → `new`
-- `wrongStreak > 0` → `learning`
-- `correctStreak >= MASTERED_STREAK (3)` **and** `attempts >= MIN_MASTERED_ATTEMPTS (3)`
-  → `mastered`
+- `box >= MASTERED_BOX (5)` → `mastered`
 - otherwise → `learning`
 
 ```mermaid
 stateDiagram-v2
   [*] --> new
-  new --> learning: first attempt
-  learning --> mastered: streak ≥ 3 and attempts ≥ 3
-  mastered --> learning: wrong answer
-  learning --> learning: wrong answer
+  new --> learning: first attempt (box 0 to 1)
+  learning --> mastered: reach box 5 (5 correct in a row)
+  mastered --> learning: wrong answer (box down one)
+  learning --> learning: wrong answer (box down one)
 ```
 
-Two functions apply outcomes and then re-derive status:
+Two functions apply outcomes (counters **and** the Leitner schedule), then re-derive status:
 
-- **`applyAttemptsToItems`** — folds a batch of `QuizAttempt`s onto the matching items
-  (increment attempts, bump correct/wrong counts and streaks, set timestamps).
-- **`applyFlashcardAssessmentToItems`** — applies a single swipe. A `mastered` swipe
-  ratchets the counters up to at least the mastery thresholds so one decisive swipe can
-  mark a word mastered; a `learning` swipe records a miss.
+- **`applyAttemptsToItems`** — folds `QuizAttempt`s onto the matching items; called per
+  finalized attempt during a quiz.
+- **`applyFlashcardAssessmentToItems`** — applies a single swipe: `mastered` counts as a
+  correct answer (promote one box), `learning` as a miss (demote one box).
+
+Items saved before the SRS engine are migrated on load in `normalizeItem` via
+`inferSrsFromLegacy` (box derived from the old streak counters, `dueAt` set to now so
+nothing stays hidden).
 
 Completed quizzes are also appended to `list.testHistory`, **capped at the 30 most recent
 entries** (`addTestHistory` slices to 30).
@@ -207,7 +215,8 @@ entries** (`addTestHistory` slices to 30).
 flowchart TD
   I["list.items"] --> Q{"mode == full-review?"}
   Q -- yes --> SH["shuffle all items"]
-  Q -- no --> DR["drop mastered items"] --> SO["sort by getAdaptivePriority (desc)"]
+  Q -- no --> DUE["due items first (isDue), else non-mastered, else all"]
+  DUE --> SO["sort most-overdue first, getAdaptivePriority tiebreak"]
   SH --> QT["per index: getQuestionType"]
   SO --> QT
   QT --> CH{"choice and items ≥ 4?"}
@@ -216,9 +225,9 @@ flowchart TD
 ```
 
 - **Selection (`getSessionItems`)** — `full-review` shuffles everything; all other modes
-  drop already-mastered words (falling back to the full set if none remain) and order
-  the rest by `getAdaptivePriority`, which ranks items by wrong streak, recency of
-  mistakes, and learning state so weak words come first.
+  prioritize cards that are **due** for review (`isDue` against `dueAt`), which re-includes
+  mastered-but-due cards. It falls back to non-mastered, then to all, so a session is never
+  empty, ordering the pool most-overdue-first with `getAdaptivePriority` as a tiebreak.
 - **Question type (`getQuestionType`)** — `written` is always written; `choice` is
   multiple-choice when possible; `mixed`/`test` alternate by index. Multiple choice
   requires at least 4 items in the list (`canUseChoice`), otherwise it falls back to
@@ -228,11 +237,13 @@ flowchart TD
 - **Grading** — answers are compared after `normalizeAnswer` (trim, lowercase, collapse
   internal whitespace).
 
-On finish, `VocabularyApp` calls `recordQuizProgress` (updates word stats) and
-`addTestHistory` (logs the attempt), then shows
-[`ScoreScreen`](../components/ScoreScreen.tsx) — score ring, "frequent errors / still
-learning / mastered now" insights, correct/mistake lists, a full per-question review, and
-a words-to-review list.
+Progress is recorded **per finalized attempt** (`onAttemptFinalized` →
+`recordQuizProgress`), and an in-progress session is persisted via
+[`lib/quiz-session-storage.ts`](../lib/quiz-session-storage.ts) so a quiz survives a
+reload. On finish, `VocabularyApp` clears the saved session, calls `addTestHistory` (logs
+the attempt), then shows [`ScoreScreen`](../components/ScoreScreen.tsx) — score ring,
+"frequent errors / still learning / mastered now" insights, correct/mistake lists, a full
+per-question review, and a words-to-review list.
 
 ## 9. Flashcards
 

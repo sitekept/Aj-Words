@@ -1,19 +1,17 @@
 import builtinVocabularyData from "@/lib/builtin-vocabulary-data.json";
 import type {
-  LearningStatus,
   QuizQuestionType,
   TestHistoryEntry,
   VocabularyItem,
   WordList
 } from "@/types/vocabulary";
+import {
+  clampBox,
+  deriveStatusFromBox,
+  inferSrsFromLegacy
+} from "@/lib/srs";
 
 const BUILTIN_CREATED_AT = "2026-04-30T00:00:00.000Z";
-
-const learningStatuses = new Set<LearningStatus>([
-  "new",
-  "learning",
-  "mastered"
-]);
 
 interface BuiltinVocabularyEntry {
   id: string;
@@ -31,9 +29,6 @@ interface BuiltinVocabularyEntry {
 }
 
 const builtinVocabulary = builtinVocabularyData as BuiltinVocabularyEntry[];
-
-const isLearningStatus = (value: unknown): value is LearningStatus =>
-  typeof value === "string" && learningStatuses.has(value as LearningStatus);
 
 const normalizeCount = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) && value > 0
@@ -57,6 +52,8 @@ const makeItems = (
     wrongCount: 0,
     correctStreak: 0,
     wrongStreak: 0,
+    box: 0,
+    dueAt: BUILTIN_CREATED_AT,
     createdAt: BUILTIN_CREATED_AT,
     updatedAt: BUILTIN_CREATED_AT
   }));
@@ -65,24 +62,38 @@ const makeSnapshotItems = (
   listId: string,
   items: NonNullable<BuiltinVocabularyEntry["items"]>
 ): WordList["items"] =>
-  items.map((item, index) => ({
-    id:
-      typeof item.id === "string" && item.id.trim()
-        ? item.id
-        : `${listId}-term-${String(index + 1).padStart(3, "0")}`,
-    word: typeof item.word === "string" ? item.word : "",
-    translation: typeof item.translation === "string" ? item.translation : "",
-    status: isLearningStatus(item.status) ? item.status : "new",
-    attempts: normalizeCount(item.attempts),
-    correctCount: normalizeCount(item.correctCount),
-    wrongCount: normalizeCount(item.wrongCount),
-    correctStreak: normalizeCount(item.correctStreak),
-    wrongStreak: normalizeCount(item.wrongStreak),
-    lastTestedAt: normalizeDate(item.lastTestedAt),
-    lastWrongAt: normalizeDate(item.lastWrongAt),
-    createdAt: normalizeDate(item.createdAt, BUILTIN_CREATED_AT) ?? BUILTIN_CREATED_AT,
-    updatedAt: normalizeDate(item.updatedAt, BUILTIN_CREATED_AT) ?? BUILTIN_CREATED_AT
-  }));
+  items.map((item, index) => {
+    const attempts = normalizeCount(item.attempts);
+    const correctStreak = normalizeCount(item.correctStreak);
+    const wrongStreak = normalizeCount(item.wrongStreak);
+    const dueAt =
+      normalizeDate(item.dueAt, BUILTIN_CREATED_AT) ?? BUILTIN_CREATED_AT;
+    const box =
+      typeof item.box === "number"
+        ? clampBox(item.box)
+        : inferSrsFromLegacy({ attempts, correctStreak, wrongStreak }, dueAt).box;
+
+    return {
+      id:
+        typeof item.id === "string" && item.id.trim()
+          ? item.id
+          : `${listId}-term-${String(index + 1).padStart(3, "0")}`,
+      word: typeof item.word === "string" ? item.word : "",
+      translation: typeof item.translation === "string" ? item.translation : "",
+      status: deriveStatusFromBox({ box, attempts }),
+      attempts,
+      correctCount: normalizeCount(item.correctCount),
+      wrongCount: normalizeCount(item.wrongCount),
+      correctStreak,
+      wrongStreak,
+      lastTestedAt: normalizeDate(item.lastTestedAt),
+      lastWrongAt: normalizeDate(item.lastWrongAt),
+      box,
+      dueAt,
+      createdAt: normalizeDate(item.createdAt, BUILTIN_CREATED_AT) ?? BUILTIN_CREATED_AT,
+      updatedAt: normalizeDate(item.updatedAt, BUILTIN_CREATED_AT) ?? BUILTIN_CREATED_AT
+    };
+  });
 
 const makeSnapshotTestHistory = (
   entries: NonNullable<BuiltinVocabularyEntry["testHistory"]>

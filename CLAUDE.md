@@ -21,16 +21,17 @@ npm run lint           # eslint (next core-web-vitals + typescript configs)
 npm run import:phone -- <aj-words-export.json> [--output <path>]
 ```
 
-There is **no test runner** in this project — no jest/vitest, no test files. Verify changes via `npm run lint`, `npm run build`, and manual testing in the browser.
+Pure logic has unit tests via Node's built-in runner (`node --test lib/*.test.ts`, e.g. `lib/srs.test.ts`) — no test framework or dependencies. Test files are excluded from `tsconfig`/eslint. Also verify changes via `npm run lint`, `npm run build`, and manual testing in the browser.
 
 ## Architecture
 
 AJ Words is a **fully client-side** vocabulary-learning PWA: Next.js 16 App Router, React 19, TypeScript (strict). There is no backend, no database, and no API routes. The single route (`app/page.tsx`) renders one big client component, `components/VocabularyApp.tsx`, which owns all view state (a `view` enum: home / list / flashcards / quiz / score) and orchestrates every child. The `@/*` path alias maps to the repo root.
 
-All persistence is **browser localStorage**, under three keys:
+All persistence is **browser localStorage**, under these keys:
 - `worddeck.v1.lists` — every word list and its progress
 - `ajwords.v1.ui` — last-selected list id (also mirrored to the `?list=` URL param)
 - `ajwords.v1.flashcards` — per-list flashcard resume index
+- `ajwords.v1.quizSessions` — in-progress quiz sessions (resume after reload)
 
 ### Data layer (the important part)
 
@@ -50,11 +51,11 @@ When you change the data model, update **both** the runtime path (`vocabulary-st
 
 ### Progress & status derivation
 
-`status` is **always derived, never trusted** from input. `deriveLearningStatus` marks an item `mastered` only when `correctStreak >= 3` AND `attempts >= 3` with no current wrong streak; any wrong streak forces `learning`. The two mutators are `applyAttemptsToItems` (quiz results) and `applyFlashcardAssessmentToItems` (a single swipe). Test results are also appended to `list.testHistory` (capped at 30 entries).
+Mastery is driven by a **Leitner spaced-repetition engine** (`lib/srs.ts`). Each `VocabularyItem` carries `box` + `dueAt`; `scheduleNext` promotes a card one box on a correct answer (longer interval) and demotes it one box (due now) on a miss. `status` is **always derived, never trusted** — `deriveStatusFromBox` returns `new` (no attempts), `mastered` (`box >= MASTERED_BOX`), else `learning`. The two mutators are `applyAttemptsToItems` (quiz, applied per finalized attempt) and `applyFlashcardAssessmentToItems` (a single swipe — `mastered` promotes, `learning` resets). Legacy items without SRS fields are migrated in `normalizeItem` via `inferSrsFromLegacy`. Test results are also appended to `list.testHistory` (capped at 30 entries).
 
 ### Quiz engine (`components/QuizRunner.tsx`)
 
-Modes: `written | choice | mixed | test | full-review`. Question selection is **adaptive**: `getAdaptivePriority` ranks items by wrong-streak, recency of mistakes, and learning state so weak words surface first; all modes except `full-review` drop already-mastered items (full-review shuffles everything). Multiple-choice requires ≥4 items in the list (`canUseChoice`), otherwise it falls back to written. Answers are matched after normalization (trim / lowercase / collapse whitespace).
+Modes: `written | choice | mixed | test | full-review`. Question selection is **spaced-repetition-aware**: `getSessionItems` prioritizes items that are **due** (`isDue` against `dueAt`), which re-includes mastered-but-due cards; it falls back to non-mastered then all so a session is never empty, ordered most-overdue-first with `getAdaptivePriority` as a tiebreak. `full-review` shuffles everything. Multiple-choice requires ≥4 items (`canUseChoice`), else falls back to written. Answers are matched after normalization (trim / lowercase / collapse whitespace). In-progress sessions persist via `lib/quiz-session-storage.ts`, and `recordQuizProgress` is applied per finalized attempt.
 
 ### Flashcards (`components/FlashcardMode.tsx`)
 

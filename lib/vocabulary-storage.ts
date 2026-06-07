@@ -13,12 +13,17 @@ import {
   getBuiltinList,
   isBuiltinListId
 } from "@/lib/builtin-vocabulary";
+import {
+  clampBox,
+  deriveStatusFromBox,
+  inferSrsFromLegacy,
+  initialSrs,
+  scheduleNext
+} from "@/lib/srs";
 
 const STORAGE_KEY = "worddeck.v1.lists";
 export const EXPORT_APP_ID = "aj-words";
 export const EXPORT_VERSION = 1;
-const MASTERED_STREAK = 3;
-const MIN_MASTERED_ATTEMPTS = 3;
 
 const now = () => new Date().toISOString();
 
@@ -67,28 +72,6 @@ const hasProgressStats = (item: Partial<VocabularyItem>) =>
   typeof item.lastTestedAt === "string" ||
   typeof item.lastWrongAt === "string";
 
-const deriveLearningStatus = (item: Pick<
-  VocabularyItem,
-  "attempts" | "correctStreak" | "wrongStreak"
->): LearningStatus => {
-  if (item.attempts <= 0) {
-    return "new";
-  }
-
-  if (item.wrongStreak > 0) {
-    return "learning";
-  }
-
-  if (
-    item.correctStreak >= MASTERED_STREAK &&
-    item.attempts >= MIN_MASTERED_ATTEMPTS
-  ) {
-    return "mastered";
-  }
-
-  return "learning";
-};
-
 const createInitialProgress = () => ({
   attempts: 0,
   correctCount: 0,
@@ -99,6 +82,7 @@ const createInitialProgress = () => ({
 
 const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => {
   const hasStats = hasProgressStats(item);
+  const timestamp = now();
   const normalized = {
     id: typeof item.id === "string" ? item.id : createId(),
     word: typeof item.word === "string" ? item.word : "",
@@ -111,13 +95,25 @@ const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => {
     wrongStreak: hasStats ? normalizeCount(item.wrongStreak) : 0,
     lastTestedAt: hasStats ? normalizeDate(item.lastTestedAt) : undefined,
     lastWrongAt: hasStats ? normalizeDate(item.lastWrongAt) : undefined,
-    createdAt: typeof item.createdAt === "string" ? item.createdAt : now(),
-    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : now()
+    createdAt: typeof item.createdAt === "string" ? item.createdAt : timestamp,
+    updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : timestamp
   };
+
+  const hasSrs = typeof item.box === "number" || typeof item.dueAt === "string";
+  const srs = hasSrs
+    ? {
+        box: clampBox(typeof item.box === "number" ? item.box : 0),
+        dueAt: normalizeDate(item.dueAt) ?? timestamp
+      }
+    : hasStats
+      ? inferSrsFromLegacy(normalized, timestamp)
+      : initialSrs(timestamp);
 
   return {
     ...normalized,
-    status: hasStats ? deriveLearningStatus(normalized) : "new"
+    box: srs.box,
+    dueAt: srs.dueAt,
+    status: deriveStatusFromBox({ box: srs.box, attempts: normalized.attempts })
   };
 };
 
@@ -198,6 +194,8 @@ const mergeBuiltinListWithLocalState = (storedList: WordList): WordList => {
         wrongStreak: storedItem.wrongStreak,
         lastTestedAt: storedItem.lastTestedAt,
         lastWrongAt: storedItem.lastWrongAt,
+        box: storedItem.box,
+        dueAt: storedItem.dueAt,
         updatedAt: storedItem.updatedAt
       };
     }),
@@ -318,6 +316,8 @@ export const createList = (input: {
       translation: item.translation.trim(),
       status: "new",
       ...createInitialProgress(),
+      box: 0,
+      dueAt: timestamp,
       createdAt: timestamp,
       updatedAt: timestamp
     })),
@@ -357,6 +357,8 @@ export const createItem = (input: {
     translation: input.translation.trim(),
     status: "new",
     ...createInitialProgress(),
+    box: 0,
+    dueAt: timestamp,
     createdAt: timestamp,
     updatedAt: timestamp
   };
@@ -388,7 +390,7 @@ export const applyAttemptsToItems = (
 
     return itemAttempts.reduce<VocabularyItem>((nextItem, attempt) => {
       const nextAttempts = nextItem.attempts + 1;
-      const progress = attempt.isCorrect
+      const counters = attempt.isCorrect
         ? {
             attempts: nextAttempts,
             correctCount: nextItem.correctCount + 1,
@@ -407,12 +409,18 @@ export const applyAttemptsToItems = (
             lastTestedAt: timestamp,
             lastWrongAt: timestamp
           };
+      const schedule = scheduleNext(nextItem.box, attempt.isCorrect, timestamp);
+      const merged = {
+        ...nextItem,
+        ...counters,
+        box: schedule.box,
+        dueAt: schedule.dueAt,
+        updatedAt: timestamp
+      };
 
       return {
-        ...nextItem,
-        ...progress,
-        status: deriveLearningStatus(progress),
-        updatedAt: timestamp
+        ...merged,
+        status: deriveStatusFromBox(merged)
       };
     }, item);
   });
@@ -429,32 +437,38 @@ export const applyFlashcardAssessmentToItems = (
       return item;
     }
 
-    const progress =
-      outcome === "mastered"
-        ? {
-            attempts: Math.max(item.attempts + 1, MIN_MASTERED_ATTEMPTS),
-            correctCount: Math.max(item.correctCount + 1, MIN_MASTERED_ATTEMPTS),
-            wrongCount: item.wrongCount,
-            correctStreak: Math.max(item.correctStreak + 1, MASTERED_STREAK),
-            wrongStreak: 0,
-            lastTestedAt: timestamp,
-            lastWrongAt: item.lastWrongAt
-          }
-        : {
-            attempts: item.attempts + 1,
-            correctCount: item.correctCount,
-            wrongCount: item.wrongCount + 1,
-            correctStreak: 0,
-            wrongStreak: item.wrongStreak + 1,
-            lastTestedAt: timestamp,
-            lastWrongAt: timestamp
-          };
+    const correct = outcome === "mastered";
+    const counters = correct
+      ? {
+          attempts: item.attempts + 1,
+          correctCount: item.correctCount + 1,
+          wrongCount: item.wrongCount,
+          correctStreak: item.correctStreak + 1,
+          wrongStreak: 0,
+          lastTestedAt: timestamp,
+          lastWrongAt: item.lastWrongAt
+        }
+      : {
+          attempts: item.attempts + 1,
+          correctCount: item.correctCount,
+          wrongCount: item.wrongCount + 1,
+          correctStreak: 0,
+          wrongStreak: item.wrongStreak + 1,
+          lastTestedAt: timestamp,
+          lastWrongAt: timestamp
+        };
+    const schedule = scheduleNext(item.box, correct, timestamp);
+    const merged = {
+      ...item,
+      ...counters,
+      box: schedule.box,
+      dueAt: schedule.dueAt,
+      updatedAt: timestamp
+    };
 
     return {
-      ...item,
-      ...progress,
-      status: deriveLearningStatus(progress),
-      updatedAt: timestamp
+      ...merged,
+      status: deriveStatusFromBox(merged)
     };
   });
 

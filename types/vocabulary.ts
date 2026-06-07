@@ -18,6 +18,9 @@ export interface VocabularyItem {
   wrongStreak: number;
   lastTestedAt?: string;
   lastWrongAt?: string;
+  // Spaced-repetition scheduling (Leitner). See lib/srs.ts.
+  box: number;
+  dueAt: string;
   createdAt: string;
   updatedAt: string;
 }
