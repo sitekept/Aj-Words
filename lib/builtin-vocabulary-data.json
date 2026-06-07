@@ -4,7 +4,7 @@
     "title": "Mots Darija",
     "language": "Darija",
     "createdAt": "2026-04-30T00:00:00.000Z",
-    "updatedAt": "2026-05-18T13:57:56.260Z",
+    "updatedAt": "2026-06-04T17:34:32.040Z",
     "items": [
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-001",
@@ -95,30 +95,30 @@
         "word": "Kayn",
         "translation": "Y'avais",
         "status": "learning",
-        "attempts": 1,
-        "correctCount": 0,
+        "attempts": 2,
+        "correctCount": 1,
         "wrongCount": 1,
-        "correctStreak": 0,
-        "wrongStreak": 1,
-        "lastTestedAt": "2026-05-06T13:03:17.560Z",
+        "correctStreak": 1,
+        "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:13.253Z",
         "lastWrongAt": "2026-05-06T13:03:17.560Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-05-06T13:03:17.560Z"
+        "updatedAt": "2026-05-24T13:49:13.253Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-008",
         "word": "Dar",
         "translation": "Ou",
         "status": "learning",
-        "attempts": 1,
-        "correctCount": 0,
+        "attempts": 2,
+        "correctCount": 1,
         "wrongCount": 1,
-        "correctStreak": 0,
-        "wrongStreak": 1,
-        "lastTestedAt": "2026-05-06T13:03:20.544Z",
+        "correctStreak": 1,
+        "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:10.320Z",
         "lastWrongAt": "2026-05-06T13:03:20.544Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-05-06T13:03:20.544Z"
+        "updatedAt": "2026-05-24T13:49:10.320Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-009",
@@ -166,1603 +166,3497 @@
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-012",
         "word": "Bgra",
         "translation": "Vache",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:57.207Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:57.207Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-013",
         "word": "nHar",
         "translation": "Jour",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:23.418Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:23.418Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-014",
         "word": "msa lkhir",
         "translation": "Bonsoir",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:56.654Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:56.654Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-015",
         "word": "Twldt",
         "translation": "Je suis née",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:44.144Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:44.144Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-016",
         "word": "Smiti",
         "translation": "Je m'appelle",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:57.040Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:57.040Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-017",
         "word": "Zid",
         "translation": "Rajouter",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:24.734Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:24.734Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-018",
         "word": "Sakn",
         "translation": "Habiter",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:23.315Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:23.315Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-019",
         "word": "Mdina",
         "translation": "Ville",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-06-04T17:34:21.916Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-06-04T17:34:21.916Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-020",
         "word": "mdina qdima",
         "translation": "Vieille ville",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:37.038Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:37.038Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-021",
         "word": "Shrf",
         "translation": "Honneur",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:26.954Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:26.954Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-022",
         "word": "Mjhed",
         "translation": "Fort",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:24.142Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:24.142Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-023",
         "word": "Mahba",
         "translation": "Bienvenue",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:44.222Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:44.222Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-024",
         "word": "Sm",
         "translation": "Prenom",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:14.497Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:14.497Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-025",
         "word": "ash khbark",
         "translation": "Quoi de neuf",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:49.173Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:49.173Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-026",
         "word": "nta",
         "translation": "Toi (M)",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-06-04T17:34:32.036Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-06-04T17:34:32.036Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-027",
         "word": "nti",
         "translation": "Toi (F)",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:35.216Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:35.216Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-028",
         "word": "Kif",
         "translation": "Comment",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:50.842Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:50.842Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-029",
         "word": "Kan",
         "translation": "C'etait",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:51:19.578Z",
+        "lastWrongAt": "2026-05-24T13:51:19.578Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:19.578Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-030",
         "word": "Kif kan",
         "translation": "Comment c'etait",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:14.125Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:14.125Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-031",
         "word": "Comment - quoi",
         "translation": "Shnu",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:36.365Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:36.365Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-032",
         "word": "Skn",
         "translation": "Habiter",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:38.944Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:38.944Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-033",
         "word": "Haaja",
         "translation": "Chose",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:23.007Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:23.007Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-034",
         "word": "Bit",
         "translation": "Piece/chambre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:14.941Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:14.941Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-035",
         "word": "Krch",
         "translation": "Ventre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:36.479Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:36.479Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-036",
         "word": "Haayat",
         "translation": "Vie",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:58:14.553Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:58:14.553Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-037",
         "word": "Blaad",
         "translation": "Pays",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:58:04.401Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:58:04.401Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-038",
         "word": "rjl",
         "translation": "Pied",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:42.405Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:42.405Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-039",
         "word": "mdrasa",
         "translation": "Ecole",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:27.244Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:27.244Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-040",
         "word": "raas",
         "translation": "Tete",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:54:00.054Z",
+        "lastWrongAt": "2026-05-24T13:54:00.054Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:00.054Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-041",
         "word": "khobz",
         "translation": "Pain",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:17.842Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:17.842Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-042",
         "word": "djaaj",
         "translation": "Poulet",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:46.961Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:46.961Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-043",
         "word": "tmer",
         "translation": "Dattes",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:46.469Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:46.469Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-044",
         "word": "mcha",
         "translation": "Chat",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:18.110Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:18.110Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-045",
         "word": "maaza",
         "translation": "Chèvre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-06-04T17:34:18.817Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-06-04T17:34:18.817Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-046",
         "word": "frHaan",
         "translation": "Heureux",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:06.677Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:06.677Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-047",
         "word": "qt3",
         "translation": "Couper",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:43.892Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:43.892Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-048",
         "word": "n3s",
         "translation": "Dormir",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:07.624Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:07.624Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-049",
         "word": "chrb",
         "translation": "Boire",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:55.315Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:55.315Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-050",
         "word": "qllb",
         "translation": "Chercher",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:27.748Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:27.748Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-051",
         "word": "ftr",
         "translation": "Prendre le petit dejeuner",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:28.632Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:28.632Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-052",
         "word": "lbs",
         "translation": "S'habiller",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-06-04T17:34:11.002Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-06-04T17:34:11.002Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-053",
         "word": "gls",
         "translation": "S'assoir",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:53.985Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:53.985Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-054",
         "word": "khrj",
         "translation": "Sortir",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:52:19.337Z",
+        "lastWrongAt": "2026-05-24T13:52:19.337Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:19.337Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-055",
         "word": "chdd",
         "translation": "Prendre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:14.600Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:14.600Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-056",
         "word": "sdd",
         "translation": "Fermer",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:57.268Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:57.268Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-057",
         "word": "kbb",
         "translation": "Verser",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:36.277Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:36.277Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-058",
         "word": "mchaa",
         "translation": "Aller",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:55.762Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:55.762Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-059",
         "word": "chraa",
         "translation": "acheter",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:37.391Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:37.391Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-060",
         "word": "tlqaa",
         "translation": "Rencontrer",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:00.779Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:00.779Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-061",
         "word": "nqaa",
         "translation": "Nettoyer",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:08.211Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:08.211Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-062",
         "word": "gaal",
         "translation": "Dire",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:52:31.788Z",
+        "lastWrongAt": "2026-05-24T13:52:31.788Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:31.788Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-063",
         "word": "kaan",
         "translation": "Etre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:58.229Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:58.229Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-064",
         "word": "taar",
         "translation": "Voler",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:09.829Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:09.829Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-065",
         "word": "raaj3",
         "translation": "Reviser",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:53:20.508Z",
+        "lastWrongAt": "2026-05-24T13:53:20.508Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:20.508Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-066",
         "word": "gdhddaa",
         "translation": "Demain",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:50.983Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:50.983Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-067",
         "word": "b3d",
         "translation": "Après",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:58.543Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:58.543Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-068",
         "word": "limoun",
         "translation": "Orange (fruit)",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:20.187Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:20.187Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-069",
         "word": "dalah",
         "translation": "Pastque",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:46.339Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:46.339Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-070",
         "word": "Tafah",
         "translation": "Pomme",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:41.511Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:41.511Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-071",
         "word": "fin",
         "translation": "Ou",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:12.278Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:12.278Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-072",
         "word": "mnin",
         "translation": "d'ou",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:11.986Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:11.986Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-073",
         "word": "Sa3a",
         "translation": "Heure",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:31.508Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:31.508Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-074",
         "word": "9hwa",
         "translation": "Beau",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:41.050Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:41.050Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-075",
         "word": "l-khdma",
         "translation": "Travail",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:41.741Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:41.741Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-076",
         "word": "l-9raya",
         "translation": "Etudes",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:54.856Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:54.856Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-077",
         "word": "Saaheb",
         "translation": "Ami",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:58:06.802Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:58:06.802Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-078",
         "word": "ana",
         "translation": "Moi/Je",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:51.881Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:51.881Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-079",
         "word": "nta",
         "translation": "Toi/tu M",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:24.553Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:24.553Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-080",
         "word": "nti",
         "translation": "Toi/tu F",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:57.412Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:57.412Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-081",
         "word": "huwa",
         "translation": "Lui",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:41.689Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:41.689Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-082",
         "word": "hiya",
         "translation": "Elle",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:40.644Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:40.644Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-083",
         "word": "Tbib/a",
         "translation": "Médecin",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:20.426Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:20.426Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-084",
         "word": "mu3llim/a",
         "translation": "Professeur",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:34.591Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:34.591Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-085",
         "word": "ustad/a",
         "translation": "Confererencier",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:53.984Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:53.984Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-086",
         "word": "bulisi/ya",
         "translation": "Policier",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:59.150Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:59.150Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-087",
         "word": "mu7asib/a",
         "translation": "Comptable",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:19.051Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:19.051Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-088",
         "word": "mughni/ya",
         "translation": "Chanteur",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:10.916Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:10.916Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-089",
         "word": "fnnan/a",
         "translation": "Artiste",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:55.741Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:55.741Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-090",
         "word": "muswwer/a",
         "translation": "Photographe",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:55:04.327Z",
+        "lastWrongAt": "2026-05-24T13:55:04.327Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:04.327Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-091",
         "word": "sa7afi",
         "translation": "Journaliste",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:55:43.114Z",
+        "lastWrongAt": "2026-05-24T13:55:43.114Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:43.114Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-092",
         "word": "t9lid",
         "translation": "Tradition",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:03.326Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:03.326Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-093",
         "word": "mul",
         "translation": "Propriétaire",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:58:10.319Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:58:10.319Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-094",
         "word": "7anut",
         "translation": "Magasin",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:34.779Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:34.779Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-095",
         "word": "kutchi",
         "translation": "kalesh",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:28.855Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:28.855Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-096",
         "word": "tub",
         "translation": "Tissus",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:42.800Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:42.800Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-097",
         "word": "hdd",
         "translation": "Serrurier",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:53.939Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:53.939Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-098",
         "word": "Hyat",
         "translation": "Couturier",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-06-04T17:34:16.232Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-06-04T17:34:16.232Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-099",
         "word": "Mubarmig",
         "translation": "Developpeur",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:56:44.194Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:56:44.194Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-100",
         "word": "sbitar",
         "translation": "Hopital",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:05.758Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:05.758Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-101",
         "word": "jami3a",
         "translation": "université",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:34.738Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:34.738Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-102",
         "word": "komisarya",
         "translation": "Commissariat",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:48.938Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:48.938Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-103",
         "word": "muHaami",
         "translation": "Avocat",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:46.231Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:46.231Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-104",
         "word": "3azif",
         "translation": "Musicien",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-06-04T17:34:29.399Z",
+        "lastWrongAt": "2026-06-04T17:34:29.399Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-06-04T17:34:29.399Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-105",
         "word": "ch-her",
         "translation": "Mois",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:10.641Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:10.641Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-106",
         "word": "fash",
         "translation": "Dans quoi ?",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:32.416Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:32.416Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-107",
         "word": "baa3",
         "translation": "Vendre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:33.085Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:33.085Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-108",
         "word": "biyaa3",
         "translation": "Vendeur",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:18.120Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:18.120Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-109",
         "word": "funun",
         "translation": "Arts",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:29.696Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:29.696Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-110",
         "word": "rriada",
         "translation": "Sport",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:58:18.315Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:58:18.315Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-111",
         "word": "ttarikh",
         "translation": "Histoire",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:36.988Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:49:36.988Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-112",
         "word": "l3ulum",
         "translation": "Science",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:31.324Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:31.324Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-113",
         "word": "llughat",
         "translation": "Langues",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:59:25.317Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:59:25.317Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-114",
         "word": "7hsab",
         "translation": "Mathematiques",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:12.145Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:12.145Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-115",
         "word": "l-3a'ila",
         "translation": "Famille",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:05.105Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:05.105Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-116",
         "word": "l-walid",
         "translation": "Papa",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:59.668Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:59.668Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-117",
         "word": "l-walida",
         "translation": "Maman",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:59:18.384Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:59:18.384Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-118",
         "word": "l-walidin",
         "translation": "Parents",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:59:21.620Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:59:21.620Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-119",
         "word": "wld",
         "translation": "Fils",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:26.512Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:26.512Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-120",
         "word": "malin dar",
         "translation": "Famille",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:12.811Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:12.811Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-121",
         "word": "bnt",
         "translation": "Fille",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:20.395Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:20.395Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-122",
         "word": "mra",
         "translation": "Femme",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:52:50.339Z",
+        "lastWrongAt": "2026-05-24T13:52:50.339Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:50.339Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-123",
         "word": "rajl",
         "translation": "Homme",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:51:05.413Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:05.413Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-124",
         "word": "khut",
         "translation": "Freres",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:50:00.541Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:50:00.541Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-125",
         "word": "khwatat",
         "translation": "Soeurs",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:31.265Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:31.265Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-126",
         "word": "jdd",
         "translation": "Papi",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:52:09.002Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:52:09.002Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-127",
         "word": "jdda",
         "translation": "Mamie",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:07.855Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:07.855Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-128",
         "word": "mrra mrra",
         "translation": "De temps en temps",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:57.965Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:57.965Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-129",
         "word": "weqt",
         "translation": "temp",
-        "status": "new",
-        "attempts": 0,
+        "status": "learning",
+        "attempts": 1,
         "correctCount": 0,
-        "wrongCount": 0,
+        "wrongCount": 1,
         "correctStreak": 0,
-        "wrongStreak": 0,
+        "wrongStreak": 1,
+        "lastTestedAt": "2026-05-24T13:51:55.884Z",
+        "lastWrongAt": "2026-05-24T13:51:55.884Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:51:55.884Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-130",
         "word": "t3llm",
         "translation": "apprendre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:53:44.286Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:53:44.286Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-131",
         "word": "bin",
         "translation": "entre",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:55:36.979Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:55:36.979Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-132",
         "word": "Httaa",
         "translation": "aussi",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:54:52.875Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:54:52.875Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-133",
         "word": "bzaaf",
         "translation": "beaucoup",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:57:39.215Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-24T13:57:39.215Z"
       },
       {
         "id": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-134",
         "word": "sali",
         "translation": "prier",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "learning",
+        "attempts": 1,
+        "correctCount": 1,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 1,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-24T13:49:34.555Z",
         "createdAt": "2026-05-18T13:57:56.260Z",
-        "updatedAt": "2026-05-18T13:57:56.260Z"
+        "updatedAt": "2026-05-24T13:49:34.555Z"
       }
     ],
-    "testHistory": []
+    "testHistory": [
+      {
+        "id": "66ef0ece-e523-46a4-8b56-cc8d211ebeca",
+        "mode": "choice",
+        "attempts": [
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-008",
+            "questionType": "choice",
+            "prompt": "Dar",
+            "correctAnswer": "Ou",
+            "userAnswer": "Ou",
+            "isCorrect": true,
+            "options": [
+              "Freres",
+              "Verser",
+              "Ou",
+              "Pays"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-007",
+            "questionType": "choice",
+            "prompt": "Kayn",
+            "correctAnswer": "Y'avais",
+            "userAnswer": "Y'avais",
+            "isCorrect": true,
+            "options": [
+              "beurre",
+              "Y'avais",
+              "Journaliste",
+              "Papa"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-108",
+            "questionType": "choice",
+            "prompt": "biyaa3",
+            "correctAnswer": "Vendeur",
+            "userAnswer": "Vendeur",
+            "isCorrect": true,
+            "options": [
+              "Journaliste",
+              "Vendeur",
+              "Tete",
+              "Papa"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-068",
+            "questionType": "choice",
+            "prompt": "limoun",
+            "correctAnswer": "Orange (fruit)",
+            "userAnswer": "Orange (fruit)",
+            "isCorrect": true,
+            "options": [
+              "Pain",
+              "Verser",
+              "Orange (fruit)",
+              "Le/la"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-079",
+            "questionType": "choice",
+            "prompt": "nta",
+            "correctAnswer": "Toi/tu M",
+            "userAnswer": "Toi/tu M",
+            "isCorrect": true,
+            "options": [
+              "Toi/tu M",
+              "Fils",
+              "Prenom",
+              "Soeurs"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-134",
+            "questionType": "choice",
+            "prompt": "sali",
+            "correctAnswer": "prier",
+            "userAnswer": "prier",
+            "isCorrect": true,
+            "options": [
+              "Shnu",
+              "Pain",
+              "Couturier",
+              "prier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-111",
+            "questionType": "choice",
+            "prompt": "ttarikh",
+            "correctAnswer": "Histoire",
+            "userAnswer": "Histoire",
+            "isCorrect": true,
+            "options": [
+              "Je suis née",
+              "Histoire",
+              "Ou",
+              "Pied"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-038",
+            "questionType": "choice",
+            "prompt": "rjl",
+            "correctAnswer": "Pied",
+            "userAnswer": "Pied",
+            "isCorrect": true,
+            "options": [
+              "Jour",
+              "Vendre",
+              "Pied",
+              "Ville"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-069",
+            "questionType": "choice",
+            "prompt": "dalah",
+            "correctAnswer": "Pastque",
+            "userAnswer": "Pastque",
+            "isCorrect": true,
+            "options": [
+              "Ou",
+              "Fille",
+              "Langues",
+              "Pastque"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-025",
+            "questionType": "choice",
+            "prompt": "ash khbark",
+            "correctAnswer": "Quoi de neuf",
+            "userAnswer": "Quoi de neuf",
+            "isCorrect": true,
+            "options": [
+              "Fermer",
+              "Dire",
+              "Quoi de neuf",
+              "Ville"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-076",
+            "questionType": "choice",
+            "prompt": "l-9raya",
+            "correctAnswer": "Etudes",
+            "userAnswer": "Etudes",
+            "isCorrect": true,
+            "options": [
+              "beurre",
+              "Etudes",
+              "Chèvre",
+              "Aller"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-016",
+            "questionType": "choice",
+            "prompt": "Smiti",
+            "correctAnswer": "Je m'appelle",
+            "userAnswer": "Je m'appelle",
+            "isCorrect": true,
+            "options": [
+              "C'etait",
+              "Etudes",
+              "Je m'appelle",
+              "Shnu"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-124",
+            "questionType": "choice",
+            "prompt": "khut",
+            "correctAnswer": "Freres",
+            "userAnswer": "Freres",
+            "isCorrect": true,
+            "options": [
+              "Toi/tu F",
+              "Freres",
+              "Avocat",
+              "Fort"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-092",
+            "questionType": "choice",
+            "prompt": "t9lid",
+            "correctAnswer": "Tradition",
+            "userAnswer": "Tradition",
+            "isCorrect": true,
+            "options": [
+              "Beau",
+              "Tradition",
+              "Comptable",
+              "Ami"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-100",
+            "questionType": "choice",
+            "prompt": "sbitar",
+            "correctAnswer": "Hopital",
+            "userAnswer": "Hopital",
+            "isCorrect": true,
+            "options": [
+              "Hopital",
+              "Magasin",
+              "Chèvre",
+              "Aller"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-048",
+            "questionType": "choice",
+            "prompt": "n3s",
+            "correctAnswer": "Dormir",
+            "userAnswer": "Dormir",
+            "isCorrect": true,
+            "options": [
+              "Dormir",
+              "Miel",
+              "beurre",
+              "Tissus"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-034",
+            "questionType": "choice",
+            "prompt": "Bit",
+            "correctAnswer": "Piece/chambre",
+            "userAnswer": "Piece/chambre",
+            "isCorrect": true,
+            "options": [
+              "Boire",
+              "Pain",
+              "Quoi de neuf",
+              "Piece/chambre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-041",
+            "questionType": "choice",
+            "prompt": "khobz",
+            "correctAnswer": "Pain",
+            "userAnswer": "Pain",
+            "isCorrect": true,
+            "options": [
+              "Chercher",
+              "Magasin",
+              "Pain",
+              "Etudes"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-083",
+            "questionType": "choice",
+            "prompt": "Tbib/a",
+            "correctAnswer": "Médecin",
+            "userAnswer": "Médecin",
+            "isCorrect": true,
+            "options": [
+              "Orange (fruit)",
+              "Dans quoi ?",
+              "Médecin",
+              "Couturier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-022",
+            "questionType": "choice",
+            "prompt": "Mjhed",
+            "correctAnswer": "Fort",
+            "userAnswer": "Fort",
+            "isCorrect": true,
+            "options": [
+              "S'assoir",
+              "Fort",
+              "Mamie",
+              "Heure"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-039",
+            "questionType": "choice",
+            "prompt": "mdrasa",
+            "correctAnswer": "Ecole",
+            "userAnswer": "Ecole",
+            "isCorrect": true,
+            "options": [
+              "d'ou",
+              "Ecole",
+              "Mois",
+              "Dattes"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-035",
+            "questionType": "choice",
+            "prompt": "Krch",
+            "correctAnswer": "Ventre",
+            "userAnswer": "Ventre",
+            "isCorrect": true,
+            "options": [
+              "Comptable",
+              "Ou",
+              "Ventre",
+              "Boire"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-082",
+            "questionType": "choice",
+            "prompt": "hiya",
+            "correctAnswer": "Elle",
+            "userAnswer": "Elle",
+            "isCorrect": true,
+            "options": [
+              "Elle",
+              "Après",
+              "Vendre",
+              "Ville"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-015",
+            "questionType": "choice",
+            "prompt": "Twldt",
+            "correctAnswer": "Je suis née",
+            "userAnswer": "Je suis née",
+            "isCorrect": true,
+            "options": [
+              "Tete",
+              "Science",
+              "Je suis née",
+              "université"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-028",
+            "questionType": "choice",
+            "prompt": "Kif",
+            "correctAnswer": "Comment",
+            "userAnswer": "Comment",
+            "isCorrect": true,
+            "options": [
+              "Toi/tu F",
+              "Comment",
+              "Piece/chambre",
+              "Musicien"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-058",
+            "questionType": "choice",
+            "prompt": "mchaa",
+            "correctAnswer": "Aller",
+            "userAnswer": "Aller",
+            "isCorrect": true,
+            "options": [
+              "Prendre le petit dejeuner",
+              "Après",
+              "Aller",
+              "Voisin"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-063",
+            "questionType": "choice",
+            "prompt": "kaan",
+            "correctAnswer": "Etre",
+            "userAnswer": "Etre",
+            "isCorrect": true,
+            "options": [
+              "Etre",
+              "Pied",
+              "Fermer",
+              "Ou"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-123",
+            "questionType": "choice",
+            "prompt": "rajl",
+            "correctAnswer": "Homme",
+            "userAnswer": "Homme",
+            "isCorrect": true,
+            "options": [
+              "Homme",
+              "Fermer",
+              "Bienvenue",
+              "Comptable"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-061",
+            "questionType": "choice",
+            "prompt": "nqaa",
+            "correctAnswer": "Nettoyer",
+            "userAnswer": "Nettoyer",
+            "isCorrect": true,
+            "options": [
+              "Nettoyer",
+              "Habiter",
+              "Histoire",
+              "Tradition"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-114",
+            "questionType": "choice",
+            "prompt": "7hsab",
+            "correctAnswer": "Mathematiques",
+            "userAnswer": "Mathematiques",
+            "isCorrect": true,
+            "options": [
+              "beurre",
+              "Mathematiques",
+              "Heureux",
+              "Freres"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-029",
+            "questionType": "choice",
+            "prompt": "Kan",
+            "correctAnswer": "C'etait",
+            "userAnswer": "Le/la",
+            "isCorrect": false,
+            "options": [
+              "Prendre",
+              "Vendeur",
+              "Le/la",
+              "C'etait"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-018",
+            "questionType": "choice",
+            "prompt": "Sakn",
+            "correctAnswer": "Habiter",
+            "userAnswer": "Habiter",
+            "isCorrect": true,
+            "options": [
+              "Femme",
+              "aussi",
+              "Elle",
+              "Habiter"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-050",
+            "questionType": "choice",
+            "prompt": "qllb",
+            "correctAnswer": "Chercher",
+            "userAnswer": "Chercher",
+            "isCorrect": true,
+            "options": [
+              "Fille",
+              "Pain",
+              "Fils",
+              "Chercher"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-106",
+            "questionType": "choice",
+            "prompt": "fash",
+            "correctAnswer": "Dans quoi ?",
+            "userAnswer": "Dans quoi ?",
+            "isCorrect": true,
+            "options": [
+              "Piece/chambre",
+              "Propriétaire",
+              "De temps en temps",
+              "Dans quoi ?"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-031",
+            "questionType": "choice",
+            "prompt": "Comment - quoi",
+            "correctAnswer": "Shnu",
+            "userAnswer": "Shnu",
+            "isCorrect": true,
+            "options": [
+              "Famille",
+              "Fils",
+              "Shnu",
+              "Demain"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-129",
+            "questionType": "choice",
+            "prompt": "weqt",
+            "correctAnswer": "temp",
+            "userAnswer": "Reviser",
+            "isCorrect": false,
+            "options": [
+              "temp",
+              "Nettoyer",
+              "Reviser",
+              "Freres"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-116",
+            "questionType": "choice",
+            "prompt": "l-walid",
+            "correctAnswer": "Papa",
+            "userAnswer": "Papa",
+            "isCorrect": true,
+            "options": [
+              "Vie",
+              "Papa",
+              "Commissariat",
+              "Histoire"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-126",
+            "questionType": "choice",
+            "prompt": "jdd",
+            "correctAnswer": "Papi",
+            "userAnswer": "Papi",
+            "isCorrect": true,
+            "options": [
+              "Papi",
+              "Chanteur",
+              "Etudes",
+              "Rempli"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-072",
+            "questionType": "choice",
+            "prompt": "mnin",
+            "correctAnswer": "d'ou",
+            "userAnswer": "d'ou",
+            "isCorrect": true,
+            "options": [
+              "Propriétaire",
+              "d'ou",
+              "Musicien",
+              "S'assoir"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-054",
+            "questionType": "choice",
+            "prompt": "khrj",
+            "correctAnswer": "Sortir",
+            "userAnswer": "Nettoyer",
+            "isCorrect": false,
+            "options": [
+              "Journaliste",
+              "Sortir",
+              "Maman",
+              "Nettoyer"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-013",
+            "questionType": "choice",
+            "prompt": "nHar",
+            "correctAnswer": "Jour",
+            "userAnswer": "Jour",
+            "isCorrect": true,
+            "options": [
+              "Pays",
+              "d'ou",
+              "Jour",
+              "Miel"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-021",
+            "questionType": "choice",
+            "prompt": "Shrf",
+            "correctAnswer": "Honneur",
+            "userAnswer": "Honneur",
+            "isCorrect": true,
+            "options": [
+              "Honneur",
+              "Chanteur",
+              "Elle",
+              "Pastque"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-062",
+            "questionType": "choice",
+            "prompt": "gaal",
+            "correctAnswer": "Dire",
+            "userAnswer": "Boire",
+            "isCorrect": false,
+            "options": [
+              "Genial",
+              "Chanteur",
+              "Dire",
+              "Boire"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-101",
+            "questionType": "choice",
+            "prompt": "jami3a",
+            "correctAnswer": "université",
+            "userAnswer": "université",
+            "isCorrect": true,
+            "options": [
+              "université",
+              "Miel",
+              "S'il te plait",
+              "Vache"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-020",
+            "questionType": "choice",
+            "prompt": "mdina qdima",
+            "correctAnswer": "Vieille ville",
+            "userAnswer": "Vieille ville",
+            "isCorrect": true,
+            "options": [
+              "Vieille ville",
+              "Pied",
+              "Femme",
+              "Etudier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-081",
+            "questionType": "choice",
+            "prompt": "huwa",
+            "correctAnswer": "Lui",
+            "userAnswer": "Lui",
+            "isCorrect": true,
+            "options": [
+              "Lui",
+              "Serrurier",
+              "Honneur",
+              "Dire"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-023",
+            "questionType": "choice",
+            "prompt": "Mahba",
+            "correctAnswer": "Bienvenue",
+            "userAnswer": "Bienvenue",
+            "isCorrect": true,
+            "options": [
+              "d'ou",
+              "Bienvenue",
+              "Magasin",
+              "Chanteur"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-122",
+            "questionType": "choice",
+            "prompt": "mra",
+            "correctAnswer": "Femme",
+            "userAnswer": "Musicien",
+            "isCorrect": false,
+            "options": [
+              "Pomme",
+              "Musicien",
+              "Femme",
+              "Ventre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-097",
+            "questionType": "choice",
+            "prompt": "hdd",
+            "correctAnswer": "Serrurier",
+            "userAnswer": "Serrurier",
+            "isCorrect": true,
+            "options": [
+              "Policier",
+              "Serrurier",
+              "université",
+              "De temps en temps"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-012",
+            "questionType": "choice",
+            "prompt": "Bgra",
+            "correctAnswer": "Vache",
+            "userAnswer": "Vache",
+            "isCorrect": true,
+            "options": [
+              "Vache",
+              "Dormir",
+              "Papi",
+              "Famille"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-105",
+            "questionType": "choice",
+            "prompt": "ch-her",
+            "correctAnswer": "Mois",
+            "userAnswer": "Mois",
+            "isCorrect": true,
+            "options": [
+              "Aller",
+              "Mois",
+              "Lui",
+              "Piece/chambre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-030",
+            "questionType": "choice",
+            "prompt": "Kif kan",
+            "correctAnswer": "Comment c'etait",
+            "userAnswer": "Comment c'etait",
+            "isCorrect": true,
+            "options": [
+              "Confererencier",
+              "Aller",
+              "Comment c'etait",
+              "Fermer"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-065",
+            "questionType": "choice",
+            "prompt": "raaj3",
+            "correctAnswer": "Reviser",
+            "userAnswer": "Chose",
+            "isCorrect": false,
+            "options": [
+              "Remplie",
+              "Homme",
+              "Chose",
+              "Reviser"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-017",
+            "questionType": "choice",
+            "prompt": "Zid",
+            "correctAnswer": "Rajouter",
+            "userAnswer": "Rajouter",
+            "isCorrect": true,
+            "options": [
+              "Rajouter",
+              "Poulet",
+              "Heure",
+              "Verser"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-107",
+            "questionType": "choice",
+            "prompt": "baa3",
+            "correctAnswer": "Vendre",
+            "userAnswer": "Vendre",
+            "isCorrect": true,
+            "options": [
+              "beurre",
+              "Couturier",
+              "Vendre",
+              "Avocat"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-074",
+            "questionType": "choice",
+            "prompt": "9hwa",
+            "correctAnswer": "Beau",
+            "userAnswer": "Beau",
+            "isCorrect": true,
+            "options": [
+              "Toi/tu F",
+              "Beau",
+              "apprendre",
+              "Fille"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-130",
+            "questionType": "choice",
+            "prompt": "t3llm",
+            "correctAnswer": "apprendre",
+            "userAnswer": "apprendre",
+            "isCorrect": true,
+            "options": [
+              "Ami",
+              "Hopital",
+              "apprendre",
+              "Dormir"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-043",
+            "questionType": "choice",
+            "prompt": "tmer",
+            "correctAnswer": "Dattes",
+            "userAnswer": "Dattes",
+            "isCorrect": true,
+            "options": [
+              "Chanteur",
+              "Jour",
+              "Pied",
+              "Dattes"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-102",
+            "questionType": "choice",
+            "prompt": "komisarya",
+            "correctAnswer": "Commissariat",
+            "userAnswer": "Commissariat",
+            "isCorrect": true,
+            "options": [
+              "Commissariat",
+              "entre",
+              "Etre",
+              "S'assoir"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-053",
+            "questionType": "choice",
+            "prompt": "gls",
+            "correctAnswer": "S'assoir",
+            "userAnswer": "S'assoir",
+            "isCorrect": true,
+            "options": [
+              "université",
+              "Fort",
+              "S'assoir",
+              "Chanteur"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-014",
+            "questionType": "choice",
+            "prompt": "msa lkhir",
+            "correctAnswer": "Bonsoir",
+            "userAnswer": "Bonsoir",
+            "isCorrect": true,
+            "options": [
+              "Bonsoir",
+              "Vendre",
+              "Y'avais",
+              "Elle"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-040",
+            "questionType": "choice",
+            "prompt": "raas",
+            "correctAnswer": "Tete",
+            "userAnswer": "Voler",
+            "isCorrect": false,
+            "options": [
+              "Tete",
+              "Voler",
+              "Homme",
+              "Pays"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-115",
+            "questionType": "choice",
+            "prompt": "l-3a'ila",
+            "correctAnswer": "Famille",
+            "userAnswer": "Famille",
+            "isCorrect": true,
+            "options": [
+              "Jour",
+              "Comptable",
+              "Vieille ville",
+              "Famille"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-127",
+            "questionType": "choice",
+            "prompt": "jdda",
+            "correctAnswer": "Mamie",
+            "userAnswer": "Mamie",
+            "isCorrect": true,
+            "options": [
+              "Tissus",
+              "Mamie",
+              "Papa",
+              "Prendre le petit dejeuner"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-095",
+            "questionType": "choice",
+            "prompt": "kutchi",
+            "correctAnswer": "kalesh",
+            "userAnswer": "kalesh",
+            "isCorrect": true,
+            "options": [
+              "kalesh",
+              "Rajouter",
+              "Rempli",
+              "d'ou"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-112",
+            "questionType": "choice",
+            "prompt": "l3ulum",
+            "correctAnswer": "Science",
+            "userAnswer": "Science",
+            "isCorrect": true,
+            "options": [
+              "acheter",
+              "Science",
+              "Toi/tu F",
+              "Artiste"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-084",
+            "questionType": "choice",
+            "prompt": "mu3llim/a",
+            "correctAnswer": "Professeur",
+            "userAnswer": "Professeur",
+            "isCorrect": true,
+            "options": [
+              "Etudes",
+              "Arts",
+              "Professeur",
+              "Chanteur"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-059",
+            "questionType": "choice",
+            "prompt": "chraa",
+            "correctAnswer": "acheter",
+            "userAnswer": "acheter",
+            "isCorrect": true,
+            "options": [
+              "Elle",
+              "Papa",
+              "acheter",
+              "Heure"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-075",
+            "questionType": "choice",
+            "prompt": "l-khdma",
+            "correctAnswer": "Travail",
+            "userAnswer": "Travail",
+            "isCorrect": true,
+            "options": [
+              "Elle",
+              "Piece/chambre",
+              "Chose",
+              "Travail"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-047",
+            "questionType": "choice",
+            "prompt": "qt3",
+            "correctAnswer": "Couper",
+            "userAnswer": "Couper",
+            "isCorrect": true,
+            "options": [
+              "Prendre le petit dejeuner",
+              "Couper",
+              "Vendre",
+              "Je m'appelle"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-132",
+            "questionType": "choice",
+            "prompt": "Httaa",
+            "correctAnswer": "aussi",
+            "userAnswer": "aussi",
+            "isCorrect": true,
+            "options": [
+              "Ou",
+              "Prendre",
+              "De temps en temps",
+              "aussi"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-089",
+            "questionType": "choice",
+            "prompt": "fnnan/a",
+            "correctAnswer": "Artiste",
+            "userAnswer": "Artiste",
+            "isCorrect": true,
+            "options": [
+              "Prendre le petit dejeuner",
+              "Papa",
+              "Dormir",
+              "Artiste"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-067",
+            "questionType": "choice",
+            "prompt": "b3d",
+            "correctAnswer": "Après",
+            "userAnswer": "Après",
+            "isCorrect": true,
+            "options": [
+              "Après",
+              "Developpeur",
+              "Papa",
+              "Mamie"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-090",
+            "questionType": "choice",
+            "prompt": "muswwer/a",
+            "correctAnswer": "Photographe",
+            "userAnswer": "Soeurs",
+            "isCorrect": false,
+            "options": [
+              "Soeurs",
+              "Magasin",
+              "Dire",
+              "Photographe"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-046",
+            "questionType": "choice",
+            "prompt": "frHaan",
+            "correctAnswer": "Heureux",
+            "userAnswer": "Heureux",
+            "isCorrect": true,
+            "options": [
+              "Heureux",
+              "Pastque",
+              "De temps en temps",
+              "Policier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-120",
+            "questionType": "choice",
+            "prompt": "malin dar",
+            "correctAnswer": "Famille",
+            "userAnswer": "Famille",
+            "isCorrect": true,
+            "options": [
+              "beaucoup",
+              "Mathematiques",
+              "Famille",
+              "Poulet"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-044",
+            "questionType": "choice",
+            "prompt": "mcha",
+            "correctAnswer": "Chat",
+            "userAnswer": "Chat",
+            "isCorrect": true,
+            "options": [
+              "Aller",
+              "Chat",
+              "Beau",
+              "Ou"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-121",
+            "questionType": "choice",
+            "prompt": "bnt",
+            "correctAnswer": "Fille",
+            "userAnswer": "Fille",
+            "isCorrect": true,
+            "options": [
+              "Fille",
+              "Dattes",
+              "Dans quoi ?",
+              "Pays"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-033",
+            "questionType": "choice",
+            "prompt": "Haaja",
+            "correctAnswer": "Chose",
+            "userAnswer": "Chose",
+            "isCorrect": true,
+            "options": [
+              "Mois",
+              "temp",
+              "Chose",
+              "Lui"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-119",
+            "questionType": "choice",
+            "prompt": "wld",
+            "correctAnswer": "Fils",
+            "userAnswer": "Fils",
+            "isCorrect": true,
+            "options": [
+              "Y'avais",
+              "Fils",
+              "Langues",
+              "beaucoup"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-109",
+            "questionType": "choice",
+            "prompt": "funun",
+            "correctAnswer": "Arts",
+            "userAnswer": "Arts",
+            "isCorrect": true,
+            "options": [
+              "Travail",
+              "Ou",
+              "Voisin",
+              "Arts"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-094",
+            "questionType": "choice",
+            "prompt": "7anut",
+            "correctAnswer": "Magasin",
+            "userAnswer": "Magasin",
+            "isCorrect": true,
+            "options": [
+              "université",
+              "Tissus",
+              "Poulet",
+              "Magasin"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-131",
+            "questionType": "choice",
+            "prompt": "bin",
+            "correctAnswer": "entre",
+            "userAnswer": "entre",
+            "isCorrect": true,
+            "options": [
+              "entre",
+              "Moi/Je",
+              "Policier",
+              "Ventre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-091",
+            "questionType": "choice",
+            "prompt": "sa7afi",
+            "correctAnswer": "Journaliste",
+            "userAnswer": "Confererencier",
+            "isCorrect": false,
+            "options": [
+              "Confererencier",
+              "Chèvre",
+              "Journaliste",
+              "Fille"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-103",
+            "questionType": "choice",
+            "prompt": "muHaami",
+            "correctAnswer": "Avocat",
+            "userAnswer": "Avocat",
+            "isCorrect": true,
+            "options": [
+              "Policier",
+              "Miel",
+              "Avocat",
+              "Le/la"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-078",
+            "questionType": "choice",
+            "prompt": "ana",
+            "correctAnswer": "Moi/Je",
+            "userAnswer": "Moi/Je",
+            "isCorrect": true,
+            "options": [
+              "Moi/Je",
+              "C'etait",
+              "Rempli",
+              "Magasin"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-049",
+            "questionType": "choice",
+            "prompt": "chrb",
+            "correctAnswer": "Boire",
+            "userAnswer": "Boire",
+            "isCorrect": true,
+            "options": [
+              "De temps en temps",
+              "apprendre",
+              "Boire",
+              "Fils"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-128",
+            "questionType": "choice",
+            "prompt": "mrra mrra",
+            "correctAnswer": "De temps en temps",
+            "userAnswer": "De temps en temps",
+            "isCorrect": true,
+            "options": [
+              "Genial",
+              "De temps en temps",
+              "Toi (M)",
+              "Vendre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-088",
+            "questionType": "choice",
+            "prompt": "mughni/ya",
+            "correctAnswer": "Chanteur",
+            "userAnswer": "Chanteur",
+            "isCorrect": true,
+            "options": [
+              "Toi/tu M",
+              "Prenom",
+              "Ecole",
+              "Chanteur"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-055",
+            "questionType": "choice",
+            "prompt": "chdd",
+            "correctAnswer": "Prendre",
+            "userAnswer": "Prendre",
+            "isCorrect": true,
+            "options": [
+              "Quoi de neuf",
+              "Toi/tu F",
+              "Prendre",
+              "Pays"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-087",
+            "questionType": "choice",
+            "prompt": "mu7asib/a",
+            "correctAnswer": "Comptable",
+            "userAnswer": "Comptable",
+            "isCorrect": true,
+            "options": [
+              "Comptable",
+              "aussi",
+              "Hopital",
+              "Pied"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-073",
+            "questionType": "choice",
+            "prompt": "Sa3a",
+            "correctAnswer": "Heure",
+            "userAnswer": "Heure",
+            "isCorrect": true,
+            "options": [
+              "Couper",
+              "Genial",
+              "Tete",
+              "Heure"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-057",
+            "questionType": "choice",
+            "prompt": "kbb",
+            "correctAnswer": "Verser",
+            "userAnswer": "Verser",
+            "isCorrect": true,
+            "options": [
+              "Femme",
+              "Artiste",
+              "Ville",
+              "Verser"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-032",
+            "questionType": "choice",
+            "prompt": "Skn",
+            "correctAnswer": "Habiter",
+            "userAnswer": "Habiter",
+            "isCorrect": true,
+            "options": [
+              "apprendre",
+              "Papa",
+              "Musicien",
+              "Habiter"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-070",
+            "questionType": "choice",
+            "prompt": "Tafah",
+            "correctAnswer": "Pomme",
+            "userAnswer": "Pomme",
+            "isCorrect": true,
+            "options": [
+              "Pomme",
+              "d'ou",
+              "S'il te plait",
+              "prier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-099",
+            "questionType": "choice",
+            "prompt": "Mubarmig",
+            "correctAnswer": "Developpeur",
+            "userAnswer": "Developpeur",
+            "isCorrect": true,
+            "options": [
+              "Etudier",
+              "Papa",
+              "Developpeur",
+              "Confererencier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-042",
+            "questionType": "choice",
+            "prompt": "djaaj",
+            "correctAnswer": "Poulet",
+            "userAnswer": "Poulet",
+            "isCorrect": true,
+            "options": [
+              "Poulet",
+              "Confererencier",
+              "Comptable",
+              "Mois"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-080",
+            "questionType": "choice",
+            "prompt": "nti",
+            "correctAnswer": "Toi/tu F",
+            "userAnswer": "Toi/tu F",
+            "isCorrect": true,
+            "options": [
+              "Toi/tu F",
+              "Etudier",
+              "Histoire",
+              "apprendre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-060",
+            "questionType": "choice",
+            "prompt": "tlqaa",
+            "correctAnswer": "Rencontrer",
+            "userAnswer": "Rencontrer",
+            "isCorrect": true,
+            "options": [
+              "Rencontrer",
+              "Fille",
+              "Commissariat",
+              "Rempli"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-064",
+            "questionType": "choice",
+            "prompt": "taar",
+            "correctAnswer": "Voler",
+            "userAnswer": "Voler",
+            "isCorrect": true,
+            "options": [
+              "Avocat",
+              "Voler",
+              "Papa",
+              "Honneur"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-071",
+            "questionType": "choice",
+            "prompt": "fin",
+            "correctAnswer": "Ou",
+            "userAnswer": "Ou",
+            "isCorrect": true,
+            "options": [
+              "Dormir",
+              "Fermer",
+              "Rempli",
+              "Ou"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-024",
+            "questionType": "choice",
+            "prompt": "Sm",
+            "correctAnswer": "Prenom",
+            "userAnswer": "Prenom",
+            "isCorrect": true,
+            "options": [
+              "Prenom",
+              "Tissus",
+              "Fermer",
+              "Habiter"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-051",
+            "questionType": "choice",
+            "prompt": "ftr",
+            "correctAnswer": "Prendre le petit dejeuner",
+            "userAnswer": "Prendre le petit dejeuner",
+            "isCorrect": true,
+            "options": [
+              "Histoire",
+              "Pays",
+              "Prendre le petit dejeuner",
+              "Fort"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-125",
+            "questionType": "choice",
+            "prompt": "khwatat",
+            "correctAnswer": "Soeurs",
+            "userAnswer": "Soeurs",
+            "isCorrect": true,
+            "options": [
+              "Comment c'etait",
+              "kalesh",
+              "Soeurs",
+              "Rempli"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-027",
+            "questionType": "choice",
+            "prompt": "nti",
+            "correctAnswer": "Toi (F)",
+            "userAnswer": "Toi (F)",
+            "isCorrect": true,
+            "options": [
+              "Etre",
+              "Y'avais",
+              "Toi (F)",
+              "Homme"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-133",
+            "questionType": "choice",
+            "prompt": "bzaaf",
+            "correctAnswer": "beaucoup",
+            "userAnswer": "beaucoup",
+            "isCorrect": true,
+            "options": [
+              "acheter",
+              "beaucoup",
+              "Shnu",
+              "entre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-096",
+            "questionType": "choice",
+            "prompt": "tub",
+            "correctAnswer": "Tissus",
+            "userAnswer": "Tissus",
+            "isCorrect": true,
+            "options": [
+              "Histoire",
+              "Tissus",
+              "Ville",
+              "Voler"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-066",
+            "questionType": "choice",
+            "prompt": "gdhddaa",
+            "correctAnswer": "Demain",
+            "userAnswer": "Demain",
+            "isCorrect": true,
+            "options": [
+              "Dans quoi ?",
+              "Journaliste",
+              "Demain",
+              "Toi/tu M"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-085",
+            "questionType": "choice",
+            "prompt": "ustad/a",
+            "correctAnswer": "Confererencier",
+            "userAnswer": "Confererencier",
+            "isCorrect": true,
+            "options": [
+              "Prenom",
+              "Confererencier",
+              "Mamie",
+              "entre"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-056",
+            "questionType": "choice",
+            "prompt": "sdd",
+            "correctAnswer": "Fermer",
+            "userAnswer": "Fermer",
+            "isCorrect": true,
+            "options": [
+              "Fermer",
+              "Chercher",
+              "Dattes",
+              "Papa"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-086",
+            "questionType": "choice",
+            "prompt": "bulisi/ya",
+            "correctAnswer": "Policier",
+            "userAnswer": "Policier",
+            "isCorrect": true,
+            "options": [
+              "Policier",
+              "Etudes",
+              "De temps en temps",
+              "Aller"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-037",
+            "questionType": "choice",
+            "prompt": "Blaad",
+            "correctAnswer": "Pays",
+            "userAnswer": "Pays",
+            "isCorrect": true,
+            "options": [
+              "Pays",
+              "Chercher",
+              "entre",
+              "Science"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-077",
+            "questionType": "choice",
+            "prompt": "Saaheb",
+            "correctAnswer": "Ami",
+            "userAnswer": "Ami",
+            "isCorrect": true,
+            "options": [
+              "Voisin",
+              "Prenom",
+              "Ou",
+              "Ami"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-093",
+            "questionType": "choice",
+            "prompt": "mul",
+            "correctAnswer": "Propriétaire",
+            "userAnswer": "Propriétaire",
+            "isCorrect": true,
+            "options": [
+              "Propriétaire",
+              "Piece/chambre",
+              "Fille",
+              "Artiste"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-036",
+            "questionType": "choice",
+            "prompt": "Haayat",
+            "correctAnswer": "Vie",
+            "userAnswer": "Vie",
+            "isCorrect": true,
+            "options": [
+              "kalesh",
+              "Musicien",
+              "Demain",
+              "Vie"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-110",
+            "questionType": "choice",
+            "prompt": "rriada",
+            "correctAnswer": "Sport",
+            "userAnswer": "Sport",
+            "isCorrect": true,
+            "options": [
+              "Sport",
+              "Miel",
+              "beurre",
+              "Ville"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-117",
+            "questionType": "choice",
+            "prompt": "l-walida",
+            "correctAnswer": "Maman",
+            "userAnswer": "Maman",
+            "isCorrect": true,
+            "options": [
+              "Commissariat",
+              "Maman",
+              "Etre",
+              "Confererencier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-118",
+            "questionType": "choice",
+            "prompt": "l-walidin",
+            "correctAnswer": "Parents",
+            "userAnswer": "Parents",
+            "isCorrect": true,
+            "options": [
+              "Parents",
+              "Lui",
+              "Dans quoi ?",
+              "Voler"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-113",
+            "questionType": "choice",
+            "prompt": "llughat",
+            "correctAnswer": "Langues",
+            "userAnswer": "Langues",
+            "isCorrect": true,
+            "options": [
+              "Magasin",
+              "prier",
+              "Beau",
+              "Langues"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-052",
+            "questionType": "choice",
+            "prompt": "lbs",
+            "correctAnswer": "S'habiller",
+            "userAnswer": "S'habiller",
+            "isCorrect": true,
+            "options": [
+              "Boire",
+              "S'habiller",
+              "Comment",
+              "Musicien"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-098",
+            "questionType": "choice",
+            "prompt": "Hyat",
+            "correctAnswer": "Couturier",
+            "userAnswer": "Couturier",
+            "isCorrect": true,
+            "options": [
+              "Je suis née",
+              "Rencontrer",
+              "Fermer",
+              "Couturier"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-045",
+            "questionType": "choice",
+            "prompt": "maaza",
+            "correctAnswer": "Chèvre",
+            "userAnswer": "Chèvre",
+            "isCorrect": true,
+            "options": [
+              "Chèvre",
+              "Ecole",
+              "Après",
+              "Beau"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-019",
+            "questionType": "choice",
+            "prompt": "Mdina",
+            "correctAnswer": "Ville",
+            "userAnswer": "Ville",
+            "isCorrect": true,
+            "options": [
+              "Voisin",
+              "Papa",
+              "Ville",
+              "Tissus"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-104",
+            "questionType": "choice",
+            "prompt": "3azif",
+            "correctAnswer": "Musicien",
+            "userAnswer": "Beau",
+            "isCorrect": false,
+            "options": [
+              "Quoi de neuf",
+              "Musicien",
+              "Comptable",
+              "Beau"
+            ]
+          },
+          {
+            "itemId": "0b43895e-5ce3-409a-b1ac-4f989fba0dae-term-026",
+            "questionType": "choice",
+            "prompt": "nta",
+            "correctAnswer": "Toi (M)",
+            "userAnswer": "Toi (M)",
+            "isCorrect": true,
+            "options": [
+              "Fille",
+              "C'etait",
+              "Tete",
+              "Toi (M)"
+            ]
+          }
+        ],
+        "correctCount": 115,
+        "total": 125,
+        "score": 92,
+        "createdAt": "2026-06-04T17:34:32.040Z"
+      }
+    ]
   },
   {
     "id": "quizlet-166616674",
@@ -3882,20 +5776,21 @@
     "title": "יחידה 3- בחני מילים",
     "language": "English / Hebrew",
     "createdAt": "2026-04-30T00:00:00.000Z",
-    "updatedAt": "2026-04-30T00:00:00.000Z",
+    "updatedAt": "2026-05-18T18:47:08.028Z",
     "items": [
       {
         "id": "quizlet-166609820-term-001",
         "word": "abdomen",
         "translation": "בטן, כרס",
-        "status": "new",
-        "attempts": 0,
-        "correctCount": 0,
+        "status": "mastered",
+        "attempts": 3,
+        "correctCount": 3,
         "wrongCount": 0,
-        "correctStreak": 0,
+        "correctStreak": 3,
         "wrongStreak": 0,
+        "lastTestedAt": "2026-05-18T18:47:08.027Z",
         "createdAt": "2026-04-30T00:00:00.000Z",
-        "updatedAt": "2026-04-30T00:00:00.000Z"
+        "updatedAt": "2026-05-18T18:47:08.027Z"
       },
       {
         "id": "quizlet-166609820-term-002",
