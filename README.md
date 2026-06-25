@@ -8,14 +8,14 @@ A premium, offline-first vocabulary learning PWA. Build word lists, drill them w
 
 - **Local word lists** — create, edit, and organize vocabulary lists in the browser.
 - **Swipe flashcards** — tactile pointer-driven deck; swipe right to mark *mastered*, left for *learning*. Resumes where you left off, per list.
-- **Adaptive quizzes** — five modes (written, multiple choice, mixed, test, full review). Weak and recently-missed words surface first.
+- **Adaptive quizzes** — six modes (written, multiple choice, mixed, test, full review, daily review). Weak and recently-missed words surface first.
 - **Progress & mastery tracking** — per-word attempts, streaks, and a derived `new → learning → mastered` status, plus per-list test history.
 - **Import / export** — move your data between devices as JSON, or paste tab-separated terms straight from Quizlet.
 - **Installable PWA** — works offline once installed; bundled starter lists (Darija + Hebrew Quizlet units) ship with the app.
 
 ## Tech stack
 
-Next.js 16 (App Router) · React 19 · TypeScript (strict) · three.js / @react-three/fiber · lucide-react.
+Next.js 16 (App Router) · React 19 · TypeScript (strict) · lucide-react.
 
 There is **no backend and no database** — all state lives in the browser's `localStorage`.
 
@@ -37,9 +37,12 @@ The dev script intentionally pins the dev server to Webpack with `--webpack` (Ne
 | `npm run build` | Production build. |
 | `npm run start` | Serve the production build. |
 | `npm run lint` | Run ESLint (`next` core-web-vitals + typescript configs). |
+| `npm test` | Run pure logic tests with Node's built-in test runner. |
 | `npm run import:phone -- <export.json>` | Regenerate the bundled starter lists from an in-app JSON export. |
 
-There is currently **no test runner** in this project. Validate changes with `npm run lint`, `npm run build`, and manual testing in the browser.
+Pure logic tests use Node's built-in runner. Validate changes with `npm test`, `npm run lint`, `npm run build`, and manual testing in the browser.
+
+`package.json` also carries a PostCSS override to keep Next's pinned transitive dependency on a patched `8.5.x` release; keep `npm audit` clean when changing framework dependencies.
 
 ## Data & privacy
 

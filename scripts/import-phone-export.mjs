@@ -13,7 +13,8 @@ const VALID_MODES = new Set([
   "choice",
   "mixed",
   "test",
-  "full-review"
+  "full-review",
+  "review-due"
 ]);
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");

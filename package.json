@@ -9,23 +9,24 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "node --test lib/*.test.ts",
     "import:phone": "node scripts/import-phone-export.mjs"
   },
   "dependencies": {
-    "@react-three/fiber": "^9.6.1",
     "lucide-react": "^1.14.0",
-    "next": "^16.2.4",
+    "next": "^16.2.9",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "three": "^0.184.0"
+    "react-dom": "^19.2.5"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@types/three": "^0.184.0",
     "eslint": "^9.39.4",
-    "eslint-config-next": "^16.2.4",
+    "eslint-config-next": "^16.2.9",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   }
 }

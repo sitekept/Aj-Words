@@ -1,8 +1,10 @@
+import type { QuizMode } from "@/lib/quiz-modes";
+
 export type LearningStatus = "new" | "learning" | "mastered";
 
 export type FlashcardAssessment = "learning" | "mastered";
 
-export type QuizMode = "written" | "choice" | "mixed" | "test" | "full-review" | "review-due";
+export type { QuizMode };
 
 export type QuizQuestionType = "written" | "choice";
 

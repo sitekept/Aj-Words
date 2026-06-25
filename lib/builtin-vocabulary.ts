@@ -10,6 +10,7 @@ import {
   deriveStatusFromBox,
   inferSrsFromLegacy
 } from "@/lib/srs";
+import { normalizeQuizMode } from "@/lib/quiz-modes";
 
 const BUILTIN_CREATED_AT = "2026-04-30T00:00:00.000Z";
 
@@ -123,13 +124,7 @@ const makeSnapshotTestHistory = (
 
     return {
       id: typeof entry.id === "string" && entry.id.trim() ? entry.id : "",
-      mode:
-        entry.mode === "written" ||
-        entry.mode === "choice" ||
-        entry.mode === "mixed" ||
-        entry.mode === "full-review"
-          ? entry.mode
-          : "test",
+      mode: normalizeQuizMode(entry.mode),
       attempts,
       correctCount,
       total,

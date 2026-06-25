@@ -1,8 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { BellRing, Download, Home, Plus, Upload } from "lucide-react";
+import { AJWordsScene } from "@/components/AJWordsScene";
 import { BrandLogo } from "@/components/BrandLogo";
 import { FlashcardMode } from "@/components/FlashcardMode";
 import { ListDetail } from "@/components/ListDetail";
@@ -17,6 +17,7 @@ import {
   readQuizSession,
   writeQuizSession
 } from "@/lib/quiz-session-storage";
+import { formatDailyReviewCount, limitDailyReviewItems } from "@/lib/daily-review";
 import { countDue, getDueItems } from "@/lib/srs";
 import { useVocabularyStore } from "@/lib/useVocabularyStore";
 import {
@@ -36,21 +37,14 @@ import type {
 // Synthetic list id used for cross-list daily-review sessions.
 const REVIEW_LIST_ID = "__review__";
 
-const AJWordsScene = dynamic(
-  () => import("@/components/AJWordsScene").then((mod) => mod.AJWordsScene),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="aj-scene-fallback" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-      </div>
-    )
-  }
-);
-
-type AppView = "home" | "list" | "flashcards" | "quiz" | "score" | "review";
+type AppView =
+  | "home"
+  | "list"
+  | "flashcards"
+  | "quiz"
+  | "score"
+  | "review"
+  | "review-score";
 
 type ListFormState =
   | { mode: "create" }
@@ -185,6 +179,8 @@ export function VocabularyApp() {
     ? store.listMap.get(selectedListId) ?? null
     : null;
   const hasSelectedList = Boolean(selectedListId);
+  const hasWorkspaceSelection =
+    hasSelectedList || view === "review" || view === "review-score";
 
   useEffect(() => {
     if (!store.hydrated || uiHydrated) {
@@ -389,10 +385,12 @@ export function VocabularyApp() {
     }
 
     reviewItemListMapRef.current = itemListMap;
+    const reviewItems = limitDailyReviewItems(allDueItems);
+
     setReviewList({
       id: REVIEW_LIST_ID,
       title: "Daily review",
-      items: allDueItems,
+      items: reviewItems,
       testHistory: [],
       createdAt: now,
       updatedAt: now
@@ -586,7 +584,7 @@ export function VocabularyApp() {
         </div>
       ) : null}
 
-      <main className={`workspace ${hasSelectedList || view === "review" ? "has-selection" : ""}`}>
+      <main className={`workspace ${hasWorkspaceSelection ? "has-selection" : ""}`}>
         <aside className="library-panel">
           <ListLibrary
             lists={store.lists}
@@ -599,7 +597,7 @@ export function VocabularyApp() {
         </aside>
 
         <section className="workspace-panel">
-          {!hasSelectedList && view !== "review" ? (
+          {!hasWorkspaceSelection ? (
             <section className="welcome-panel" aria-labelledby="welcome-title">
               <div className="welcome-copy">
                 <p className="eyebrow">AJ Words</p>
@@ -627,7 +625,7 @@ export function VocabularyApp() {
                         icon={<BellRing size={18} />}
                         onClick={startCrossListReview}
                       >
-                        Review due ({totalDue})
+                        Review due ({formatDailyReviewCount(totalDue)})
                       </Button>
                     ) : null;
                   })()}
@@ -653,8 +651,23 @@ export function VocabularyApp() {
                 }
               }}
               onBack={goHome}
-              onFinish={goHome}
+              onFinish={(attempts) => {
+                setQuizAttempts(attempts);
+                setQuizInitialSession(null);
+                setQuizMode("review-due");
+                setView("review-score");
+              }}
               onSessionChange={() => {}}
+            />
+          ) : null}
+
+          {view === "review-score" && reviewList ? (
+            <ScoreScreen
+              list={reviewList}
+              mode="review-due"
+              attempts={quizAttempts}
+              onBack={goHome}
+              onRepeat={startCrossListReview}
             />
           ) : null}
 

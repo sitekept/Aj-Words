@@ -79,13 +79,13 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | `QuizAttempt` | `itemId`, `questionType`, `prompt`, `correctAnswer`, `userAnswer`, `isCorrect`, `options?` | `questionType` is `written \| choice`; `options` only for choice. |
 | `ListProgress` | `total`, `mastered`, `learning`, `fresh` | **Derived** (via `getProgress`), never stored. |
 
-`QuizMode` is `written | choice | mixed | test | full-review`.
+`QuizMode` is `written | choice | mixed | test | full-review | review-due`.
 
 ### LocalStorage keys
 
 | Key | Shape | Written by |
 | --- | --- | --- |
-| `worddeck.v1.lists` | `WordList[]` — every list, including local copies and the progress overlay for builtin lists | `saveLists` (via the store) |
+| `worddeck.v1.lists` | `WordList[]` — local lists in full, plus compact progress overlays for touched builtin lists | `saveLists` (via the store) |
 | `ajwords.v1.ui` | `{ selectedListId }` — last opened list (also mirrored to the `?list=` URL param) | `VocabularyApp` |
 | `ajwords.v1.flashcards` | `{ [listId]: { nextIndex, updatedAt } }` — per-list flashcard resume position | `VocabularyApp` |
 | `ajwords.v1.quizSessions` | `{ [listId:mode]: QuizSessionState }` — in-progress quiz, resumed after reload | `lib/quiz-session-storage.ts` |
@@ -98,6 +98,8 @@ list data:
 - **Hydrate on mount** — an effect calls `loadLists()` once and sets `hydrated`.
 - **Autosave on change** — a second effect calls `saveLists(lists)` whenever `lists`
   changes (guarded by `hydrated` so the initial empty state doesn't clobber storage).
+  Public lists are compacted before persistence: untouched bundled lists are omitted,
+  and touched bundled lists store only per-item progress overlays plus test history.
 - **Intent-level mutators** — `addList`, `updateList`, `deleteList`, `addWord`,
   `updateWord`, `deleteWord`, `recordQuizProgress`, `recordFlashcardProgress`,
   `addTestHistory`, `importLists`. The mutators that can touch a builtin list return
@@ -224,7 +226,8 @@ flowchart TD
   CH -- no --> WR["written"]
 ```
 
-- **Selection (`getSessionItems`)** — `full-review` shuffles everything; all other modes
+- **Selection (`getSessionItems`)** — `full-review` shuffles everything; `review-due`
+  uses only due cards and caps the session at 40 cards; all other modes
   prioritize cards that are **due** for review (`isDue` against `dueAt`), which re-includes
   mastered-but-due cards. It falls back to non-mastered, then to all, so a session is never
   empty, ordering the pool most-overdue-first with `getAdaptivePriority` as a tiebreak.
@@ -276,12 +279,13 @@ There are **three distinct** data paths — don't conflate them:
 
 - [`app/manifest.ts`](../app/manifest.ts) is a Next metadata route served at
   `/manifest.webmanifest` (name, icons, standalone display, theme colors).
-- [`public/sw.js`](../public/sw.js) is the service worker (cache name `aj-words-v2`).
+- [`public/sw.js`](../public/sw.js) is the service worker (cache name `aj-words-v4`).
   Strategies by request:
   - **navigation** → network-first, falling back to the cached `/` shell when offline;
   - **`/icons/*` and `/apple-touch-icon.png`** → stale-while-revalidate;
   - **`/manifest.webmanifest`** → cache-first;
-  - **`/_next/*`** → bypassed (let Next handle its own assets).
+  - **`/_next/static/*`** → stale-while-revalidate;
+  - other **`/_next/*`** requests → bypassed (let Next handle dynamic internals).
 
 > **Dev gotcha — the service worker is deliberately disabled in development.** It
 > registers **only in production over HTTPS or a LAN host**. In dev, *two* mechanisms
@@ -309,13 +313,15 @@ There are **three distinct** data paths — don't conflate them:
 | `TestHistory.tsx` | Past test entries with a "review" action. |
 | `BrandLogo.tsx` | The AJ Words mark. |
 | `ui.tsx` | Design-system primitives: `Button`, `IconButton`, `Modal`, `TextField`, and the `cx` class-name helper. |
-| `AJWordsScene.tsx` | three.js / @react-three/fiber welcome visual (a floating card stack). Detects WebGL, honors reduced-motion, and is dynamically imported with `ssr: false`. |
+| `AJWordsScene.tsx` | Dependency-light CSS welcome visual (a floating card stack). Honors reduced-motion without WebGL. |
 
 ## 13. Configuration notes
 
 - [`next.config.ts`](../next.config.ts) — `allowedDevOrigins` (private-network ranges so
   the dev server works when tested from a phone), security headers, and explicit
   no-cache headers for `/sw.js`.
+- [`package.json`](../package.json) — contains a PostCSS override so Next's pinned
+  transitive PostCSS dependency resolves to a patched `8.5.x` version.
 - [`eslint.config.mjs`](../eslint.config.mjs) — extends `next` core-web-vitals +
   typescript, and disables `react-hooks/set-state-in-effect` (the store's
   hydrate-in-effect pattern relies on setting state inside effects).

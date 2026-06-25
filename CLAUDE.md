@@ -16,19 +16,20 @@ npm run dev:host       # Same, bound to 0.0.0.0 for testing on a phone over the 
 npm run build          # Production build
 npm run start          # Serve the production build
 npm run lint           # eslint (next core-web-vitals + typescript configs)
+npm test               # Node built-in test runner for pure logic
 
 # Regenerate the bundled seed lists from an in-app JSON export (see "Builtin lists" below):
 npm run import:phone -- <aj-words-export.json> [--output <path>]
 ```
 
-Pure logic has unit tests via Node's built-in runner (`node --test lib/*.test.ts`, e.g. `lib/srs.test.ts`) — no test framework or dependencies. Test files are excluded from `tsconfig`/eslint. Also verify changes via `npm run lint`, `npm run build`, and manual testing in the browser.
+Pure logic has unit tests via Node's built-in runner (`npm test`, equivalent to `node --test lib/*.test.ts`) — no test framework or dependencies. Test files are excluded from `tsconfig`/eslint. Also verify changes via `npm run lint`, `npm run build`, and manual testing in the browser.
 
 ## Architecture
 
 AJ Words is a **fully client-side** vocabulary-learning PWA: Next.js 16 App Router, React 19, TypeScript (strict). There is no backend, no database, and no API routes. The single route (`app/page.tsx`) renders one big client component, `components/VocabularyApp.tsx`, which owns all view state (a `view` enum: home / list / flashcards / quiz / score) and orchestrates every child. The `@/*` path alias maps to the repo root.
 
 All persistence is **browser localStorage**, under these keys:
-- `worddeck.v1.lists` — every word list and its progress
+- `worddeck.v1.lists` — local lists in full plus compact progress overlays for touched builtin lists
 - `ajwords.v1.ui` — last-selected list id (also mirrored to the `?list=` URL param)
 - `ajwords.v1.flashcards` — per-list flashcard resume index
 - `ajwords.v1.quizSessions` — in-progress quiz sessions (resume after reload)
@@ -55,7 +56,7 @@ Mastery is driven by a **Leitner spaced-repetition engine** (`lib/srs.ts`). Each
 
 ### Quiz engine (`components/QuizRunner.tsx`)
 
-Modes: `written | choice | mixed | test | full-review`. Question selection is **spaced-repetition-aware**: `getSessionItems` prioritizes items that are **due** (`isDue` against `dueAt`), which re-includes mastered-but-due cards; it falls back to non-mastered then all so a session is never empty, ordered most-overdue-first with `getAdaptivePriority` as a tiebreak. `full-review` shuffles everything. Multiple-choice requires ≥4 items (`canUseChoice`), else falls back to written. Answers are matched after normalization (trim / lowercase / collapse whitespace). In-progress sessions persist via `lib/quiz-session-storage.ts`, and `recordQuizProgress` is applied per finalized attempt.
+Modes: `written | choice | mixed | test | full-review | review-due`. Question selection is **spaced-repetition-aware**: `getSessionItems` prioritizes items that are **due** (`isDue` against `dueAt`), which re-includes mastered-but-due cards; it falls back to non-mastered then all so a session is never empty, ordered most-overdue-first with `getAdaptivePriority` as a tiebreak. `full-review` shuffles everything. `review-due` is due-only and capped at 40 cards. Multiple-choice requires ≥4 items (`canUseChoice`), else falls back to written. Answers are matched after normalization (trim / lowercase / collapse whitespace). In-progress sessions persist via `lib/quiz-session-storage.ts`, and `recordQuizProgress` is applied per finalized attempt.
 
 ### Flashcards (`components/FlashcardMode.tsx`)
 
@@ -70,7 +71,7 @@ Two unrelated import paths — don't confuse them:
 
 ## PWA & the dev service-worker gotcha
 
-`app/manifest.ts` is a Next metadata route serving `/manifest.webmanifest`; `public/sw.js` is the service worker (cache-first for the app shell/icons, network-first for navigations, cache name `aj-words-v*`).
+`app/manifest.ts` is a Next metadata route serving `/manifest.webmanifest`; `public/sw.js` is the service worker (cache-first for manifest/icons, stale-while-revalidate for `/_next/static/*`, network-first for navigations, cache name `aj-words-v*`).
 
 **The service worker only registers in production over HTTPS or LAN hosts.** In development the opposite happens — *two* mechanisms actively unregister any SW and delete `aj-words*` caches: an effect in `VocabularyApp.tsx` and an inline script in `app/layout.tsx`. This intentionally prevents a stale SW from breaking the dev preview, so:
 - Any caching/offline change must be verified with `npm run build` + `npm run start`, not `npm run dev`.
@@ -78,8 +79,9 @@ Two unrelated import paths — don't confuse them:
 
 ## Other notes
 
-- `components/AJWordsScene.tsx` (three.js / @react-three/fiber) is the welcome-screen 3D visual, dynamically imported with `ssr: false`.
+- `components/AJWordsScene.tsx` is the welcome-screen CSS visual. Keep it dependency-light and honor `prefers-reduced-motion`.
 - `components/ui.tsx` holds the shared design-system primitives (`Button`, `IconButton`, `Modal`, `TextField`, and the `cx` class-name helper) — reuse these rather than hand-rolling buttons/inputs.
 - `next.config.ts` defines `allowedDevOrigins` (private-network ranges for phone testing), security headers, and explicit no-cache headers for `/sw.js`.
+- `package.json` has a PostCSS override because Next pins a vulnerable transitive version; verify `npm audit` when touching framework dependencies.
 - `eslint.config.mjs` disables `react-hooks/set-state-in-effect` — the store's hydration pattern depends on setting state inside effects.
 - Bundled list content includes Hebrew (RTL) and Darija; preserve the original strings when editing the data files.

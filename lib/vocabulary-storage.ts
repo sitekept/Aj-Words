@@ -13,6 +13,8 @@ import {
   getBuiltinList,
   isBuiltinListId
 } from "@/lib/builtin-vocabulary";
+import { isQuizMode } from "@/lib/quiz-modes";
+import { createPersistedLists } from "@/lib/vocabulary-persistence";
 import {
   clampBox,
   deriveStatusFromBox,
@@ -47,13 +49,6 @@ export const createId = () => {
 };
 
 export const initialLists: WordList[] = builtinLists;
-
-const isQuizMode = (value: unknown): value is QuizMode =>
-  value === "written" ||
-  value === "choice" ||
-  value === "mixed" ||
-  value === "test" ||
-  value === "full-review";
 
 const normalizeCount = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) && value > 0
@@ -285,7 +280,10 @@ export const saveLists = (lists: WordList[]) => {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+  window.localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(createPersistedLists(lists, isPublicListId, getBuiltinList))
+  );
 };
 
 export const getProgress = (items: VocabularyItem[]): ListProgress => ({
