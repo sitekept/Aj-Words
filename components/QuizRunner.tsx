@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { Button, cx } from "@/components/ui";
+import { limitDailyReviewItems } from "@/lib/daily-review";
 import { isDue } from "@/lib/srs";
 import type {
   QuizAttempt,
@@ -104,7 +105,7 @@ const getSessionItems = (
 
   // "review-due": strictly only due cards (button is disabled when none are due).
   if (mode === "review-due") {
-    return shuffle(items.filter((item) => isDue(item, now)));
+    return shuffle(limitDailyReviewItems(items.filter((item) => isDue(item, now))));
   }
 
   // Prioritize cards that are due for spaced-repetition review (this re-includes

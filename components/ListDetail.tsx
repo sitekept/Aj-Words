@@ -11,6 +11,7 @@ import {
   Shuffle,
   Trash2
 } from "lucide-react";
+import { formatDailyReviewCount } from "@/lib/daily-review";
 import { countDue } from "@/lib/srs";
 import { ProgressSummary } from "@/components/ProgressSummary";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -89,7 +90,7 @@ export function ListDetail({
             icon={<BellRing size={18} />}
             onClick={() => onStartQuiz("review-due")}
           >
-            Review due ({dueCount})
+            Review due ({formatDailyReviewCount(dueCount)})
           </Button>
         ) : null}
         <Button

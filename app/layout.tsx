@@ -74,6 +74,7 @@ const localServiceWorkerResetScript = `
     }
   })();
 `;
+const shouldResetLocalServiceWorker = process.env.NODE_ENV !== "production";
 
 export const metadata: Metadata = {
   title: "AJ Words",
@@ -112,9 +113,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <script
-          dangerouslySetInnerHTML={{ __html: localServiceWorkerResetScript }}
-        />
+        {shouldResetLocalServiceWorker ? (
+          <script
+            dangerouslySetInnerHTML={{ __html: localServiceWorkerResetScript }}
+          />
+        ) : null}
         {children}
       </body>
     </html>

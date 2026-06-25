@@ -615,55 +615,98 @@ blockquote {
   font-size: 1.28rem;
 }
 
-.aj-scene,
-.aj-scene-fallback {
+.aj-scene {
+  position: relative;
   width: min(100%, 420px);
   aspect-ratio: 1.15;
   justify-self: center;
+  perspective: 900px;
 }
 
-.aj-scene canvas {
-  display: block;
-}
-
-.aj-scene-fallback {
-  position: relative;
-  min-height: 260px;
-}
-
-.aj-scene-fallback span {
+.aj-scene-card {
   position: absolute;
   left: 50%;
   top: 50%;
   display: block;
-  width: 220px;
-  height: 140px;
+  width: min(70%, 285px);
+  height: min(44%, 180px);
   border-radius: var(--radius);
-  transform: translate(-50%, -50%) rotate(-8deg);
-  background: var(--primary);
   box-shadow: var(--shadow-3d);
+  transform-style: preserve-3d;
 }
 
-.aj-scene-fallback span:nth-child(2) {
-  transform: translate(-42%, -58%) rotate(8deg);
+.aj-scene-card-back {
+  transform: translate(-58%, -42%) rotate(-8deg) skewY(-1deg);
+  background: var(--primary);
+}
+
+.aj-scene-card-mid {
+  transform: translate(-42%, -58%) rotate(8deg) skewY(1deg);
   background: var(--indigo);
 }
 
-.aj-scene-fallback span:nth-child(3) {
-  transform: translate(-50%, -50%);
+.aj-scene-card-front {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.08em;
+  transform: translate(-50%, -50%) rotate(0.5deg);
   background: var(--bg-raised);
+  animation: scene-float 5.5s ease-in-out infinite;
 }
 
-.aj-scene-fallback::after {
-  content: "AJ";
+.aj-scene-line {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -48%);
+  top: 24%;
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.aj-scene-line-primary {
+  left: 18%;
+  width: 32%;
+  background: var(--primary-soft);
+}
+
+.aj-scene-line-accent {
+  right: 18%;
+  width: 26%;
+  background: var(--accent-soft);
+}
+
+.aj-scene-letter {
   color: var(--text);
   font-size: 4rem;
   font-weight: 900;
   line-height: 1;
+}
+
+.aj-scene-letter-a {
+  color: var(--accent);
+  transform: translateX(-0.28em) rotate(-5deg);
+}
+
+.aj-scene-letter-j {
+  color: var(--indigo);
+  transform: translateX(0.28em) rotate(4deg);
+}
+
+@keyframes scene-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aj-scene-card-front {
+    animation: none;
+  }
 }
 
 .detail,

@@ -5,6 +5,7 @@ import type {
   QuizSessionQuestion,
   QuizSessionState
 } from "@/types/vocabulary";
+import { isQuizMode } from "@/lib/quiz-modes";
 
 const QUIZ_SESSION_STORAGE_KEY = "ajwords.v1.quizSessions";
 
@@ -14,13 +15,6 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
 const storageKeyFor = (listId: string, mode: QuizMode) => `${listId}:${mode}`;
-
-const isQuizMode = (value: unknown): value is QuizMode =>
-  value === "written" ||
-  value === "choice" ||
-  value === "mixed" ||
-  value === "test" ||
-  value === "full-review";
 
 const isQuestionType = (value: unknown): value is QuizQuestionType =>
   value === "written" || value === "choice";
