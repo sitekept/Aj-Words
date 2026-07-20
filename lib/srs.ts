@@ -9,7 +9,9 @@ import type { LearningStatus, VocabularyItem } from "@/types/vocabulary";
 // box — never trusted from stored input.
 
 // Interval, in DAYS, until a card is due again once it REACHES each box.
-export const LEITNER_INTERVALS = [0, 1, 3, 7, 16, 35] as const;
+// Boxes above MASTERED_BOX don't change status — they only keep stretching the
+// interval for mature cards so a long-mastered word isn't resurfaced forever.
+export const LEITNER_INTERVALS = [0, 1, 3, 7, 16, 35, 75, 150] as const;
 export const MAX_BOX = LEITNER_INTERVALS.length - 1;
 // Box at/after which a card counts as "mastered" (5 correct answers in a row).
 export const MASTERED_BOX = 5;

@@ -179,6 +179,14 @@ Mastery is driven by a **Leitner spaced-repetition engine**
 longer interval (`LEITNER_INTERVALS`, in days) — and demotes it one box, due immediately,
 on a miss.
 
+| Box             | 0 | 1 | 2 | 3 | 4  | 5  | 6  | 7   |
+| --------------- | - | - | - | - | -- | -- | -- | --- |
+| Interval (days) | 0 | 1 | 3 | 7 | 16 | 35 | 75 | 150 |
+
+Boxes 6–7 exist purely to keep spacing out mature cards — the mastery threshold is
+unchanged at `MASTERED_BOX` (box ≥ 5), so they don't affect status, only how often a
+long-mastered word comes back for review (instead of every 35 days forever).
+
 `status` is **always derived** from the box by `deriveStatusFromBox`, never read from input:
 
 - `attempts <= 0` → `new`
@@ -200,6 +208,12 @@ Two functions apply outcomes (counters **and** the Leitner schedule), then re-de
   finalized attempt during a quiz.
 - **`applyFlashcardAssessmentToItems`** — applies a single swipe: `mastered` counts as a
   correct answer (promote one box), `learning` as a miss (demote one box).
+
+> **`full-review` writes to the SRS like every other mode — by design.** A miss during a
+> full review is genuine evidence of forgetting, so hiding it from the scheduler would let
+> the schedule drift from reality (the same reasoning behind Anki's filtered decks
+> rescheduling by default). A "casual review (no SRS impact)" toggle was considered and
+> deferred.
 
 Items saved before the SRS engine are migrated on load in `normalizeItem` via
 `inferSrsFromLegacy` (box derived from the old streak counters, `dueAt` set to now so

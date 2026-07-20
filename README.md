@@ -8,7 +8,7 @@ A premium, offline-first vocabulary learning PWA. Build word lists, drill them w
 
 - **Local word lists** — create, edit, and organize vocabulary lists in the browser.
 - **Swipe flashcards** — tactile pointer-driven deck; swipe right to mark *mastered*, left for *learning*. Resumes where you left off, per list.
-- **Adaptive quizzes** — five modes (written, multiple choice, mixed, test, full review). Weak, due, and recently-missed words surface first.
+- **Adaptive quizzes** — five modes (written, multiple choice, mixed, test, full review). Weak, due, and recently-missed words surface first; every mode, full review included, feeds the spaced-repetition schedule.
 - **Progress & mastery tracking** — per-word attempts, streaks, and a derived `new → learning → mastered` status, plus per-list test history.
 - **Import / export** — move your data between devices as JSON, or paste tab-separated terms straight from Quizlet.
 - **Installable PWA** — works offline once installed; bundled starter lists (Darija + Hebrew Quizlet units) ship with the app.
