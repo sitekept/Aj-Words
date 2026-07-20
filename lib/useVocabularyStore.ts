@@ -14,6 +14,7 @@ import {
   saveLists,
   touchList
 } from "@/lib/vocabulary-storage";
+import { normalizeContentFields } from "@/lib/item-content";
 import type {
   FlashcardAssessment,
   QuizAttempt,
@@ -25,15 +26,16 @@ import type {
 export interface ListInput {
   title: string;
   language?: string;
-  items?: Array<{
-    word: string;
-    translation: string;
-  }>;
+  items?: WordInput[];
 }
 
 export interface WordInput {
   word: string;
   translation: string;
+  note?: string;
+  example?: string;
+  altAnswers?: string[];
+  tags?: string[];
 }
 
 export interface ImportListsSummary {
@@ -185,18 +187,25 @@ export const useVocabularyStore = () => {
     (listId: string, itemId: string, input: WordInput): ListMutationResult => {
       const sourceList = lists.find((list) => list.id === listId);
 
+      // Explicit undefined (rather than omission) clears a field the user
+      // blanked; JSON serialization drops the undefined keys on save.
+      const content = normalizeContentFields(input);
+      const applyInput = (item: VocabularyItem): VocabularyItem => ({
+        ...item,
+        word: input.word.trim(),
+        translation: input.translation.trim(),
+        note: content.note,
+        example: content.example,
+        altAnswers: content.altAnswers,
+        tags: content.tags,
+        updatedAt: new Date().toISOString()
+      });
+
       if (sourceList && isPublicListId(sourceList.id)) {
         const copy = touchList({
           ...createLocalCopy(sourceList),
           items: sourceList.items.map((item) =>
-            item.id === itemId
-              ? {
-                  ...item,
-                  word: input.word.trim(),
-                  translation: input.translation.trim(),
-                  updatedAt: new Date().toISOString()
-                }
-              : item
+            item.id === itemId ? applyInput(item) : item
           )
         });
 
@@ -210,14 +219,7 @@ export const useVocabularyStore = () => {
             ? touchList({
                 ...list,
                 items: list.items.map((item) =>
-                  item.id === itemId
-                    ? {
-                        ...item,
-                        word: input.word.trim(),
-                        translation: input.translation.trim(),
-                        updatedAt: new Date().toISOString()
-                      }
-                    : item
+                  item.id === itemId ? applyInput(item) : item
                 )
               })
             : list

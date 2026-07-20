@@ -13,6 +13,7 @@ import {
   getBuiltinList,
   isBuiltinListId
 } from "@/lib/builtin-vocabulary";
+import { normalizeContentFields } from "./item-content";
 import { isQuizMode } from "@/lib/quiz-modes";
 import { readLatestBackup, writeRotatingBackup } from "@/lib/local-backup";
 import { createPersistedLists } from "@/lib/vocabulary-persistence";
@@ -107,6 +108,9 @@ const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => {
 
   return {
     ...normalized,
+    // Optional content fields survive only when present and non-empty; the
+    // conditional spread keeps absent fields absent.
+    ...normalizeContentFields(item),
     box: srs.box,
     dueAt: srs.dueAt,
     status: deriveStatusFromBox({ box: srs.box, attempts: normalized.attempts })
@@ -349,13 +353,19 @@ export const getProgress = (items: VocabularyItem[]): ListProgress => ({
   fresh: items.filter((item) => item.status === "new").length
 });
 
+export interface CreateItemInput {
+  word: string;
+  translation: string;
+  note?: string;
+  example?: string;
+  altAnswers?: string[];
+  tags?: string[];
+}
+
 export const createList = (input: {
   title: string;
   language?: string;
-  items?: Array<{
-    word: string;
-    translation: string;
-  }>;
+  items?: CreateItemInput[];
 }): WordList => {
   const timestamp = now();
 
@@ -368,7 +378,8 @@ export const createList = (input: {
       id: createId(),
       word: item.word.trim(),
       translation: item.translation.trim(),
-      status: "new",
+      ...normalizeContentFields(item),
+      status: "new" as const,
       ...createInitialProgress(),
       box: 0,
       dueAt: timestamp,
@@ -399,16 +410,14 @@ export const createTestHistoryEntry = (input: {
   };
 };
 
-export const createItem = (input: {
-  word: string;
-  translation: string;
-}): VocabularyItem => {
+export const createItem = (input: CreateItemInput): VocabularyItem => {
   const timestamp = now();
 
   return {
     id: createId(),
     word: input.word.trim(),
     translation: input.translation.trim(),
+    ...normalizeContentFields(input),
     status: "new",
     ...createInitialProgress(),
     box: 0,

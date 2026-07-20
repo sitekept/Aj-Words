@@ -86,6 +86,42 @@ const count = (value) =>
     ? Math.floor(value)
     : 0;
 
+// Mirrors lib/item-content.ts normalizeContentFields: trimmed non-empty
+// strings and deduped non-empty string arrays; absent/empty stays absent.
+const trimmedString = (value) =>
+  typeof value === "string" && value.trim() ? value.trim() : undefined;
+
+const stringList = (value) => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const entries = [
+    ...new Set(
+      value
+        .filter((entry) => typeof entry === "string")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    )
+  ];
+
+  return entries.length ? entries : undefined;
+};
+
+const contentFields = (source) => {
+  const note = trimmedString(source.note);
+  const example = trimmedString(source.example);
+  const altAnswers = stringList(source.altAnswers);
+  const tags = stringList(source.tags);
+
+  return {
+    ...(note ? { note } : {}),
+    ...(example ? { example } : {}),
+    ...(altAnswers ? { altAnswers } : {}),
+    ...(tags ? { tags } : {})
+  };
+};
+
 const normalizeAttempt = (attempt) => {
   const source = isRecord(attempt) ? attempt : {};
   const options = Array.isArray(source.options)
@@ -132,6 +168,7 @@ const normalizeItem = (item, listId, index) => {
     ),
     word: requiredString(source.word, ""),
     translation: requiredString(source.translation, ""),
+    ...contentFields(source),
     status: VALID_STATUSES.has(source.status) ? source.status : "new",
     attempts: count(source.attempts),
     correctCount: count(source.correctCount),

@@ -18,7 +18,7 @@ import {
   readQuizSession,
   writeQuizSession
 } from "@/lib/quiz-session-storage";
-import { useVocabularyStore } from "@/lib/useVocabularyStore";
+import { useVocabularyStore, type WordInput } from "@/lib/useVocabularyStore";
 import {
   createExportPayload,
   isPublicListId,
@@ -327,10 +327,7 @@ export function VocabularyApp() {
     setWordFormOpen(true);
   };
 
-  const submitWordForm = (input: {
-    word: string;
-    translation: string;
-  }) => {
+  const submitWordForm = (input: WordInput) => {
     const activeListId = wordFormListId ?? selectedListId;
 
     if (!activeListId) {
