@@ -17,6 +17,7 @@ npm run build          # Production build
 npm run start          # Serve the production build
 npm run lint           # eslint (next core-web-vitals + typescript configs)
 npm test               # Node built-in test runner for pure logic
+npm run e2e            # Playwright end-to-end suite (builds + serves production itself)
 
 # Regenerate the bundled seed lists from an in-app JSON export (see "Builtin lists" below):
 npm run import:phone -- <aj-words-export.json> [--output <path>]
@@ -28,6 +29,34 @@ Pure logic has unit tests via Node's built-in runner (`npm test`, equivalent to 
 node --test lib/srs.test.ts                        # one file
 node --test --test-name-pattern "promotes" lib/    # one test by name
 ```
+
+### End-to-end tests (Playwright)
+
+`e2e/*.spec.ts` + `playwright.config.ts` cover the real browser flows: list
+creation, written/choice quizzes (tolerant matching, typo verdict, diff,
+"J'avais raison" override), reverse direction, cloze, flashcards
+(undo/shuffle/progress), export/import, mid-quiz reload resume, and a
+production offline smoke test through the service worker.
+
+- `npm run e2e` (or `npx playwright test`) — the config's `webServer` runs
+  `npm run build && npm run start` itself, so no server should be running on
+  port 3000. It must be the **production** server: the SW only registers in
+  production, and dev actively unregisters it (see the PWA section below).
+- Run it before merging anything that touches components, the quiz engine,
+  persistence, or `public/sw.js`. Two projects run every spec: `desktop`
+  (1440x1000) and `mobile` (390x844, touch) — below 760px the library panel
+  and detail panel swap instead of sitting side by side.
+- One-time setup on a new machine: `npx playwright install chromium`.
+- The `e2e/` dir is excluded from `tsconfig.json` and ignored by eslint;
+  Playwright transpiles the specs itself. `playwright-report/` and
+  `test-results/` are gitignored.
+- Writing specs: question order is **random** (the session pool is shuffled),
+  so specs never assume order — they read the displayed prompt and look the
+  answer up in a word→translation map (`e2e/helpers.ts`). The helpers also
+  absorb two re-render races: `QuizRunner` rebuilds and reshuffles its
+  questions in a mount effect (`readPrompt` waits for a stable prompt), and
+  "Next" commits asynchronously (`nextQuestion` waits for the feedback panel
+  to clear).
 
 ## Architecture
 

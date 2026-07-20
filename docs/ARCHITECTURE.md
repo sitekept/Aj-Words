@@ -20,6 +20,7 @@ and the PWA layer. For a quick start and feature overview see the
 11. [PWA and service worker](#11-pwa-and-service-worker)
 12. [Component map](#12-component-map)
 13. [Configuration notes](#13-configuration-notes)
+14. [Testing](#14-testing)
 
 ---
 
@@ -342,3 +343,33 @@ There are **three distinct** data paths — don't conflate them:
 - `package.json` `dev`/`dev:host` pin the **dev server** to Webpack via `next dev
   --webpack`. Next 16 defaults to Turbopack, and `next build` still uses it — only the dev
   server is switched to Webpack.
+
+## 14. Testing
+
+Two independent layers:
+
+- **Unit tests** (`npm test`) — Node's built-in runner over `lib/*.test.ts`,
+  covering the pure logic modules (SRS, answer matching, cloze, persistence,
+  session storage, stats, …). No framework, no DOM.
+- **End-to-end tests** (`npm run e2e`) — Playwright specs in
+  [`e2e/`](../e2e), configured by
+  [`playwright.config.ts`](../playwright.config.ts). The config's `webServer`
+  runs `npm run build && npm run start` itself, because the offline smoke test
+  exercises the real service worker and the SW **only registers in
+  production** ([§11](#11-pwa-and-service-worker)). Two Chromium projects run
+  every spec: `desktop` (1440x1000) and `mobile` (390x844 with touch/mobile
+  emulation). Each test gets a fresh browser context, so it starts from a
+  clean localStorage with only the 19 bundled lists.
+
+  Spec files: `creation` (list + word CRUD, reload persistence), `written-quiz`
+  (verdicts, typo tolerance, diff, manual override, score), `choice` (option
+  grid + highlighting, <4-word fallback), `direction-cloze` (reverse direction,
+  cloze forcing typed input), `flashcards` (assess/undo/shuffle/progress),
+  `import-export` (download round-trip, invalid-file errors), `session-reload`
+  (mid-quiz resume), `offline` (SW caches serve the shell with the network cut).
+
+  Because quiz question order is intentionally randomized, specs derive each
+  expected answer from the displayed prompt via lookup maps in
+  [`e2e/helpers.ts`](../e2e/helpers.ts) rather than assuming order. The `e2e/`
+  directory is excluded from `tsconfig.json` and eslint; Playwright compiles
+  the specs itself.

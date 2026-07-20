@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "node --test lib/*.test.ts",
+    "e2e": "playwright test",
     "import:phone": "node scripts/import-phone-export.mjs"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

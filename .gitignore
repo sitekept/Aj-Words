@@ -13,3 +13,6 @@ pnpm-debug.log*
 .tunnel.log
 screenlog.*
 qa-*.png
+playwright-report/
+test-results/
+tsconfig.tsbuildinfo
