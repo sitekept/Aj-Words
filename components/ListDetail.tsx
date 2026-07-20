@@ -13,12 +13,15 @@ import {
   Plus,
   Search,
   Shuffle,
-  Trash2
+  Trash2,
+  Volume2
 } from "lucide-react";
 import { ProgressSummary } from "@/components/ProgressSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TestHistory } from "@/components/TestHistory";
 import { countDue } from "@/lib/srs";
+import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
+import { useSpeechVoices } from "@/lib/useSpeechVoices";
 import { Button, IconButton } from "@/components/ui";
 import type {
   LearningStatus,
@@ -70,6 +73,20 @@ export function ListDetail({
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
+  // 0 until mounted on a speech-capable browser; bumps once voices load.
+  const speechVersion = useSpeechVoices();
+  const speechLangs = resolveSpeechLangs(list.language);
+
+  const speakButton = (text: string, lang: string | undefined) =>
+    speechVersion > 0 && lang && canSpeak(lang) ? (
+      <IconButton
+        label={`Listen to "${text}"`}
+        onClick={() => speak(text, lang)}
+      >
+        <Volume2 size={16} />
+      </IconButton>
+    ) : null;
+
   // Reset the word filters when the user switches to a different list.
   const [filterListId, setFilterListId] = useState(list.id);
   if (filterListId !== list.id) {
@@ -95,7 +112,11 @@ export function ListDetail({
 
     return (
       item.word.toLowerCase().includes(normalizedQuery) ||
-      item.translation.toLowerCase().includes(normalizedQuery)
+      item.translation.toLowerCase().includes(normalizedQuery) ||
+      (item.note?.toLowerCase().includes(normalizedQuery) ?? false) ||
+      (item.example?.toLowerCase().includes(normalizedQuery) ?? false) ||
+      (item.tags?.some((tag) => tag.toLowerCase().includes(normalizedQuery)) ??
+        false)
     );
   });
 
@@ -268,9 +289,34 @@ export function ListDetail({
                     <article className="word-row" key={item.id}>
                       <div className="word-copy">
                         <div className="word-pair">
-                          <strong>{item.word}</strong>
-                          <span>{item.translation}</span>
+                          <div className="word-side">
+                            <strong>{item.word}</strong>
+                            {speakButton(item.word, speechLangs.word)}
+                          </div>
+                          <div className="word-side">
+                            <span>{item.translation}</span>
+                            {speakButton(item.translation, speechLangs.translation)}
+                          </div>
                         </div>
+                        {item.note ? (
+                          <p className="muted word-note" dir="auto">
+                            {item.note}
+                          </p>
+                        ) : null}
+                        {item.example ? (
+                          <p className="muted word-note word-example" dir="auto">
+                            {item.example}
+                          </p>
+                        ) : null}
+                        {item.tags?.length ? (
+                          <div className="tag-chips">
+                            {item.tags.map((tag) => (
+                              <span className="tag-chip" key={tag} dir="auto">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                       <div className="word-controls">
                         <StatusBadge status={item.status} />

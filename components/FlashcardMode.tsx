@@ -7,9 +7,12 @@ import {
   CheckCircle2,
   RotateCcw,
   Shuffle,
-  Undo2
+  Undo2,
+  Volume2
 } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
+import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
+import { useSpeechVoices } from "@/lib/useSpeechVoices";
 import { Button, IconButton, cx } from "@/components/ui";
 import type {
   FlashcardAssessment,
@@ -118,6 +121,15 @@ export function FlashcardMode({
   const suppressClickRef = useRef(false);
   const resolvingRef = useRef(false);
   const current = cards[index];
+
+  // 0 until mounted on a speech-capable browser; bumps once voices load.
+  const speechVersion = useSpeechVoices();
+  const speechLangs = resolveSpeechLangs(list.language);
+  // The speak button reads the currently visible face. It lives in the
+  // actions row, never inside the card — the card itself is a <button> and
+  // nested buttons are invalid HTML.
+  const faceLang = flipped ? speechLangs.translation : speechLangs.word;
+  const faceText = current ? (flipped ? current.translation : current.word) : "";
 
   useEffect(() => {
     setIndex(getSafeInitialIndex(initialIndex, cards.length));
@@ -475,6 +487,14 @@ export function FlashcardMode({
         >
           Flip
         </Button>
+        {speechVersion > 0 && faceLang && canSpeak(faceLang) ? (
+          <IconButton
+            label={`Listen to "${faceText}"`}
+            onClick={() => speak(faceText, faceLang)}
+          >
+            <Volume2 size={18} />
+          </IconButton>
+        ) : null}
         <Button
           icon={<CheckCircle2 size={18} />}
           onClick={() => assessCard("mastered")}

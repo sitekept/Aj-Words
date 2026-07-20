@@ -1,10 +1,12 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
-import { Button, cx } from "@/components/ui";
+import { ArrowLeft, CheckCircle2, Circle, Volume2, XCircle } from "lucide-react";
+import { Button, IconButton, cx } from "@/components/ui";
 import { checkAnswer, diffAnswer } from "@/lib/answer-matching";
 import { getClozePrompt, isClozeText } from "@/lib/cloze";
+import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
+import { useSpeechVoices } from "@/lib/useSpeechVoices";
 import { isDue } from "@/lib/srs";
 import type {
   QuizAttempt,
@@ -298,6 +300,28 @@ export function QuizRunner({
   } = sessionState;
   const current = questions[index];
 
+  // 0 until mounted on a speech-capable browser; bumps once voices load.
+  const speechVersion = useSpeechVoices();
+  const speechLangs = resolveSpeechLangs(list.language);
+  // Direction-aware prompt language: forward prompts are words, reverse
+  // prompts are translations. Cloze prompts are sentences that the item's
+  // word completes, so they share the word side's language (the bundled
+  // cloze sentences are English in the "English / Hebrew" lists).
+  const promptLang = current
+    ? current.isCloze || sessionDirection !== "reverse"
+      ? speechLangs.word
+      : speechLangs.translation
+    : undefined;
+
+  // altAnswers are alternatives for the translation side, so they apply only
+  // when the graded answer IS the translation: forward, non-cloze questions.
+  // Reverse and cloze questions grade against item.word, where translation
+  // alternatives must not count.
+  const altAnswersFor = (question: BuiltQuestion) =>
+    sessionDirection === "forward" && !question.isCloze
+      ? question.item.altAnswers
+      : undefined;
+
   useEffect(() => {
     setSessionState(createInitialState(list, mode, initialSession, direction));
     // Progress updates replace the list object; resetting here would restart the quiz.
@@ -356,7 +380,8 @@ export function QuizRunner({
       isCorrect:
         current.type === "choice"
           ? userAnswer === current.answer
-          : checkAnswer(userAnswer, current.answer).verdict !== "incorrect",
+          : checkAnswer(userAnswer, current.answer, altAnswersFor(current)).verdict !==
+            "incorrect",
       options: current.options
     };
 
@@ -446,7 +471,7 @@ export function QuizRunner({
   // and saved sessions stay unchanged.
   const feedbackCheck =
     feedback && feedback.questionType === "written"
-      ? checkAnswer(feedback.userAnswer, feedback.correctAnswer)
+      ? checkAnswer(feedback.userAnswer, feedback.correctAnswer, altAnswersFor(current))
       : null;
   const typoMessage =
     feedback?.isCorrect && feedbackCheck?.verdict === "correct-typo"
@@ -484,9 +509,19 @@ export function QuizRunner({
                 ? "Type the word"
                 : "Type the translation"}
         </p>
-        <h2 className={cx(current.isCloze && "cloze-prompt")} dir="auto">
-          {current.prompt}
-        </h2>
+        <div className="quiz-prompt">
+          <h2 className={cx(current.isCloze && "cloze-prompt")} dir="auto">
+            {current.prompt}
+          </h2>
+          {speechVersion > 0 && promptLang && canSpeak(promptLang) ? (
+            <IconButton
+              label={`Listen to "${current.prompt}"`}
+              onClick={() => speak(current.prompt, promptLang)}
+            >
+              <Volume2 size={17} />
+            </IconButton>
+          ) : null}
+        </div>
 
         {current.type === "choice" ? (
           <div className="choice-grid" role="group" aria-label="Answer options">
