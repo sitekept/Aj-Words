@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { Button, cx } from "@/components/ui";
+import { checkAnswer, diffAnswer } from "@/lib/answer-matching";
 import { isDue } from "@/lib/srs";
 import type {
   QuizAttempt,
@@ -45,9 +46,6 @@ const shuffle = <T,>(values: T[]) => {
   }
   return next;
 };
-
-const normalizeAnswer = (value: string) =>
-  value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
 
 const buildOptions = (item: VocabularyItem, items: VocabularyItem[]) => {
   const wrongAnswers = shuffle(
@@ -281,7 +279,11 @@ export function QuizRunner({
       prompt: current.item.word,
       correctAnswer: current.item.translation,
       userAnswer,
-      isCorrect: normalizeAnswer(userAnswer) === normalizeAnswer(current.item.translation),
+      // Choice options are verbatim strings; written answers get tolerant matching.
+      isCorrect:
+        current.type === "choice"
+          ? userAnswer === current.item.translation
+          : checkAnswer(userAnswer, current.item.translation).verdict !== "incorrect",
       options: current.options
     };
 
@@ -367,6 +369,21 @@ export function QuizRunner({
   const canSubmit =
     current.type === "choice" ? Boolean(selectedAnswer) : Boolean(typedAnswer.trim());
 
+  // Recomputed at render (pure and deterministic), so the QuizAttempt schema
+  // and saved sessions stay unchanged.
+  const feedbackCheck =
+    feedback && feedback.questionType === "written"
+      ? checkAnswer(feedback.userAnswer, feedback.correctAnswer)
+      : null;
+  const typoMessage =
+    feedback?.isCorrect && feedbackCheck?.verdict === "correct-typo"
+      ? `Correct — small typo. Watch the spelling: ${feedbackCheck.matchedAnswer}`
+      : null;
+  const diffSegments =
+    feedback && !feedback.isCorrect && feedbackCheck
+      ? diffAnswer(feedback.userAnswer, feedbackCheck.matchedAnswer)
+      : null;
+
   return (
     <section className="study-view quiz-view" aria-labelledby="quiz-title">
       <header className="study-header">
@@ -439,16 +456,31 @@ export function QuizRunner({
 
         {feedback ? (
           <div
-            className={cx("answer-feedback", feedback.isCorrect ? "correct" : "wrong")}
+            className={cx(
+              "answer-feedback",
+              feedback.isCorrect ? "correct" : "wrong",
+              typoMessage && "quiz-feedback-typo"
+            )}
             aria-live="polite"
           >
             {feedback.isCorrect ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
             <span>
-              {feedback.isCorrect
-                ? "Correct"
-                : `Answer: ${feedback.correctAnswer}`}
+              {typoMessage ??
+                (feedback.isCorrect
+                  ? "Correct"
+                  : `Answer: ${feedback.correctAnswer}`)}
             </span>
           </div>
+        ) : null}
+
+        {diffSegments ? (
+          <p className="answer-diff" dir="auto">
+            {diffSegments.map((segment, segmentIndex) => (
+              <span key={segmentIndex} className={`diff-${segment.kind}`}>
+                {segment.char}
+              </span>
+            ))}
+          </p>
         ) : null}
 
         <div className="quiz-actions">

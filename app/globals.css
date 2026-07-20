@@ -1233,6 +1233,48 @@ blockquote {
   color: var(--danger);
 }
 
+/* "Almost right" verdict: correct after typo tolerance, shown distinctly. */
+.answer-feedback.quiz-feedback-typo {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+/* Character diff of the user's written answer vs the expected variant. */
+.answer-diff {
+  max-width: 640px;
+  margin: 0;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 10px 12px;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.answer-diff .diff-match {
+  color: var(--success);
+}
+
+.answer-diff .diff-wrong {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 830;
+}
+
+.answer-diff .diff-missing {
+  color: var(--danger);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.answer-diff .diff-extra {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
 .quiz-actions {
   display: flex;
   justify-content: flex-end;
