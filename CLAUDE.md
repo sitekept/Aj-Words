@@ -22,7 +22,12 @@ npm test               # Node built-in test runner for pure logic
 npm run import:phone -- <aj-words-export.json> [--output <path>]
 ```
 
-Pure logic has unit tests via Node's built-in runner (`npm test`, equivalent to `node --test lib/*.test.ts`) — no test framework or dependencies. Test files are excluded from `tsconfig`/eslint. Also verify changes via `npm run lint`, `npm run build`, and manual testing in the browser.
+Pure logic has unit tests via Node's built-in runner (`npm test`, equivalent to `node --test lib/*.test.ts`) — no test framework or dependencies; Node strips the TypeScript types natively. Test files are excluded from `tsconfig`/eslint. Also verify changes via `npm run lint`, `npm run build`, and manual testing in the browser.
+
+```bash
+node --test lib/srs.test.ts                        # one file
+node --test --test-name-pattern "promotes" lib/    # one test by name
+```
 
 ## Architecture
 
@@ -40,9 +45,13 @@ All persistence is **browser localStorage**, under these keys:
 
 Types live in `types/vocabulary.ts`. A `WordList` has `items: VocabularyItem[]` plus `testHistory`. Status is one of `new | learning | mastered`.
 
+Two small modules the storage module depends on:
+- `lib/quiz-modes.ts` — the **single source of truth** for `QuizMode` (`QUIZ_MODES` array + `isQuizMode`/`normalizeQuizMode` guards). `types/vocabulary.ts` merely re-exports the type. Adding or removing a mode starts here, then `QuizRunner.tsx`, then the docs.
+- `lib/vocabulary-persistence.ts` — `createPersistedLists`, the **write side** of the builtin-list model and the mirror of `mergeBuiltinListWithLocalState`. Local lists are stored whole; builtin lists are diffed against their canonical baseline and stored as a compact overlay of only the items whose progress actually changed (dropped entirely when nothing changed). It's generic over the list type and takes `isPublicListId`/`getBuiltinList` as arguments, so it stays free of imports from the storage module.
+
 ### Builtin ("public") lists vs. local lists — copy-on-write
 
-This is the central non-obvious concept. `lib/builtin-vocabulary-data.json` ships ~22 pre-seeded lists (Darija + Hebrew Quizlet units), compiled into typed `WordList`s by `lib/builtin-vocabulary.ts`. These are treated as **shared/read-only**:
+This is the central non-obvious concept. `lib/builtin-vocabulary-data.json` ships 19 pre-seeded lists (Darija + Hebrew Quizlet units), compiled into typed `WordList`s by `lib/builtin-vocabulary.ts`. These are treated as **shared/read-only**:
 
 - `isPublicListId` / `isBuiltinListId` gate behavior anywhere a list could be mutated.
 - A public list **cannot be deleted**, and any edit to it (rename, add/edit/delete a word) does **not** mutate it. Instead the store calls `createLocalCopy` to fork a brand-new local list (fresh id, title suffixed "(local copy)") and switches the user to it. Every mutator in `useVocabularyStore.ts` returns `{ copied: boolean, listId }` so the UI can react to the fork.
@@ -56,7 +65,7 @@ Mastery is driven by a **Leitner spaced-repetition engine** (`lib/srs.ts`). Each
 
 ### Quiz engine (`components/QuizRunner.tsx`)
 
-Modes: `written | choice | mixed | test | full-review | review-due`. Question selection is **spaced-repetition-aware**: `getSessionItems` prioritizes items that are **due** (`isDue` against `dueAt`), which re-includes mastered-but-due cards; it falls back to non-mastered then all so a session is never empty, ordered most-overdue-first with `getAdaptivePriority` as a tiebreak. `full-review` shuffles everything. `review-due` is due-only and capped at 40 cards. Multiple-choice requires ≥4 items (`canUseChoice`), else falls back to written. Answers are matched after normalization (trim / lowercase / collapse whitespace). In-progress sessions persist via `lib/quiz-session-storage.ts`, and `recordQuizProgress` is applied per finalized attempt.
+Modes: `written | choice | mixed | test | full-review`. Question selection is **spaced-repetition-aware**: `getSessionItems` prioritizes items that are **due** (`isDue` against `dueAt`), which re-includes mastered-but-due cards; it falls back to non-mastered then all so a session is never empty, ordered most-overdue-first with `getAdaptivePriority` as a tiebreak. `full-review` shuffles everything. Multiple-choice requires ≥4 items (`canUseChoice`), else falls back to written. Answers are matched after normalization (trim / lowercase / collapse whitespace). In-progress sessions persist via `lib/quiz-session-storage.ts`, and `recordQuizProgress` is applied per finalized attempt.
 
 ### Flashcards (`components/FlashcardMode.tsx`)
 
@@ -85,3 +94,4 @@ Two unrelated import paths — don't confuse them:
 - `package.json` has a PostCSS override because Next pins a vulnerable transitive version; verify `npm audit` when touching framework dependencies.
 - `eslint.config.mjs` disables `react-hooks/set-state-in-effect` — the store's hydration pattern depends on setting state inside effects.
 - Bundled list content includes Hebrew (RTL) and Darija; preserve the original strings when editing the data files.
+- The working tree accumulates **cloud-sync conflict copies** named `<name> 2.ts` / `CLAUDE 2.md` (iCloud/Dropbox duplicates). They are stale snapshots, not real modules: `tsconfig.json` excludes `**/* 2.ts`, eslint ignores them, and the `lib/*.test.ts` test glob doesn't match them. Never edit one and never treat one as the source of truth — delete them instead. If you find a symbol only in a `* 2.ts` file, it was removed from the real one on purpose.

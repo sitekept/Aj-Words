@@ -18,8 +18,7 @@ const modeLabels: Record<QuizMode, string> = {
   choice: "Multiple choice",
   mixed: "Mixed test",
   test: "Test me",
-  "full-review": "Full review",
-  "review-due": "Daily review"
+  "full-review": "Full review"
 };
 
 const questionTypeLabels = {

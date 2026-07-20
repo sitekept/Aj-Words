@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
+    "**/* 2.ts",
     "**/*.test.ts"
   ]
 }

@@ -3,8 +3,7 @@ export const QUIZ_MODES = [
   "choice",
   "mixed",
   "test",
-  "full-review",
-  "review-due"
+  "full-review"
 ] as const;
 
 export type QuizMode = (typeof QUIZ_MODES)[number];

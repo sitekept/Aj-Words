@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { Button, cx } from "@/components/ui";
-import { limitDailyReviewItems } from "@/lib/daily-review";
 import { isDue } from "@/lib/srs";
 import type {
   QuizAttempt,
@@ -35,8 +34,7 @@ const modeTitles: Record<QuizMode, string> = {
   choice: "Multiple choice",
   mixed: "Mixed test",
   test: "Test me",
-  "full-review": "Full review",
-  "review-due": "Daily review"
+  "full-review": "Full review"
 };
 
 const shuffle = <T,>(values: T[]) => {
@@ -103,11 +101,6 @@ const getSessionItems = (
     return shuffle(items);
   }
 
-  // "review-due": strictly only due cards (button is disabled when none are due).
-  if (mode === "review-due") {
-    return shuffle(limitDailyReviewItems(items.filter((item) => isDue(item, now))));
-  }
-
   // Prioritize cards that are due for spaced-repetition review (this re-includes
   // mastered-but-due cards). Fall back to any non-mastered card, then to all,
   // so a session is never empty.
@@ -138,7 +131,7 @@ const getQuestionType = (
     return canUseChoice ? "choice" : "written";
   }
 
-  if (mode === "written" || mode === "review-due") {
+  if (mode === "written") {
     return "written";
   }
 

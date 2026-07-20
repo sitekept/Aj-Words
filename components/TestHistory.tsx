@@ -12,8 +12,7 @@ const modeLabels: Record<QuizMode, string> = {
   choice: "Multiple choice",
   mixed: "Mixed",
   test: "Test me",
-  "full-review": "Full review",
-  "review-due": "Daily review"
+  "full-review": "Full review"
 };
 
 const formatDate = (value: string) =>

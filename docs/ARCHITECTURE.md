@@ -79,7 +79,7 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | `QuizAttempt` | `itemId`, `questionType`, `prompt`, `correctAnswer`, `userAnswer`, `isCorrect`, `options?` | `questionType` is `written \| choice`; `options` only for choice. |
 | `ListProgress` | `total`, `mastered`, `learning`, `fresh` | **Derived** (via `getProgress`), never stored. |
 
-`QuizMode` is `written | choice | mixed | test | full-review | review-due`.
+`QuizMode` is `written | choice | mixed | test | full-review`.
 
 ### LocalStorage keys
 
@@ -112,7 +112,7 @@ through small helpers (`readPreferredListId`/`writePreferredListId`,
 
 ## 5. Builtin lists and copy-on-write
 
-This is the central non-obvious concept. The app ships ~22 pre-seeded lists (Darija +
+This is the central non-obvious concept. The app ships 19 pre-seeded lists (Darija +
 Hebrew Quizlet units) in
 [`lib/builtin-vocabulary-data.json`](../lib/builtin-vocabulary-data.json), compiled into
 typed `WordList`s by [`lib/builtin-vocabulary.ts`](../lib/builtin-vocabulary.ts). These
@@ -226,8 +226,7 @@ flowchart TD
   CH -- no --> WR["written"]
 ```
 
-- **Selection (`getSessionItems`)** — `full-review` shuffles everything; `review-due`
-  uses only due cards and caps the session at 40 cards; all other modes
+- **Selection (`getSessionItems`)** — `full-review` shuffles everything; all other modes
   prioritize cards that are **due** for review (`isDue` against `dueAt`), which re-includes
   mastered-but-due cards. It falls back to non-mastered, then to all, so a session is never
   empty, ordering the pool most-overdue-first with `getAdaptivePriority` as a tiebreak.
