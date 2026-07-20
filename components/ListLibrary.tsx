@@ -1,5 +1,6 @@
 import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import { ProgressSummary } from "@/components/ProgressSummary";
+import { countDue } from "@/lib/srs";
 import { Button, IconButton, cx } from "@/components/ui";
 import type { WordList } from "@/types/vocabulary";
 
@@ -26,6 +27,8 @@ export function ListLibrary({
   onEdit,
   onSelect
 }: ListLibraryProps) {
+  const now = new Date().toISOString();
+
   return (
     <section className="library" aria-labelledby="library-title">
       <div className="section-heading">
@@ -66,7 +69,17 @@ export function ListLibrary({
               </button>
               <ProgressSummary items={list.items} compact />
               <div className="list-card-footer">
-                <span>Updated {formatDate(list.updatedAt)}</span>
+                <span>
+                  Updated {formatDate(list.updatedAt)}
+                  {countDue(list.items, now) > 0 ? (
+                    <>
+                      {" "}
+                      <span className="due-badge">
+                        {countDue(list.items, now)} due
+                      </span>
+                    </>
+                  ) : null}
+                </span>
                 <div className="inline-actions">
                   <IconButton label={`Edit ${list.title}`} onClick={() => onEdit(list)}>
                     <Pencil size={16} />
