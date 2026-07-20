@@ -116,7 +116,11 @@ const writeSessionMap = (sessions: StoredQuizSessionMap) => {
     return;
   }
 
-  window.localStorage.setItem(QUIZ_SESSION_STORAGE_KEY, JSON.stringify(sessions));
+  try {
+    window.localStorage.setItem(QUIZ_SESSION_STORAGE_KEY, JSON.stringify(sessions));
+  } catch {
+    // Resume data is non-critical; losing it beats surfacing a storage error.
+  }
 };
 
 export const readQuizSession = (listId: string, mode: QuizMode) => {

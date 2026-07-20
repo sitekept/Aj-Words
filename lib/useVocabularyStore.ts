@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   applyFlashcardAssessmentToItems,
   applyAttemptsToItems,
@@ -51,9 +51,31 @@ export interface DeleteListResult {
   isPublicList: boolean;
 }
 
+// One-shot per app lifetime: ask the browser to protect localStorage from
+// eviction. Entirely silent when unsupported or denied.
+let persistentStorageRequested = false;
+
+const requestPersistentStorage = () => {
+  if (
+    persistentStorageRequested ||
+    typeof navigator === "undefined" ||
+    !navigator.storage?.persist
+  ) {
+    return;
+  }
+
+  persistentStorageRequested = true;
+  navigator.storage
+    .persisted()
+    .then((persisted) => (persisted ? undefined : navigator.storage.persist()))
+    .catch(() => undefined);
+};
+
 export const useVocabularyStore = () => {
   const [lists, setLists] = useState<WordList[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const firstPersistSkippedRef = useRef(false);
 
   useEffect(() => {
     setLists(loadLists());
@@ -61,8 +83,24 @@ export const useVocabularyStore = () => {
   }, []);
 
   useEffect(() => {
-    if (hydrated) {
-      saveLists(lists);
+    if (!hydrated) {
+      return;
+    }
+
+    // The first post-hydration run only echoes the loaded state back; skip it
+    // so saves, backups, and the persistence request follow real mutations.
+    if (!firstPersistSkippedRef.current) {
+      firstPersistSkippedRef.current = true;
+      return;
+    }
+
+    const result = saveLists(lists);
+
+    if (result.ok) {
+      setStorageError(null);
+      requestPersistentStorage();
+    } else {
+      setStorageError(result.message);
     }
   }, [hydrated, lists]);
 
@@ -316,6 +354,7 @@ export const useVocabularyStore = () => {
     hydrated,
     lists,
     listMap,
+    storageError,
     addList,
     updateList,
     deleteList,

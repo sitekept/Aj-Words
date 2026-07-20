@@ -105,7 +105,12 @@ const writeFlashcardPosition = (listId: string, nextIndex: number) => {
     nextIndex: safeNextIndex,
     updatedAt: new Date().toISOString()
   };
-  window.localStorage.setItem(FLASHCARD_STATE_KEY, JSON.stringify(positions));
+
+  try {
+    window.localStorage.setItem(FLASHCARD_STATE_KEY, JSON.stringify(positions));
+  } catch {
+    // Resume position is non-critical; skip it when storage is unavailable.
+  }
 };
 
 const readPreferredListId = () => {
@@ -137,7 +142,11 @@ const writePreferredListId = (listId: string | null) => {
   const url = new URL(window.location.href);
 
   if (listId) {
-    window.localStorage.setItem(UI_STATE_KEY, JSON.stringify({ selectedListId: listId }));
+    try {
+      window.localStorage.setItem(UI_STATE_KEY, JSON.stringify({ selectedListId: listId }));
+    } catch {
+      // Selection memory is non-critical; the URL param still carries it.
+    }
     url.searchParams.set("list", listId);
   } else {
     window.localStorage.removeItem(UI_STATE_KEY);
@@ -531,6 +540,21 @@ export function VocabularyApp() {
           />
         </div>
       </header>
+
+      {store.storageError ? (
+        <div className="transfer-notice transfer-notice-error" role="alert">
+          {store.storageError}{" "}
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Download size={17} />}
+            onClick={exportLists}
+            disabled={!store.lists.length}
+          >
+            Export lists
+          </Button>
+        </div>
+      ) : null}
 
       {transferNotice ? (
         <div
