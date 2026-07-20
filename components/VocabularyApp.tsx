@@ -643,6 +643,9 @@ export function VocabularyApp() {
               onPositionChange={(nextIndex) =>
                 writeFlashcardPosition(selectedList.id, nextIndex)
               }
+              onUndo={(snapshot) =>
+                store.undoFlashcardAssessment(selectedList.id, snapshot)
+              }
             />
           ) : null}
 

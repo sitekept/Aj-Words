@@ -526,6 +526,13 @@ export const applyFlashcardAssessmentToItems = (
     };
   });
 
+// Restores a previously captured item snapshot verbatim (flashcard undo).
+export const replaceItemInList = (
+  items: VocabularyItem[],
+  snapshot: VocabularyItem
+): VocabularyItem[] =>
+  items.map((item) => (item.id === snapshot.id ? snapshot : item));
+
 export const touchList = (list: WordList): WordList => ({
   ...list,
   updatedAt: now()

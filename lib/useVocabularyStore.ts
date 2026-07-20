@@ -10,6 +10,7 @@ import {
   createTestHistoryEntry,
   isPublicListId,
   loadLists,
+  replaceItemInList,
   saveLists,
   touchList
 } from "@/lib/vocabulary-storage";
@@ -17,6 +18,7 @@ import type {
   FlashcardAssessment,
   QuizAttempt,
   QuizMode,
+  VocabularyItem,
   WordList
 } from "@/types/vocabulary";
 
@@ -285,6 +287,24 @@ export const useVocabularyStore = () => {
     []
   );
 
+  // Progress-only restore, mirroring recordFlashcardProgress semantics: no
+  // copy-on-write fork — the snapshot simply replaces the item in place.
+  const undoFlashcardAssessment = useCallback(
+    (listId: string, snapshot: VocabularyItem) => {
+      setLists((current) =>
+        current.map((list) =>
+          list.id === listId
+            ? touchList({
+                ...list,
+                items: replaceItemInList(list.items, snapshot)
+              })
+            : list
+        )
+      );
+    },
+    []
+  );
+
   const addTestHistory = useCallback(
     (listId: string, input: { attempts: QuizAttempt[]; mode: QuizMode }) => {
       const nextEntry = createTestHistoryEntry(input);
@@ -363,6 +383,7 @@ export const useVocabularyStore = () => {
     deleteWord,
     recordQuizProgress,
     recordFlashcardProgress,
+    undoFlashcardAssessment,
     addTestHistory,
     importLists
   };
