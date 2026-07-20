@@ -531,8 +531,13 @@ blockquote {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  width: fit-content;
   margin: 0;
-  color: var(--accent);
+  border: 1px solid rgba(185, 61, 49, 0.22);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  padding: 3px 10px;
   font-size: 0.78rem;
   font-weight: 760;
 }
@@ -738,6 +743,12 @@ blockquote {
   display: block;
 }
 
+/* The quiz-direction segmented toggle above the study-mode grid. */
+.quiz-direction-toggle {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .mode-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
@@ -753,7 +764,18 @@ blockquote {
 
 .word-section {
   display: grid;
-  gap: 4px;
+  gap: 10px;
+}
+
+/* The status-filter row (direct child; the per-word inline-actions are nested
+   deeper and keep their tight spacing). Let it wrap on narrow screens. */
+.word-section > .inline-actions {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.word-section > .muted {
+  margin-bottom: 0;
 }
 
 .test-history-section {
@@ -836,6 +858,133 @@ blockquote {
 
 .history-empty p {
   margin-bottom: 0;
+}
+
+/* List stats (Progress / Hardest words / Due next 7 days). Bars are static
+   pure-CSS blocks — intentionally no animation or transition, so they are
+   already reduced-motion safe. */
+.stats-panel {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-soft);
+  padding: 14px;
+}
+
+.stats-block {
+  display: grid;
+  gap: 8px;
+}
+
+.stats-block h3 {
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 880;
+  text-transform: uppercase;
+}
+
+.stats-chart-scroll {
+  overflow-x: auto;
+}
+
+.stats-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 76px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1px;
+}
+
+.stats-bars[data-scrollable] {
+  width: max-content;
+  min-width: 100%;
+}
+
+.stats-bar {
+  display: block;
+  flex: 1 0 14px;
+  max-width: 28px;
+  min-height: 3px;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, #348178, var(--primary));
+}
+
+.stats-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stats-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 6px 12px;
+  font-weight: 780;
+}
+
+.stats-chip-count {
+  color: var(--danger);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.stats-due-bars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.stats-due-col {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.stats-due-col strong {
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.stats-due-col small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 760;
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-due-meter {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  max-width: 34px;
+  height: 52px;
+  border-radius: 5px;
+  background: var(--surface-soft);
+  box-shadow: 0 1px 1px rgba(24, 45, 54, 0.08) inset;
+}
+
+.stats-due-bar {
+  display: block;
+  width: 100%;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #f59f74, var(--accent));
 }
 
 .word-list-actions {
@@ -1171,6 +1320,17 @@ blockquote {
   font-size: 2.2rem;
 }
 
+/* Cloze prompts are full sentences with a blank: smaller, readable type instead
+   of the huge single-word prompt. Text direction comes from dir="auto" on the
+   element itself, so RTL sentences lay out correctly without CSS overrides. */
+.question-card h2.cloze-prompt {
+  max-width: 640px;
+  font-size: 1.3rem;
+  font-weight: 680;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
 .question-card > p:not(.eyebrow) {
   color: var(--muted);
 }
@@ -1231,6 +1391,48 @@ blockquote {
 .answer-feedback.wrong {
   background: var(--danger-soft);
   color: var(--danger);
+}
+
+/* "Almost right" verdict: correct after typo tolerance, shown distinctly. */
+.answer-feedback.quiz-feedback-typo {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+/* Character diff of the user's written answer vs the expected variant. */
+.answer-diff {
+  max-width: 640px;
+  margin: 0;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 10px 12px;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.answer-diff .diff-match {
+  color: var(--success);
+}
+
+.answer-diff .diff-wrong {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 830;
+}
+
+.answer-diff .diff-missing {
+  color: var(--danger);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.answer-diff .diff-extra {
+  color: var(--muted);
+  text-decoration: line-through;
 }
 
 .quiz-actions {
@@ -1822,4 +2024,52 @@ blockquote {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Word-row secondary content (WS9 note/example/tags) and speech buttons. */
+.word-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.word-note {
+  margin: 0 0 4px;
+  font-size: 0.92rem;
+}
+
+.word-example {
+  font-style: italic;
+}
+
+.tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 2px 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.quiz-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.quiz-prompt h2 {
+  min-width: 0;
+  overflow-wrap: break-word;
 }

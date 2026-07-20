@@ -11,6 +11,7 @@ import {
   inferSrsFromLegacy
 } from "@/lib/srs";
 import { normalizeQuizMode } from "@/lib/quiz-modes";
+import { normalizeContentFields } from "./item-content";
 
 const BUILTIN_CREATED_AT = "2026-04-30T00:00:00.000Z";
 
@@ -22,6 +23,10 @@ interface BuiltinVocabularyEntry {
   terms?: Array<{
     word: string;
     translation: string;
+    note?: string;
+    example?: string;
+    altAnswers?: string[];
+    tags?: string[];
   }>;
   items?: Array<Partial<VocabularyItem>>;
   testHistory?: Array<Partial<TestHistoryEntry>>;
@@ -47,6 +52,9 @@ const makeItems = (
     id: `${listId}-term-${String(index + 1).padStart(3, "0")}`,
     word: item.word,
     translation: item.translation,
+    // Forward-compatible: today's bundled JSON has no content fields, but a
+    // future seed regeneration may carry them.
+    ...normalizeContentFields(item),
     status: "new",
     attempts: 0,
     correctCount: 0,
@@ -81,6 +89,7 @@ const makeSnapshotItems = (
           : `${listId}-term-${String(index + 1).padStart(3, "0")}`,
       word: typeof item.word === "string" ? item.word : "",
       translation: typeof item.translation === "string" ? item.translation : "",
+      ...normalizeContentFields(item),
       status: deriveStatusFromBox({ box, attempts }),
       attempts,
       correctCount: normalizeCount(item.correctCount),

@@ -5,11 +5,20 @@ import {
   ArrowLeft,
   Brain,
   CheckCircle2,
-  RotateCcw
+  RotateCcw,
+  Shuffle,
+  Undo2,
+  Volume2
 } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Button, cx } from "@/components/ui";
-import type { FlashcardAssessment, WordList } from "@/types/vocabulary";
+import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
+import { useSpeechVoices } from "@/lib/useSpeechVoices";
+import { Button, IconButton, cx } from "@/components/ui";
+import type {
+  FlashcardAssessment,
+  VocabularyItem,
+  WordList
+} from "@/types/vocabulary";
 
 interface FlashcardModeProps {
   initialIndex: number;
@@ -17,6 +26,13 @@ interface FlashcardModeProps {
   onAssess: (itemId: string, outcome: FlashcardAssessment) => void;
   onBack: () => void;
   onPositionChange: (nextIndex: number) => void;
+  onUndo: (snapshot: VocabularyItem) => void;
+}
+
+interface LastAction {
+  snapshot: VocabularyItem;
+  index: number;
+  outcome: FlashcardAssessment;
 }
 
 interface DragState {
@@ -48,14 +64,51 @@ const getSafeInitialIndex = (value: number, total: number) => {
   return nextIndex >= 0 && nextIndex < total ? nextIndex : 0;
 };
 
+const shuffleIds = (items: VocabularyItem[]) => {
+  const ids = items.map((item) => item.id);
+
+  for (let i = ids.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+
+  return ids;
+};
+
+const progressTrackStyle = {
+  height: "6px",
+  borderRadius: "999px",
+  background: "var(--border)",
+  overflow: "hidden"
+} as const;
+
+const progressFillStyle = {
+  height: "100%",
+  borderRadius: "inherit",
+  background: "var(--primary)"
+} as const;
+
 export function FlashcardMode({
   initialIndex,
   list,
   onAssess,
   onBack,
-  onPositionChange
+  onPositionChange,
+  onUndo
 }: FlashcardModeProps) {
-  const cards = useMemo(() => list.items, [list.items]);
+  // Stable shuffled ID order so per-swipe store updates never reshuffle
+  // mid-session; null means the list's own order.
+  const [orderedIds, setOrderedIds] = useState<string[] | null>(null);
+  const cards = useMemo(() => {
+    if (!orderedIds) {
+      return list.items;
+    }
+
+    const itemsById = new Map(list.items.map((item) => [item.id, item]));
+    return orderedIds
+      .map((id) => itemsById.get(id))
+      .filter((item): item is VocabularyItem => Boolean(item));
+  }, [list.items, orderedIds]);
   const [index, setIndex] = useState(() =>
     getSafeInitialIndex(initialIndex, list.items.length)
   );
@@ -64,9 +117,19 @@ export function FlashcardMode({
   const [exitDirection, setExitDirection] = useState<FlashcardAssessment | null>(null);
   const [complete, setComplete] = useState(false);
   const [summary, setSummary] = useState({ learning: 0, mastered: 0 });
+  const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const suppressClickRef = useRef(false);
   const resolvingRef = useRef(false);
   const current = cards[index];
+
+  // 0 until mounted on a speech-capable browser; bumps once voices load.
+  const speechVersion = useSpeechVoices();
+  const speechLangs = resolveSpeechLangs(list.language);
+  // The speak button reads the currently visible face. It lives in the
+  // actions row, never inside the card — the card itself is a <button> and
+  // nested buttons are invalid HTML.
+  const faceLang = flipped ? speechLangs.translation : speechLangs.word;
+  const faceText = current ? (flipped ? current.translation : current.word) : "";
 
   useEffect(() => {
     setIndex(getSafeInitialIndex(initialIndex, cards.length));
@@ -75,6 +138,8 @@ export function FlashcardMode({
     setExitDirection(null);
     setComplete(false);
     setSummary({ learning: 0, mastered: 0 });
+    setLastAction(null);
+    setOrderedIds(null);
     resolvingRef.current = false;
   }, [cards.length, initialIndex, list.id]);
 
@@ -97,6 +162,9 @@ export function FlashcardMode({
     resolvingRef.current = true;
     const isLastCard = index >= cards.length - 1;
     const nextIndex = isLastCard ? 0 : index + 1;
+    // Snapshot before the assessment mutates the item, so undo can restore
+    // the exact pre-swipe SRS fields.
+    setLastAction({ snapshot: { ...current }, index, outcome });
     setExitDirection(outcome);
     setSummary((value) => ({
       ...value,
@@ -129,7 +197,44 @@ export function FlashcardMode({
     setExitDirection(null);
     setComplete(false);
     setSummary({ learning: 0, mastered: 0 });
+    setLastAction(null);
     resolvingRef.current = false;
+  };
+
+  const undoLastAssessment = () => {
+    if (!lastAction || exitDirection) {
+      return;
+    }
+
+    onUndo(lastAction.snapshot);
+    onPositionChange(lastAction.index);
+    setIndex(lastAction.index);
+    setSummary((value) => ({
+      ...value,
+      [lastAction.outcome]: Math.max(0, value[lastAction.outcome] - 1)
+    }));
+    setComplete(false);
+    setFlipped(false);
+    setDrag(initialDrag);
+    suppressClickRef.current = false;
+    resolvingRef.current = false;
+    setLastAction(null);
+  };
+
+  // The resume index is order-dependent, so toggling shuffle restarts at 0.
+  const toggleShuffle = () => {
+    if (exitDirection || resolvingRef.current) {
+      return;
+    }
+
+    setOrderedIds((value) => (value ? null : shuffleIds(list.items)));
+    onPositionChange(0);
+    setIndex(0);
+    setFlipped(false);
+    setDrag(initialDrag);
+    setComplete(false);
+    setSummary({ learning: 0, mastered: 0 });
+    setLastAction(null);
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -228,6 +333,14 @@ export function FlashcardMode({
             </article>
           </div>
           <div className="flashcard-actions">
+            <Button
+              variant="ghost"
+              icon={<Undo2 size={18} />}
+              onClick={undoLastAssessment}
+              disabled={!lastAction}
+            >
+              Undo
+            </Button>
             <Button variant="secondary" icon={<ArrowLeft size={18} />} onClick={onBack}>
               Back to list
             </Button>
@@ -263,10 +376,37 @@ export function FlashcardMode({
           <p className="eyebrow">{list.title}</p>
           <h1 id="flashcard-title">Flashcards</h1>
         </div>
-        <span className="study-count">
-          {index + 1} / {cards.length}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <IconButton
+            label={orderedIds ? "Turn off shuffle" : "Shuffle cards"}
+            aria-pressed={Boolean(orderedIds)}
+            onClick={toggleShuffle}
+            style={orderedIds ? { color: "var(--primary)" } : undefined}
+          >
+            <Shuffle size={17} />
+          </IconButton>
+          <span className="study-count">
+            {index + 1} / {cards.length}
+          </span>
+        </div>
       </header>
+
+      <div
+        className="flashcard-progress"
+        role="progressbar"
+        aria-label="Deck progress"
+        aria-valuemin={0}
+        aria-valuemax={cards.length}
+        aria-valuenow={index}
+        style={progressTrackStyle}
+      >
+        <div
+          style={{
+            ...progressFillStyle,
+            width: `${(index / cards.length) * 100}%`
+          }}
+        />
+      </div>
 
       <div className="flashcard-shell">
         <div className="flashcard-swipe-rail" aria-hidden="true">
@@ -325,6 +465,14 @@ export function FlashcardMode({
 
       <div className="flashcard-actions">
         <Button
+          variant="ghost"
+          icon={<Undo2 size={18} />}
+          onClick={undoLastAssessment}
+          disabled={Boolean(exitDirection) || !lastAction}
+        >
+          Undo
+        </Button>
+        <Button
           variant="secondary"
           icon={<Brain size={18} />}
           onClick={() => assessCard("learning")}
@@ -339,6 +487,14 @@ export function FlashcardMode({
         >
           Flip
         </Button>
+        {speechVersion > 0 && faceLang && canSpeak(faceLang) ? (
+          <IconButton
+            label={`Listen to "${faceText}"`}
+            onClick={() => speak(faceText, faceLang)}
+          >
+            <Volume2 size={18} />
+          </IconButton>
+        ) : null}
         <Button
           icon={<CheckCircle2 size={18} />}
           onClick={() => assessCard("mastered")}

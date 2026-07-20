@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   applyFlashcardAssessmentToItems,
   applyAttemptsToItems,
@@ -10,28 +10,32 @@ import {
   createTestHistoryEntry,
   isPublicListId,
   loadLists,
+  replaceItemInList,
   saveLists,
   touchList
 } from "@/lib/vocabulary-storage";
+import { normalizeContentFields } from "@/lib/item-content";
 import type {
   FlashcardAssessment,
   QuizAttempt,
   QuizMode,
+  VocabularyItem,
   WordList
 } from "@/types/vocabulary";
 
 export interface ListInput {
   title: string;
   language?: string;
-  items?: Array<{
-    word: string;
-    translation: string;
-  }>;
+  items?: WordInput[];
 }
 
 export interface WordInput {
   word: string;
   translation: string;
+  note?: string;
+  example?: string;
+  altAnswers?: string[];
+  tags?: string[];
 }
 
 export interface ImportListsSummary {
@@ -51,9 +55,31 @@ export interface DeleteListResult {
   isPublicList: boolean;
 }
 
+// One-shot per app lifetime: ask the browser to protect localStorage from
+// eviction. Entirely silent when unsupported or denied.
+let persistentStorageRequested = false;
+
+const requestPersistentStorage = () => {
+  if (
+    persistentStorageRequested ||
+    typeof navigator === "undefined" ||
+    !navigator.storage?.persist
+  ) {
+    return;
+  }
+
+  persistentStorageRequested = true;
+  navigator.storage
+    .persisted()
+    .then((persisted) => (persisted ? undefined : navigator.storage.persist()))
+    .catch(() => undefined);
+};
+
 export const useVocabularyStore = () => {
   const [lists, setLists] = useState<WordList[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
+  const firstPersistSkippedRef = useRef(false);
 
   useEffect(() => {
     setLists(loadLists());
@@ -61,8 +87,24 @@ export const useVocabularyStore = () => {
   }, []);
 
   useEffect(() => {
-    if (hydrated) {
-      saveLists(lists);
+    if (!hydrated) {
+      return;
+    }
+
+    // The first post-hydration run only echoes the loaded state back; skip it
+    // so saves, backups, and the persistence request follow real mutations.
+    if (!firstPersistSkippedRef.current) {
+      firstPersistSkippedRef.current = true;
+      return;
+    }
+
+    const result = saveLists(lists);
+
+    if (result.ok) {
+      setStorageError(null);
+      requestPersistentStorage();
+    } else {
+      setStorageError(result.message);
     }
   }, [hydrated, lists]);
 
@@ -145,18 +187,25 @@ export const useVocabularyStore = () => {
     (listId: string, itemId: string, input: WordInput): ListMutationResult => {
       const sourceList = lists.find((list) => list.id === listId);
 
+      // Explicit undefined (rather than omission) clears a field the user
+      // blanked; JSON serialization drops the undefined keys on save.
+      const content = normalizeContentFields(input);
+      const applyInput = (item: VocabularyItem): VocabularyItem => ({
+        ...item,
+        word: input.word.trim(),
+        translation: input.translation.trim(),
+        note: content.note,
+        example: content.example,
+        altAnswers: content.altAnswers,
+        tags: content.tags,
+        updatedAt: new Date().toISOString()
+      });
+
       if (sourceList && isPublicListId(sourceList.id)) {
         const copy = touchList({
           ...createLocalCopy(sourceList),
           items: sourceList.items.map((item) =>
-            item.id === itemId
-              ? {
-                  ...item,
-                  word: input.word.trim(),
-                  translation: input.translation.trim(),
-                  updatedAt: new Date().toISOString()
-                }
-              : item
+            item.id === itemId ? applyInput(item) : item
           )
         });
 
@@ -170,14 +219,7 @@ export const useVocabularyStore = () => {
             ? touchList({
                 ...list,
                 items: list.items.map((item) =>
-                  item.id === itemId
-                    ? {
-                        ...item,
-                        word: input.word.trim(),
-                        translation: input.translation.trim(),
-                        updatedAt: new Date().toISOString()
-                      }
-                    : item
+                  item.id === itemId ? applyInput(item) : item
                 )
               })
             : list
@@ -239,6 +281,24 @@ export const useVocabularyStore = () => {
                   itemId,
                   outcome
                 )
+              })
+            : list
+        )
+      );
+    },
+    []
+  );
+
+  // Progress-only restore, mirroring recordFlashcardProgress semantics: no
+  // copy-on-write fork — the snapshot simply replaces the item in place.
+  const undoFlashcardAssessment = useCallback(
+    (listId: string, snapshot: VocabularyItem) => {
+      setLists((current) =>
+        current.map((list) =>
+          list.id === listId
+            ? touchList({
+                ...list,
+                items: replaceItemInList(list.items, snapshot)
               })
             : list
         )
@@ -316,6 +376,7 @@ export const useVocabularyStore = () => {
     hydrated,
     lists,
     listMap,
+    storageError,
     addList,
     updateList,
     deleteList,
@@ -324,6 +385,7 @@ export const useVocabularyStore = () => {
     deleteWord,
     recordQuizProgress,
     recordFlashcardProgress,
+    undoFlashcardAssessment,
     addTestHistory,
     importLists
   };

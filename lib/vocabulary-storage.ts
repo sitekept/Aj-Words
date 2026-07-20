@@ -13,7 +13,9 @@ import {
   getBuiltinList,
   isBuiltinListId
 } from "@/lib/builtin-vocabulary";
+import { normalizeContentFields } from "./item-content";
 import { isQuizMode } from "@/lib/quiz-modes";
+import { readLatestBackup, writeRotatingBackup } from "@/lib/local-backup";
 import { createPersistedLists } from "@/lib/vocabulary-persistence";
 import {
   clampBox,
@@ -106,6 +108,9 @@ const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => {
 
   return {
     ...normalized,
+    // Optional content fields survive only when present and non-empty; the
+    // conditional spread keeps absent fields absent.
+    ...normalizeContentFields(item),
     box: srs.box,
     dueAt: srs.dueAt,
     status: deriveStatusFromBox({ box: srs.box, attempts: normalized.attempts })
@@ -245,6 +250,31 @@ export const parseExportPayload = (payload: unknown): ImportedListsResult => {
   };
 };
 
+const mergeStoredLists = (storedLists: WordList[]): WordList[] => {
+  const storedById = new Map(storedLists.map((list) => [list.id, list]));
+  const publicLists = initialLists.map((list) => {
+    const storedList = storedById.get(list.id);
+    return storedList ? mergeBuiltinListWithLocalState(storedList) : list;
+  });
+  const localLists = storedLists.filter((list) => !isPublicListId(list.id));
+
+  return [...publicLists, ...localLists];
+};
+
+const loadListsFromBackup = (): WordList[] | null => {
+  try {
+    const backup = readLatestBackup(window.localStorage);
+    if (!backup) {
+      return null;
+    }
+
+    const { lists } = parseExportPayload(JSON.parse(backup));
+    return lists.length ? mergeStoredLists(lists) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const loadLists = (): WordList[] => {
   if (typeof window === "undefined") {
     return initialLists;
@@ -258,32 +288,62 @@ export const loadLists = (): WordList[] => {
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) {
-      return initialLists;
+      return loadListsFromBackup() ?? initialLists;
     }
 
-    const storedLists = parsed.map(normalizeList);
-    const storedById = new Map(storedLists.map((list) => [list.id, list]));
-    const publicLists = initialLists.map((list) => {
-      const storedList = storedById.get(list.id);
-      return storedList ? mergeBuiltinListWithLocalState(storedList) : list;
-    });
-    const localLists = storedLists.filter((list) => !isPublicListId(list.id));
-
-    return [...publicLists, ...localLists];
+    return mergeStoredLists(parsed.map(normalizeList));
   } catch {
-    return initialLists;
+    return loadListsFromBackup() ?? initialLists;
   }
 };
 
-export const saveLists = (lists: WordList[]) => {
+export type SaveResult = { ok: true } | { ok: false; message: string };
+
+const looksLikeQuotaError = (error: unknown) =>
+  isRecord(error) &&
+  (error.name === "QuotaExceededError" ||
+    error.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+    error.code === 22 ||
+    error.code === 1014);
+
+export const saveLists = (lists: WordList[]): SaveResult => {
   if (typeof window === "undefined") {
-    return;
+    return { ok: true };
   }
 
-  window.localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(createPersistedLists(lists, isPublicListId, getBuiltinList))
-  );
+  const persistedLists = createPersistedLists(lists, isPublicListId, getBuiltinList);
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persistedLists));
+  } catch (error) {
+    return {
+      ok: false,
+      message: looksLikeQuotaError(error)
+        ? "Your browser storage is full, so the latest changes could not be saved. Export your lists to keep them safe, then free up space."
+        : "The latest changes could not be saved to browser storage. Export your lists to keep them safe."
+    };
+  }
+
+  // Best-effort rotating backup, only after the main write landed and only
+  // when there is user data worth keeping (untouched builtins persist empty).
+  // Backing up only the persisted lists keeps untouched builtin content —
+  // already compiled into the app bundle — out of the localStorage quota.
+  if (persistedLists.length) {
+    try {
+      const persistedIds = new Set(persistedLists.map((list) => list.id));
+      writeRotatingBackup(
+        window.localStorage,
+        JSON.stringify(
+          createExportPayload(lists.filter((list) => persistedIds.has(list.id)))
+        ),
+        now()
+      );
+    } catch {
+      // Backups must never affect the save result.
+    }
+  }
+
+  return { ok: true };
 };
 
 export const getProgress = (items: VocabularyItem[]): ListProgress => ({
@@ -293,13 +353,19 @@ export const getProgress = (items: VocabularyItem[]): ListProgress => ({
   fresh: items.filter((item) => item.status === "new").length
 });
 
+export interface CreateItemInput {
+  word: string;
+  translation: string;
+  note?: string;
+  example?: string;
+  altAnswers?: string[];
+  tags?: string[];
+}
+
 export const createList = (input: {
   title: string;
   language?: string;
-  items?: Array<{
-    word: string;
-    translation: string;
-  }>;
+  items?: CreateItemInput[];
 }): WordList => {
   const timestamp = now();
 
@@ -312,7 +378,8 @@ export const createList = (input: {
       id: createId(),
       word: item.word.trim(),
       translation: item.translation.trim(),
-      status: "new",
+      ...normalizeContentFields(item),
+      status: "new" as const,
       ...createInitialProgress(),
       box: 0,
       dueAt: timestamp,
@@ -343,16 +410,14 @@ export const createTestHistoryEntry = (input: {
   };
 };
 
-export const createItem = (input: {
-  word: string;
-  translation: string;
-}): VocabularyItem => {
+export const createItem = (input: CreateItemInput): VocabularyItem => {
   const timestamp = now();
 
   return {
     id: createId(),
     word: input.word.trim(),
     translation: input.translation.trim(),
+    ...normalizeContentFields(input),
     status: "new",
     ...createInitialProgress(),
     box: 0,
@@ -469,6 +534,13 @@ export const applyFlashcardAssessmentToItems = (
       status: deriveStatusFromBox(merged)
     };
   });
+
+// Restores a previously captured item snapshot verbatim (flashcard undo).
+export const replaceItemInList = (
+  items: VocabularyItem[],
+  snapshot: VocabularyItem
+): VocabularyItem[] =>
+  items.map((item) => (item.id === snapshot.id ? snapshot : item));
 
 export const touchList = (list: WordList): WordList => ({
   ...list,

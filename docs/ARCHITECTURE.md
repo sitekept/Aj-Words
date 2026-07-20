@@ -20,6 +20,7 @@ and the PWA layer. For a quick start and feature overview see the
 11. [PWA and service worker](#11-pwa-and-service-worker)
 12. [Component map](#12-component-map)
 13. [Configuration notes](#13-configuration-notes)
+14. [Testing](#14-testing)
 
 ---
 
@@ -179,6 +180,14 @@ Mastery is driven by a **Leitner spaced-repetition engine**
 longer interval (`LEITNER_INTERVALS`, in days) — and demotes it one box, due immediately,
 on a miss.
 
+| Box             | 0 | 1 | 2 | 3 | 4  | 5  | 6  | 7   |
+| --------------- | - | - | - | - | -- | -- | -- | --- |
+| Interval (days) | 0 | 1 | 3 | 7 | 16 | 35 | 75 | 150 |
+
+Boxes 6–7 exist purely to keep spacing out mature cards — the mastery threshold is
+unchanged at `MASTERED_BOX` (box ≥ 5), so they don't affect status, only how often a
+long-mastered word comes back for review (instead of every 35 days forever).
+
 `status` is **always derived** from the box by `deriveStatusFromBox`, never read from input:
 
 - `attempts <= 0` → `new`
@@ -200,6 +209,12 @@ Two functions apply outcomes (counters **and** the Leitner schedule), then re-de
   finalized attempt during a quiz.
 - **`applyFlashcardAssessmentToItems`** — applies a single swipe: `mastered` counts as a
   correct answer (promote one box), `learning` as a miss (demote one box).
+
+> **`full-review` writes to the SRS like every other mode — by design.** A miss during a
+> full review is genuine evidence of forgetting, so hiding it from the scheduler would let
+> the schedule drift from reality (the same reasoning behind Anki's filtered decks
+> rescheduling by default). A "casual review (no SRS impact)" toggle was considered and
+> deferred.
 
 Items saved before the SRS engine are migrated on load in `normalizeItem` via
 `inferSrsFromLegacy` (box derived from the old streak counters, `dueAt` set to now so
@@ -328,3 +343,33 @@ There are **three distinct** data paths — don't conflate them:
 - `package.json` `dev`/`dev:host` pin the **dev server** to Webpack via `next dev
   --webpack`. Next 16 defaults to Turbopack, and `next build` still uses it — only the dev
   server is switched to Webpack.
+
+## 14. Testing
+
+Two independent layers:
+
+- **Unit tests** (`npm test`) — Node's built-in runner over `lib/*.test.ts`,
+  covering the pure logic modules (SRS, answer matching, cloze, persistence,
+  session storage, stats, …). No framework, no DOM.
+- **End-to-end tests** (`npm run e2e`) — Playwright specs in
+  [`e2e/`](../e2e), configured by
+  [`playwright.config.ts`](../playwright.config.ts). The config's `webServer`
+  runs `npm run build && npm run start` itself, because the offline smoke test
+  exercises the real service worker and the SW **only registers in
+  production** ([§11](#11-pwa-and-service-worker)). Two Chromium projects run
+  every spec: `desktop` (1440x1000) and `mobile` (390x844 with touch/mobile
+  emulation). Each test gets a fresh browser context, so it starts from a
+  clean localStorage with only the 19 bundled lists.
+
+  Spec files: `creation` (list + word CRUD, reload persistence), `written-quiz`
+  (verdicts, typo tolerance, diff, manual override, score), `choice` (option
+  grid + highlighting, <4-word fallback), `direction-cloze` (reverse direction,
+  cloze forcing typed input), `flashcards` (assess/undo/shuffle/progress),
+  `import-export` (download round-trip, invalid-file errors), `session-reload`
+  (mid-quiz resume), `offline` (SW caches serve the shell with the network cut).
+
+  Because quiz question order is intentionally randomized, specs derive each
+  expected answer from the displayed prompt via lookup maps in
+  [`e2e/helpers.ts`](../e2e/helpers.ts) rather than assuming order. The `e2e/`
+  directory is excluded from `tsconfig.json` and eslint; Playwright compiles
+  the specs itself.

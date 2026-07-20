@@ -8,10 +8,24 @@ export type { QuizMode };
 
 export type QuizQuestionType = "written" | "choice";
 
+/**
+ * Which side of a card is shown as the prompt: "forward" asks word -> translation
+ * (the historical behavior), "reverse" asks translation -> word.
+ */
+export type QuizDirection = "forward" | "reverse";
+
 export interface VocabularyItem {
   id: string;
   word: string;
   translation: string;
+  /** Optional free-form note shown under the word pair. */
+  note?: string;
+  /** Optional example sentence. */
+  example?: string;
+  /** Extra accepted answers for the translation side (forward written quizzes). */
+  altAnswers?: string[];
+  /** Free-form organizational tags. */
+  tags?: string[];
   status: LearningStatus;
   attempts: number;
   correctCount: number;
@@ -62,6 +76,8 @@ export interface QuizSessionQuestion {
 
 export interface QuizSessionState {
   attempts: QuizAttempt[];
+  /** Missing on sessions saved before directions existed; treated as "forward". */
+  direction?: QuizDirection;
   feedback: QuizAttempt | null;
   index: number;
   listId: string;

@@ -12,12 +12,13 @@ import { QuizRunner } from "@/components/QuizRunner";
 import { ScoreScreen } from "@/components/ScoreScreen";
 import { WordFormModal } from "@/components/WordFormModal";
 import { Button } from "@/components/ui";
+import { readQuizDirection, writeQuizDirection } from "@/lib/quiz-preferences";
 import {
   clearQuizSession,
   readQuizSession,
   writeQuizSession
 } from "@/lib/quiz-session-storage";
-import { useVocabularyStore } from "@/lib/useVocabularyStore";
+import { useVocabularyStore, type WordInput } from "@/lib/useVocabularyStore";
 import {
   createExportPayload,
   isPublicListId,
@@ -25,6 +26,7 @@ import {
 } from "@/lib/vocabulary-storage";
 import type {
   QuizAttempt,
+  QuizDirection,
   QuizMode,
   QuizSessionState,
   TestHistoryEntry,
@@ -105,7 +107,12 @@ const writeFlashcardPosition = (listId: string, nextIndex: number) => {
     nextIndex: safeNextIndex,
     updatedAt: new Date().toISOString()
   };
-  window.localStorage.setItem(FLASHCARD_STATE_KEY, JSON.stringify(positions));
+
+  try {
+    window.localStorage.setItem(FLASHCARD_STATE_KEY, JSON.stringify(positions));
+  } catch {
+    // Resume position is non-critical; skip it when storage is unavailable.
+  }
 };
 
 const readPreferredListId = () => {
@@ -137,7 +144,11 @@ const writePreferredListId = (listId: string | null) => {
   const url = new URL(window.location.href);
 
   if (listId) {
-    window.localStorage.setItem(UI_STATE_KEY, JSON.stringify({ selectedListId: listId }));
+    try {
+      window.localStorage.setItem(UI_STATE_KEY, JSON.stringify({ selectedListId: listId }));
+    } catch {
+      // Selection memory is non-critical; the URL param still carries it.
+    }
     url.searchParams.set("list", listId);
   } else {
     window.localStorage.removeItem(UI_STATE_KEY);
@@ -160,6 +171,7 @@ export function VocabularyApp() {
   const [editingWord, setEditingWord] = useState<VocabularyItem | null>(null);
   const [wordFormSession, setWordFormSession] = useState(0);
   const [quizMode, setQuizMode] = useState<QuizMode>("written");
+  const [quizDirection, setQuizDirection] = useState<QuizDirection>("forward");
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [quizInitialSession, setQuizInitialSession] =
     useState<QuizSessionState | null>(null);
@@ -187,6 +199,11 @@ export function VocabularyApp() {
 
     setUiHydrated(true);
   }, [store.hydrated, store.listMap, uiHydrated]);
+
+  // Each list remembers its own quiz direction; refresh it on selection change.
+  useEffect(() => {
+    setQuizDirection(selectedListId ? readQuizDirection(selectedListId) : "forward");
+  }, [selectedListId]);
 
   useEffect(() => {
     if (!transferNotice) {
@@ -310,10 +327,7 @@ export function VocabularyApp() {
     setWordFormOpen(true);
   };
 
-  const submitWordForm = (input: {
-    word: string;
-    translation: string;
-  }) => {
+  const submitWordForm = (input: WordInput) => {
     const activeListId = wordFormListId ?? selectedListId;
 
     if (!activeListId) {
@@ -338,6 +352,13 @@ export function VocabularyApp() {
     setWordFormOpen(false);
     setWordFormListId(null);
     setEditingWord(null);
+  };
+
+  const changeQuizDirection = (direction: QuizDirection) => {
+    setQuizDirection(direction);
+    if (selectedListId) {
+      writeQuizDirection(selectedListId, direction);
+    }
   };
 
   const startQuiz = (mode: QuizMode) => {
@@ -532,6 +553,21 @@ export function VocabularyApp() {
         </div>
       </header>
 
+      {store.storageError ? (
+        <div className="transfer-notice transfer-notice-error" role="alert">
+          {store.storageError}{" "}
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Download size={17} />}
+            onClick={exportLists}
+            disabled={!store.lists.length}
+          >
+            Export lists
+          </Button>
+        </div>
+      ) : null}
+
       {transferNotice ? (
         <div
           className={`transfer-notice transfer-notice-${transferNotice.tone}`}
@@ -590,11 +626,13 @@ export function VocabularyApp() {
 
           {selectedList && view === "list" ? (
             <ListDetail
+              direction={quizDirection}
               list={selectedList}
               onAddWord={() => openAddWord(selectedList.id)}
               onBack={goHome}
               onDeleteList={() => deleteList(selectedList.id)}
               onDeleteWord={(itemId) => deleteWord(selectedList.id, itemId)}
+              onDirectionChange={changeQuizDirection}
               onEditList={() => setListFormState({ mode: "edit", list: selectedList })}
               onEditWord={(item) => {
                 setWordFormListId(selectedList.id);
@@ -619,11 +657,15 @@ export function VocabularyApp() {
               onPositionChange={(nextIndex) =>
                 writeFlashcardPosition(selectedList.id, nextIndex)
               }
+              onUndo={(snapshot) =>
+                store.undoFlashcardAssessment(selectedList.id, snapshot)
+              }
             />
           ) : null}
 
           {selectedList && view === "quiz" ? (
             <QuizRunner
+              direction={quizDirection}
               initialSession={quizInitialSession}
               list={selectedList}
               mode={quizMode}

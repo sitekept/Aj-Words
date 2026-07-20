@@ -26,16 +26,38 @@ test("clampBox keeps the box within [0, MAX_BOX]", () => {
   assert.equal(clampBox(2.9), 2);
 });
 
+test("the interval table extends to boxes 6-7 without moving the mastery bar", () => {
+  assert.deepEqual([...LEITNER_INTERVALS], [0, 1, 3, 7, 16, 35, 75, 150]);
+  assert.equal(MAX_BOX, 7);
+  assert.equal(MASTERED_BOX, 5);
+});
+
 test("scheduleNext promotes one box on a correct answer", () => {
   const result = scheduleNext(0, true, NOW);
   assert.equal(result.box, 1);
   assert.equal(result.dueAt, plusDays(NOW, LEITNER_INTERVALS[1]));
 });
 
+test("scheduleNext extends intervals for mature cards (boxes 5-7)", () => {
+  const toSix = scheduleNext(5, true, NOW);
+  assert.equal(toSix.box, 6);
+  assert.equal(toSix.dueAt, plusDays(NOW, 75));
+
+  const toSeven = scheduleNext(6, true, NOW);
+  assert.equal(toSeven.box, 7);
+  assert.equal(toSeven.dueAt, plusDays(NOW, 150));
+
+  // A miss at the top demotes one box, due immediately.
+  const missed = scheduleNext(7, false, NOW);
+  assert.equal(missed.box, 6);
+  assert.equal(missed.dueAt, NOW);
+});
+
 test("scheduleNext caps promotion at MAX_BOX", () => {
   const result = scheduleNext(MAX_BOX, true, NOW);
   assert.equal(result.box, MAX_BOX);
-  assert.equal(result.dueAt, plusDays(NOW, LEITNER_INTERVALS[MAX_BOX]));
+  assert.equal(result.box, 7);
+  assert.equal(result.dueAt, plusDays(NOW, 150));
 });
 
 test("scheduleNext demotes one box, due now, on a wrong answer", () => {
@@ -72,6 +94,9 @@ test("deriveStatusFromBox derives new / learning / mastered", () => {
     "learning"
   );
   assert.equal(deriveStatusFromBox({ box: MASTERED_BOX, attempts: 5 }), "mastered");
+  // The extended boxes stay mastered — the threshold did not move.
+  assert.equal(deriveStatusFromBox({ box: 6, attempts: 6 }), "mastered");
+  assert.equal(deriveStatusFromBox({ box: 7, attempts: 9 }), "mastered");
 });
 
 test("initialSrs starts a card in box 0, due now", () => {
@@ -92,10 +117,22 @@ test("inferSrsFromLegacy maps legacy counters onto a box", () => {
     inferSrsFromLegacy({ attempts: 2, correctStreak: 2, wrongStreak: 0 }, NOW).box,
     2
   );
-  assert.equal(
-    inferSrsFromLegacy({ attempts: 9, correctStreak: 9, wrongStreak: 0 }, NOW).box,
-    MAX_BOX
+  // Streaks beyond the table clamp harmlessly into the extended range.
+  const clamped = inferSrsFromLegacy(
+    { attempts: 9, correctStreak: 9, wrongStreak: 0 },
+    NOW
   );
+  assert.equal(clamped.box, MAX_BOX);
+  assert.equal(clamped.box, 7);
+});
+
+test("pre-extension data (old max box 5) still behaves as mastered", () => {
+  // A card stored at the old ceiling is still mastered on load...
+  assert.equal(deriveStatusFromBox({ box: 5, attempts: 5 }), "mastered");
+  // ...and its next correct answer promotes it into the new range (+75 days).
+  const promoted = scheduleNext(5, true, NOW);
+  assert.equal(promoted.box, 6);
+  assert.equal(promoted.dueAt, plusDays(NOW, 75));
 });
 
 test("MASTERED_BOX consecutive correct answers reach mastery", () => {
