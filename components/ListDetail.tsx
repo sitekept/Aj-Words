@@ -189,7 +189,7 @@ export function ListDetail({
         </Button>
       </div>
 
-      <TestHistory entries={list.testHistory} onReview={onReviewTest} />
+      <TestHistory entries={list.testHistory} items={list.items} onReview={onReviewTest} />
 
       <section className="word-section" aria-labelledby="words-heading">
         <div className="section-heading">
