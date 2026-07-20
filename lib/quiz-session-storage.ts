@@ -1,11 +1,11 @@
 import type {
   QuizAttempt,
+  QuizDirection,
   QuizMode,
   QuizQuestionType,
   QuizSessionQuestion,
   QuizSessionState
 } from "@/types/vocabulary";
-import { isQuizMode } from "@/lib/quiz-modes";
 
 const QUIZ_SESSION_STORAGE_KEY = "ajwords.v1.quizSessions";
 
@@ -18,6 +18,11 @@ const storageKeyFor = (listId: string, mode: QuizMode) => `${listId}:${mode}`;
 
 const isQuestionType = (value: unknown): value is QuizQuestionType =>
   value === "written" || value === "choice";
+
+// Sessions saved before directions existed have no `direction`; they were all
+// word -> translation, so anything but an explicit "reverse" means "forward".
+const normalizeDirection = (value: unknown): QuizDirection =>
+  value === "reverse" ? "reverse" : "forward";
 
 const normalizeOptions = (value: unknown) =>
   Array.isArray(value)
@@ -58,7 +63,9 @@ const normalizeSession = (
   listId: string,
   mode: QuizMode
 ): QuizSessionState | null => {
-  if (!isRecord(value) || value.listId !== listId || !isQuizMode(value.mode)) {
+  // `mode` is a validated QuizMode already, so matching it also validates
+  // `value.mode` — no runtime import from quiz-modes needed.
+  if (!isRecord(value) || value.listId !== listId || value.mode !== mode) {
     return null;
   }
 
@@ -68,7 +75,7 @@ const normalizeSession = (
         .filter((question): question is QuizSessionQuestion => Boolean(question))
     : [];
 
-  if (value.mode !== mode || !questions.length) {
+  if (!questions.length) {
     return null;
   }
 
@@ -82,6 +89,7 @@ const normalizeSession = (
 
   return {
     attempts,
+    direction: normalizeDirection(value.direction),
     feedback,
     index:
       Number.isFinite(rawIndex) && rawIndex >= 0

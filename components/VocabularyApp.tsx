@@ -12,6 +12,7 @@ import { QuizRunner } from "@/components/QuizRunner";
 import { ScoreScreen } from "@/components/ScoreScreen";
 import { WordFormModal } from "@/components/WordFormModal";
 import { Button } from "@/components/ui";
+import { readQuizDirection, writeQuizDirection } from "@/lib/quiz-preferences";
 import {
   clearQuizSession,
   readQuizSession,
@@ -25,6 +26,7 @@ import {
 } from "@/lib/vocabulary-storage";
 import type {
   QuizAttempt,
+  QuizDirection,
   QuizMode,
   QuizSessionState,
   TestHistoryEntry,
@@ -169,6 +171,7 @@ export function VocabularyApp() {
   const [editingWord, setEditingWord] = useState<VocabularyItem | null>(null);
   const [wordFormSession, setWordFormSession] = useState(0);
   const [quizMode, setQuizMode] = useState<QuizMode>("written");
+  const [quizDirection, setQuizDirection] = useState<QuizDirection>("forward");
   const [quizAttempts, setQuizAttempts] = useState<QuizAttempt[]>([]);
   const [quizInitialSession, setQuizInitialSession] =
     useState<QuizSessionState | null>(null);
@@ -196,6 +199,11 @@ export function VocabularyApp() {
 
     setUiHydrated(true);
   }, [store.hydrated, store.listMap, uiHydrated]);
+
+  // Each list remembers its own quiz direction; refresh it on selection change.
+  useEffect(() => {
+    setQuizDirection(selectedListId ? readQuizDirection(selectedListId) : "forward");
+  }, [selectedListId]);
 
   useEffect(() => {
     if (!transferNotice) {
@@ -347,6 +355,13 @@ export function VocabularyApp() {
     setWordFormOpen(false);
     setWordFormListId(null);
     setEditingWord(null);
+  };
+
+  const changeQuizDirection = (direction: QuizDirection) => {
+    setQuizDirection(direction);
+    if (selectedListId) {
+      writeQuizDirection(selectedListId, direction);
+    }
   };
 
   const startQuiz = (mode: QuizMode) => {
@@ -614,11 +629,13 @@ export function VocabularyApp() {
 
           {selectedList && view === "list" ? (
             <ListDetail
+              direction={quizDirection}
               list={selectedList}
               onAddWord={() => openAddWord(selectedList.id)}
               onBack={goHome}
               onDeleteList={() => deleteList(selectedList.id)}
               onDeleteWord={(itemId) => deleteWord(selectedList.id, itemId)}
+              onDirectionChange={changeQuizDirection}
               onEditList={() => setListFormState({ mode: "edit", list: selectedList })}
               onEditWord={(item) => {
                 setWordFormListId(selectedList.id);
@@ -651,6 +668,7 @@ export function VocabularyApp() {
 
           {selectedList && view === "quiz" ? (
             <QuizRunner
+              direction={quizDirection}
               initialSession={quizInitialSession}
               list={selectedList}
               mode={quizMode}

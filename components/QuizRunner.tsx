@@ -4,9 +4,11 @@ import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, XCircle } from "lucide-react";
 import { Button, cx } from "@/components/ui";
 import { checkAnswer, diffAnswer } from "@/lib/answer-matching";
+import { getClozePrompt, isClozeText } from "@/lib/cloze";
 import { isDue } from "@/lib/srs";
 import type {
   QuizAttempt,
+  QuizDirection,
   QuizMode,
   QuizQuestionType,
   QuizSessionState,
@@ -18,9 +20,15 @@ interface BuiltQuestion {
   item: VocabularyItem;
   type: QuizQuestionType;
   options?: string[];
+  /** What the user is shown. */
+  prompt: string;
+  /** What their input is graded against. */
+  answer: string;
+  isCloze: boolean;
 }
 
 interface QuizRunnerProps {
+  direction: QuizDirection;
   initialSession: QuizSessionState | null;
   list: WordList;
   mode: QuizMode;
@@ -47,19 +55,47 @@ const shuffle = <T,>(values: T[]) => {
   return next;
 };
 
-const buildOptions = (item: VocabularyItem, items: VocabularyItem[]) => {
+// Cloze items store a sentence with a blank in `translation` and the missing
+// word in `word`; the quiz always shows the sentence and asks for the word,
+// regardless of direction. Everything else follows the requested direction.
+const describePromptAnswer = (
+  item: VocabularyItem,
+  direction: QuizDirection
+): Pick<BuiltQuestion, "prompt" | "answer" | "isCloze"> => {
+  if (isClozeText(item.translation)) {
+    return {
+      prompt: getClozePrompt(item.translation),
+      answer: item.word,
+      isCloze: true
+    };
+  }
+
+  return direction === "reverse"
+    ? { prompt: item.translation, answer: item.word, isCloze: false }
+    : { prompt: item.word, answer: item.translation, isCloze: false };
+};
+
+const buildOptions = (
+  item: VocabularyItem,
+  items: VocabularyItem[],
+  direction: QuizDirection
+) => {
+  // Distractors come from the same side of the cards as the correct answer.
+  const answerFor = (candidate: VocabularyItem) =>
+    direction === "reverse" ? candidate.word : candidate.translation;
+
   const wrongAnswers = shuffle(
     Array.from(
       new Set(
         items
           .filter((candidate) => candidate.id !== item.id)
-          .map((candidate) => candidate.translation)
+          .map(answerFor)
           .filter(Boolean)
       )
     )
   ).slice(0, 3);
 
-  return shuffle(Array.from(new Set([item.translation, ...wrongAnswers]))).slice(0, 4);
+  return shuffle(Array.from(new Set([answerFor(item), ...wrongAnswers]))).slice(0, 4);
 };
 
 const getAdaptivePriority = (item: VocabularyItem) => {
@@ -136,18 +172,29 @@ const getQuestionType = (
   return index % 2 === 0 && canUseChoice ? "choice" : "written";
 };
 
-const buildQuestions = (list: WordList, mode: QuizMode): BuiltQuestion[] => {
+const buildQuestions = (
+  list: WordList,
+  mode: QuizMode,
+  direction: QuizDirection
+): BuiltQuestion[] => {
   const now = new Date().toISOString();
   const items = getSessionItems(list.items, mode, now);
   const canUseChoice = list.items.length >= 4;
 
   return items.map((item, index) => {
-    const type = getQuestionType(mode, index, canUseChoice);
+    const promptAnswer = describePromptAnswer(item, direction);
+    // Cloze sentences are typed-input by nature: they override the mode's
+    // choice/written alternation for that question only.
+    const type = promptAnswer.isCloze
+      ? "written"
+      : getQuestionType(mode, index, canUseChoice);
 
     return {
       item,
       type,
-      options: type === "choice" ? buildOptions(item, list.items) : undefined
+      options:
+        type === "choice" ? buildOptions(item, list.items, direction) : undefined,
+      ...promptAnswer
     };
   });
 };
@@ -160,28 +207,43 @@ const hydrateQuestions = (
     return [];
   }
 
+  // The saved run's direction governs prompts/answers, not the current toggle.
+  const direction: QuizDirection = session.direction ?? "forward";
   const itemsById = new Map(list.items.map((item) => [item.id, item]));
 
   return session.questions.flatMap((question) => {
     const item = itemsById.get(question.itemId);
 
-    return item
-      ? [{
-          item,
-          type: question.type,
-          options: question.options
-        }]
-      : [];
+    if (!item) {
+      return [];
+    }
+
+    const promptAnswer = describePromptAnswer(item, direction);
+
+    return [{
+      item,
+      // Stored options stay authoritative for choice questions; cloze always
+      // grades typed input, even in sessions saved before cloze existed.
+      type: promptAnswer.isCloze ? ("written" as const) : question.type,
+      options: promptAnswer.isCloze ? undefined : question.options,
+      ...promptAnswer
+    }];
   });
 };
 
 const createInitialState = (
   list: WordList,
   mode: QuizMode,
-  session: QuizSessionState | null
+  session: QuizSessionState | null,
+  direction: QuizDirection
 ) => {
+  // A resumed run keeps the direction it was started with; the toggle only
+  // affects fresh runs. Sessions without the field predate directions.
+  const effectiveDirection = session ? session.direction ?? "forward" : direction;
   const savedQuestions = hydrateQuestions(list, session);
-  const questions = savedQuestions.length ? savedQuestions : buildQuestions(list, mode);
+  const questions = savedQuestions.length
+    ? savedQuestions
+    : buildQuestions(list, mode, effectiveDirection);
   const validQuestionIds = new Set(questions.map((question) => question.item.id));
   const attempts =
     session?.attempts.filter((attempt) => validQuestionIds.has(attempt.itemId)) ?? [];
@@ -196,6 +258,7 @@ const createInitialState = (
 
   return {
     attempts,
+    direction: effectiveDirection,
     feedback,
     index: safeIndex,
     questions,
@@ -212,6 +275,7 @@ const serializeQuestions = (questions: BuiltQuestion[]) =>
   }));
 
 export function QuizRunner({
+  direction,
   initialSession,
   list,
   mode,
@@ -221,17 +285,24 @@ export function QuizRunner({
   onSessionChange
 }: QuizRunnerProps) {
   const [sessionState, setSessionState] = useState(() =>
-    createInitialState(list, mode, initialSession)
+    createInitialState(list, mode, initialSession, direction)
   );
-  const { attempts, feedback, index, questions, selectedAnswer, typedAnswer } =
-    sessionState;
+  const {
+    attempts,
+    direction: sessionDirection,
+    feedback,
+    index,
+    questions,
+    selectedAnswer,
+    typedAnswer
+  } = sessionState;
   const current = questions[index];
 
   useEffect(() => {
-    setSessionState(createInitialState(list, mode, initialSession));
+    setSessionState(createInitialState(list, mode, initialSession, direction));
     // Progress updates replace the list object; resetting here would restart the quiz.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialSession, list.id, mode]);
+  }, [direction, initialSession, list.id, mode]);
 
   useEffect(() => {
     if (!questions.length) {
@@ -240,6 +311,7 @@ export function QuizRunner({
 
     onSessionChange({
       attempts,
+      direction: sessionDirection,
       feedback,
       index,
       listId: list.id,
@@ -258,6 +330,7 @@ export function QuizRunner({
     onSessionChange,
     questions,
     selectedAnswer,
+    sessionDirection,
     typedAnswer
   ]);
 
@@ -276,14 +349,14 @@ export function QuizRunner({
     const attempt: QuizAttempt = {
       itemId: current.item.id,
       questionType: current.type,
-      prompt: current.item.word,
-      correctAnswer: current.item.translation,
+      prompt: current.prompt,
+      correctAnswer: current.answer,
       userAnswer,
       // Choice options are verbatim strings; written answers get tolerant matching.
       isCorrect:
         current.type === "choice"
-          ? userAnswer === current.item.translation
-          : checkAnswer(userAnswer, current.item.translation).verdict !== "incorrect",
+          ? userAnswer === current.answer
+          : checkAnswer(userAnswer, current.answer).verdict !== "incorrect",
       options: current.options
     };
 
@@ -401,9 +474,19 @@ export function QuizRunner({
 
       <form className="question-card" onSubmit={handleSubmit}>
         <p className="eyebrow">
-          {current.type === "choice" ? "Choose the translation" : "Type the translation"}
+          {current.isCloze
+            ? "Complete the sentence"
+            : current.type === "choice"
+              ? sessionDirection === "reverse"
+                ? "Choose the word"
+                : "Choose the translation"
+              : sessionDirection === "reverse"
+                ? "Type the word"
+                : "Type the translation"}
         </p>
-        <h2>{current.item.word}</h2>
+        <h2 className={cx(current.isCloze && "cloze-prompt")} dir="auto">
+          {current.prompt}
+        </h2>
 
         {current.type === "choice" ? (
           <div className="choice-grid" role="group" aria-label="Answer options">
@@ -414,12 +497,10 @@ export function QuizRunner({
                 className={cx(
                   "choice-option",
                   selectedAnswer === option && "choice-option-selected",
-                  answered &&
-                    option === current.item.translation &&
-                    "choice-option-correct",
+                  answered && option === current.answer && "choice-option-correct",
                   answered &&
                     selectedAnswer === option &&
-                    option !== current.item.translation &&
+                    option !== current.answer &&
                     "choice-option-wrong"
                 )}
                 disabled={answered}

@@ -743,6 +743,12 @@ blockquote {
   display: block;
 }
 
+/* The quiz-direction segmented toggle above the study-mode grid. */
+.quiz-direction-toggle {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .mode-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
@@ -1312,6 +1318,17 @@ blockquote {
 .question-card h2 {
   margin-bottom: 0;
   font-size: 2.2rem;
+}
+
+/* Cloze prompts are full sentences with a blank: smaller, readable type instead
+   of the huge single-word prompt. Text direction comes from dir="auto" on the
+   element itself, so RTL sentences lay out correctly without CSS overrides. */
+.question-card h2.cloze-prompt {
+  max-width: 640px;
+  font-size: 1.3rem;
+  font-weight: 680;
+  line-height: 1.55;
+  overflow-wrap: break-word;
 }
 
 .question-card > p:not(.eyebrow) {

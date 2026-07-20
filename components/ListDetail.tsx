@@ -22,6 +22,7 @@ import { countDue } from "@/lib/srs";
 import { Button, IconButton } from "@/components/ui";
 import type {
   LearningStatus,
+  QuizDirection,
   QuizMode,
   TestHistoryEntry,
   VocabularyItem,
@@ -29,11 +30,13 @@ import type {
 } from "@/types/vocabulary";
 
 interface ListDetailProps {
+  direction: QuizDirection;
   list: WordList;
   onAddWord: () => void;
   onBack: () => void;
   onDeleteList: () => void;
   onDeleteWord: (itemId: string) => void;
+  onDirectionChange: (direction: QuizDirection) => void;
   onEditList: () => void;
   onEditWord: (item: VocabularyItem) => void;
   onReviewTest: (entry: TestHistoryEntry) => void;
@@ -51,11 +54,13 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
 ];
 
 export function ListDetail({
+  direction,
   list,
   onAddWord,
   onBack,
   onDeleteList,
   onDeleteWord,
+  onDirectionChange,
   onEditList,
   onEditWord,
   onReviewTest,
@@ -133,6 +138,29 @@ export function ListDetail({
       {hasWords && dueCount === 0 ? (
         <p className="muted">Nothing due — all caught up</p>
       ) : null}
+
+      <div
+        className="inline-actions quiz-direction-toggle"
+        role="group"
+        aria-label="Quiz direction"
+      >
+        <Button
+          size="sm"
+          variant={direction === "forward" ? "primary" : "ghost"}
+          aria-pressed={direction === "forward"}
+          onClick={() => onDirectionChange("forward")}
+        >
+          Word → Translation
+        </Button>
+        <Button
+          size="sm"
+          variant={direction === "reverse" ? "primary" : "ghost"}
+          aria-pressed={direction === "reverse"}
+          onClick={() => onDirectionChange("reverse")}
+        >
+          Translation → Word
+        </Button>
+      </div>
 
       <div className="mode-grid" aria-label="Study modes">
         {dueCount > 0 ? (
