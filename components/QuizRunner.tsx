@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, Volume2, XCircle } from "lucide-react";
 import { Button, IconButton, cx } from "@/components/ui";
 import { checkAnswer, diffAnswer } from "@/lib/answer-matching";
@@ -322,7 +322,16 @@ export function QuizRunner({
       ? question.item.altAnswers
       : undefined;
 
+  // The useState initializer already built this state; skipping the mount run
+  // keeps the first question from being rebuilt (and reshuffled) after paint.
+  const skipResetRef = useRef(true);
+
   useEffect(() => {
+    if (skipResetRef.current) {
+      skipResetRef.current = false;
+      return;
+    }
+
     setSessionState(createInitialState(list, mode, initialSession, direction));
     // Progress updates replace the list object; resetting here would restart the quiz.
     // eslint-disable-next-line react-hooks/exhaustive-deps
