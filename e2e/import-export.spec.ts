@@ -4,9 +4,6 @@ import { gotoHome } from "./helpers";
 test("export downloads a JSON file that can be re-imported", async ({ page }) => {
   await gotoHome(page);
 
-  // Accept any confirm dialog a replace-import might raise.
-  page.on("dialog", (dialog) => dialog.accept());
-
   // Export triggers a download of the tagged JSON payload.
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export" }).click();

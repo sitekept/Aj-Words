@@ -13,6 +13,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -38,7 +39,9 @@
   "exclude": [
     "node_modules",
     "e2e",
-    "**/* 2.ts",
+    "**/* ?.ts",
+    "**/* ?.tsx",
+    "**/* ?.d.ts",
     "**/*.test.ts"
   ]
 }

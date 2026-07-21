@@ -27,6 +27,7 @@ import {
 } from "@/lib/srs";
 import {
   intervalDays,
+  MAX_STABILITY,
   nextState as fsrsNextState,
   type FsrsGrade,
   type FsrsState
@@ -36,6 +37,13 @@ const STORAGE_KEY = "worddeck.v1.lists";
 const DAY_MS = 24 * 60 * 60 * 1000;
 export const EXPORT_APP_ID = "aj-words";
 export const EXPORT_VERSION = 1;
+
+// Import ceilings. For scale: an export of everything AJ Words ships — 19
+// lists, 1080 items, full progress — is about 0.7 MB. These bound the work
+// done on a hostile file without getting in a real user's way.
+export const MAX_IMPORT_BYTES = 10 * 1024 * 1024;
+export const MAX_IMPORT_LISTS = 500;
+export const MAX_IMPORT_ITEMS_PER_LIST = 50000;
 
 const now = () => new Date().toISOString();
 
@@ -65,8 +73,16 @@ const normalizeCount = (value: unknown) =>
     ? Math.floor(value)
     : 0;
 
-const normalizeDate = (value: unknown) =>
-  typeof value === "string" && value.trim() ? value : undefined;
+// A date field is only kept if it actually parses. Accepting any non-empty
+// string let an imported "banana" through as a dueAt/lastTestedAt, which then
+// silently poisoned every date comparison downstream.
+const normalizeDate = (value: unknown) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return undefined;
+  }
+
+  return Number.isFinite(new Date(value).getTime()) ? value : undefined;
+};
 
 const hasProgressStats = (item: Partial<VocabularyItem>) =>
   typeof item.attempts === "number" ||
@@ -132,9 +148,13 @@ const advanceSchedule = (
     grade,
     elapsedDaysSince(item.lastTestedAt, timestamp)
   );
-  const dueAt = new Date(
-    new Date(timestamp).getTime() + intervalDays(state.stability) * DAY_MS
-  ).toISOString();
+  // Belt and braces: fsrs clamps stability, but this date is the one place a
+  // bad number would surface as a thrown RangeError rather than a wrong value.
+  const dueMs =
+    new Date(timestamp).getTime() + intervalDays(state.stability) * DAY_MS;
+  const dueAt = Number.isFinite(dueMs)
+    ? new Date(dueMs).toISOString()
+    : timestamp;
 
   return {
     box,
@@ -162,7 +182,9 @@ const normalizeFsrsFields = (
     Number.isFinite(item.difficulty)
   ) {
     return {
-      stability: item.stability,
+      // Bound on the way in as well as on the way out: this value is persisted,
+      // so an imported card would otherwise carry an absurd stability forever.
+      stability: Math.min(MAX_STABILITY, item.stability),
       difficulty: Math.min(10, Math.max(1, item.difficulty))
     };
   }
@@ -369,10 +391,45 @@ export const parseExportPayload = (payload: unknown): ImportedListsResult => {
     throw new Error("This export does not include any word lists.");
   }
 
+  if (!payload.lists.length) {
+    // Rejected here rather than at the call site, so the share-link path gets
+    // the same guard as the file-import path.
+    throw new Error("This export does not contain any lists.");
+  }
+
+  if (payload.lists.length > MAX_IMPORT_LISTS) {
+    throw new Error(
+      `This export holds more than ${MAX_IMPORT_LISTS} lists, which is more than AJ Words can import at once.`
+    );
+  }
+
+  const oversized = payload.lists.find(
+    (list) => isRecord(list) && Array.isArray(list.items) && list.items.length > MAX_IMPORT_ITEMS_PER_LIST
+  );
+  if (oversized) {
+    throw new Error(
+      `One of these lists holds more than ${MAX_IMPORT_ITEMS_PER_LIST} words, which is more than AJ Words can import.`
+    );
+  }
+
+  const lists = payload.lists.map((list) =>
+    normalizeList(isRecord(list) ? (list as Partial<WordList>) : {})
+  );
+
+  // A single file carrying the same list id twice used to let the later copy
+  // silently win. Keep the first and re-id the rest, so nothing is lost.
+  const seenIds = new Set<string>();
   return {
-    lists: payload.lists.map((list) =>
-      normalizeList(isRecord(list) ? (list as Partial<WordList>) : {})
-    )
+    lists: lists.map((list) => {
+      if (!seenIds.has(list.id)) {
+        seenIds.add(list.id);
+        return list;
+      }
+
+      const deduped = { ...list, id: createId() };
+      seenIds.add(deduped.id);
+      return deduped;
+    })
   };
 };
 

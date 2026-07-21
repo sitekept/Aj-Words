@@ -90,7 +90,29 @@ export function Modal({ open, title, children, footer, onClose }: ModalProps) {
     const firstFormControl = getFirstFormControl(dialogRef.current);
     (firstFormControl ?? focusable[0])?.focus();
 
+    // The Tab trap below only constrains the keyboard. A screen reader's
+    // virtual cursor ignores it, and aria-modal is honoured unevenly, so the
+    // page behind the dialog is marked inert as well — the modal is portalled
+    // to <body>, so its own subtree is untouched by this.
+    const backgroundRoots = Array.from(document.body.children).filter(
+      (child): child is HTMLElement =>
+        child instanceof HTMLElement && !child.contains(dialogRef.current)
+    );
+    const previouslyInert = backgroundRoots.map((root) => root.inert);
+    backgroundRoots.forEach((root) => {
+      root.inert = true;
+    });
+
+    // Stop the page behind from scrolling under the dialog.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     return () => {
+      backgroundRoots.forEach((root, index) => {
+        root.inert = previouslyInert[index];
+      });
+      document.body.style.overflow = previousOverflow;
+
       if (
         previousActiveElement instanceof HTMLElement &&
         document.contains(previousActiveElement)
@@ -183,7 +205,10 @@ const getFocusableElements = (root: HTMLElement | null) => {
   ).filter(
     (element) =>
       !element.hasAttribute("disabled") &&
-      element.getAttribute("aria-hidden") !== "true"
+      element.getAttribute("aria-hidden") !== "true" &&
+      // Skip anything not actually rendered: a hidden control would otherwise
+      // become a dead stop in the Tab cycle, or an unfocusable "first" element.
+      element.offsetParent !== null
   );
 };
 

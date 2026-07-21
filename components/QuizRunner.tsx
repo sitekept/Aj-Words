@@ -1,10 +1,17 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import {
+  FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent
+} from "react";
 import { ArrowLeft, CheckCircle2, Circle, Volume2, XCircle } from "lucide-react";
 import { Button, IconButton, cx } from "@/components/ui";
 import { ItemImage } from "@/components/ItemImage";
 import { checkAnswer, diffAnswer } from "@/lib/answer-matching";
+import { buildOptions, canUseChoice, shuffle } from "@/lib/quiz-options";
 import { getClozePrompt, isClozeText } from "@/lib/cloze";
 import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
 import { useSpeechVoices } from "@/lib/useSpeechVoices";
@@ -49,15 +56,6 @@ const modeTitles: Record<QuizMode, string> = {
   "full-review": "Full review"
 };
 
-const shuffle = <T,>(values: T[]) => {
-  const next = [...values];
-  for (let index = next.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
-  }
-  return next;
-};
-
 // Cloze items store a sentence with a blank in `translation` and the missing
 // word in `word`; the quiz always shows the sentence and asks for the word,
 // regardless of direction. Everything else follows the requested direction.
@@ -76,29 +74,6 @@ const describePromptAnswer = (
   return direction === "reverse"
     ? { prompt: item.translation, answer: item.word, isCloze: false }
     : { prompt: item.word, answer: item.translation, isCloze: false };
-};
-
-const buildOptions = (
-  item: VocabularyItem,
-  items: VocabularyItem[],
-  direction: QuizDirection
-) => {
-  // Distractors come from the same side of the cards as the correct answer.
-  const answerFor = (candidate: VocabularyItem) =>
-    direction === "reverse" ? candidate.word : candidate.translation;
-
-  const wrongAnswers = shuffle(
-    Array.from(
-      new Set(
-        items
-          .filter((candidate) => candidate.id !== item.id)
-          .map(answerFor)
-          .filter(Boolean)
-      )
-    )
-  ).slice(0, 3);
-
-  return shuffle(Array.from(new Set([answerFor(item), ...wrongAnswers]))).slice(0, 4);
 };
 
 const getAdaptivePriority = (item: VocabularyItem) => {
@@ -162,17 +137,17 @@ const getSessionItems = (
 const getQuestionType = (
   mode: QuizMode,
   index: number,
-  canUseChoice: boolean
+  choiceAvailable: boolean
 ): QuizQuestionType => {
   if (mode === "choice") {
-    return canUseChoice ? "choice" : "written";
+    return choiceAvailable ? "choice" : "written";
   }
 
   if (mode === "written") {
     return "written";
   }
 
-  return index % 2 === 0 && canUseChoice ? "choice" : "written";
+  return index % 2 === 0 && choiceAvailable ? "choice" : "written";
 };
 
 const buildQuestions = (
@@ -182,7 +157,9 @@ const buildQuestions = (
 ): BuiltQuestion[] => {
   const now = new Date().toISOString();
   const items = getSessionItems(list.items, mode, now);
-  const canUseChoice = list.items.length >= 4;
+  // Distinct answers on the graded side, not card count: four cards sharing
+  // three translations cannot fill four options.
+  const choiceAvailable = canUseChoice(list.items, direction);
 
   return items.map((item, index) => {
     const promptAnswer = describePromptAnswer(item, direction);
@@ -190,7 +167,7 @@ const buildQuestions = (
     // choice/written alternation for that question only.
     const type = promptAnswer.isCloze
       ? "written"
-      : getQuestionType(mode, index, canUseChoice);
+      : getQuestionType(mode, index, choiceAvailable);
 
     return {
       item,
@@ -368,6 +345,39 @@ export function QuizRunner({
     typedAnswer
   ]);
 
+  // Arrow keys move within the radiogroup and select as they go, which is the
+  // expected behaviour for radios and keeps aria-checked in step with focus.
+  const moveChoiceFocus = (
+    event: ReactKeyboardEvent<HTMLButtonElement>,
+    optionIndex: number
+  ) => {
+    const options = current?.options;
+    if (!options?.length) {
+      return;
+    }
+
+    const step =
+      event.key === "ArrowRight" || event.key === "ArrowDown"
+        ? 1
+        : event.key === "ArrowLeft" || event.key === "ArrowUp"
+          ? -1
+          : 0;
+    if (!step) {
+      return;
+    }
+
+    event.preventDefault();
+    const nextIndex = (optionIndex + step + options.length) % options.length;
+    setSessionState((value) => ({
+      ...value,
+      selectedAnswer: options[nextIndex]
+    }));
+
+    const group = event.currentTarget.parentElement;
+    const buttons = group?.querySelectorAll<HTMLButtonElement>("[role='radio']");
+    buttons?.[nextIndex]?.focus();
+  };
+
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
 
@@ -492,6 +502,19 @@ export function QuizRunner({
       ? diffAnswer(feedback.userAnswer, feedbackCheck.matchedAnswer)
       : null;
 
+  // What a screen reader hears after each check: the verdict, the expected
+  // answer when it was missed, and where we are in the deck. Empty between
+  // questions so the next verdict always registers as a change.
+  const liveAnnouncement = feedback
+    ? [
+        typoMessage ??
+          (feedback.isCorrect
+            ? "Correct."
+            : `Incorrect. The answer is ${feedback.correctAnswer}.`),
+        `Question ${index + 1} of ${questions.length}.`
+      ].join(" ")
+    : "";
+
   return (
     <section className="study-view quiz-view" aria-labelledby="quiz-title">
       <header className="study-header">
@@ -506,6 +529,14 @@ export function QuizRunner({
           {index + 1} / {questions.length}
         </span>
       </header>
+
+      {/* Mounted for the whole quiz, empty until there is something to say.
+          A live region created in the same commit as its content is not
+          reliably announced — the region has to already exist for the
+          insertion to register as a change. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {liveAnnouncement}
+      </p>
 
       <form className="question-card" onSubmit={handleSubmit}>
         <p className="eyebrow">
@@ -534,33 +565,50 @@ export function QuizRunner({
         </div>
 
         {current.type === "choice" ? (
-          <div className="choice-grid" role="group" aria-label="Answer options">
-            {current.options?.map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={cx(
-                  "choice-option",
-                  selectedAnswer === option && "choice-option-selected",
-                  answered && option === current.answer && "choice-option-correct",
-                  answered &&
-                    selectedAnswer === option &&
-                    option !== current.answer &&
-                    "choice-option-wrong"
-                )}
-                disabled={answered}
-                aria-pressed={selectedAnswer === option}
-                onClick={() =>
-                  setSessionState((value) => ({
-                    ...value,
-                    selectedAnswer: option
-                  }))
-                }
-              >
-                <Circle size={15} />
-                {option}
-              </button>
-            ))}
+          // A radiogroup, not a group of toggles: exactly one answer can be
+          // chosen. That also makes the whole set one Tab stop, with arrow
+          // keys moving between options, instead of four separate stops.
+          <div
+            className="choice-grid"
+            role="radiogroup"
+            aria-label="Answer options"
+          >
+            {current.options?.map((option, optionIndex) => {
+              const selected = selectedAnswer === option;
+              // Roving tabindex: the selected option is the group's entry
+              // point, falling back to the first when nothing is chosen yet.
+              const isTabStop = selectedAnswer ? selected : optionIndex === 0;
+
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  tabIndex={isTabStop ? 0 : -1}
+                  className={cx(
+                    "choice-option",
+                    selected && "choice-option-selected",
+                    answered && option === current.answer && "choice-option-correct",
+                    answered &&
+                      selected &&
+                      option !== current.answer &&
+                      "choice-option-wrong"
+                  )}
+                  disabled={answered}
+                  onKeyDown={(event) => moveChoiceFocus(event, optionIndex)}
+                  onClick={() =>
+                    setSessionState((value) => ({
+                      ...value,
+                      selectedAnswer: option
+                    }))
+                  }
+                >
+                  <Circle size={15} aria-hidden="true" />
+                  {option}
+                </button>
+              );
+            })}
           </div>
         ) : (
           <label className="field quiz-answer" htmlFor="written-answer">
@@ -587,9 +635,12 @@ export function QuizRunner({
               feedback.isCorrect ? "correct" : "wrong",
               typoMessage && "quiz-feedback-typo"
             )}
-            aria-live="polite"
           >
-            {feedback.isCorrect ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+            {feedback.isCorrect ? (
+              <CheckCircle2 size={18} aria-hidden="true" />
+            ) : (
+              <XCircle size={18} aria-hidden="true" />
+            )}
             <span>
               {typoMessage ??
                 (feedback.isCorrect

@@ -35,6 +35,14 @@ const DECAY = -0.5;
 // Forgetting-curve factor so that R(t=S) == 0.9 exactly.
 const FACTOR = Math.pow(0.9, 1 / DECAY) - 1; // ≈ 0.2345 (19/81)
 const MIN_STABILITY = 0.01;
+// A century. Stability is an interval in days, and it is *stored* on the card,
+// so it can arrive from an imported file or a share link rather than from this
+// module's own math. Without an upper bound, a hostile `stability: 1e308`
+// makes intervalDays() return Infinity, and the caller's
+// `new Date(now + interval * DAY_MS).toISOString()` throws a RangeError on the
+// first review of that card. Any value past this is already "effectively
+// never" for scheduling purposes.
+export const MAX_STABILITY = 36500;
 const MIN_DIFFICULTY = 1;
 const MAX_DIFFICULTY = 10;
 
@@ -46,7 +54,9 @@ const clampDifficulty = (value: number): number =>
     : MIN_DIFFICULTY;
 
 const clampStability = (value: number): number =>
-  Number.isFinite(value) && value > MIN_STABILITY ? value : MIN_STABILITY;
+  Number.isFinite(value) && value > MIN_STABILITY
+    ? Math.min(MAX_STABILITY, value)
+    : MIN_STABILITY;
 
 const initialStability = (w: Weights, grade: FsrsGrade): number =>
   clampStability(w[grade - 1]);

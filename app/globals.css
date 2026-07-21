@@ -16,6 +16,11 @@
   --accent-soft: #ffe7df;
   --indigo: #4c5bd5;
   --indigo-soft: #e8ebff;
+  /* Focus indicator. WCAG 2.2 SC 1.4.11 wants 3:1 against what surrounds it;
+     this is ~7.4:1 on the page background. The previous ring reused --indigo
+     at 28% alpha, which blended to roughly 1.4:1 — visible to a sighted
+     designer, not to a low-vision keyboard user. */
+  --focus-ring: #3b49b8;
   --warning: #a96516;
   --warning-soft: #fff1d9;
   --danger: #c6423d;
@@ -96,7 +101,7 @@ textarea:focus {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(76, 91, 213, 0.28);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -1849,6 +1854,26 @@ blockquote {
   border: 0;
 }
 
+/* Hidden until focused: lets a keyboard user jump the header instead of
+   tabbing through it on every view change. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 12px 18px;
+  border-radius: 0 0 var(--radius) 0;
+  background: var(--surface);
+  color: var(--primary-strong);
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
 @media (min-width: 760px) {
   h1 {
     font-size: 2.35rem;
@@ -2206,6 +2231,16 @@ blockquote {
   margin: 0 0 14px;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.import-replace-list {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 .field-checkbox {
