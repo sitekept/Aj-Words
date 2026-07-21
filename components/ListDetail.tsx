@@ -12,10 +12,12 @@ import {
   Pencil,
   Plus,
   Search,
+  Share2,
   Shuffle,
   Trash2,
   Volume2
 } from "lucide-react";
+import { ItemImage } from "@/components/ItemImage";
 import { ProgressSummary } from "@/components/ProgressSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TestHistory } from "@/components/TestHistory";
@@ -43,6 +45,7 @@ interface ListDetailProps {
   onEditList: () => void;
   onEditWord: (item: VocabularyItem) => void;
   onReviewTest: (entry: TestHistoryEntry) => void;
+  onShareList: () => void;
   onStartFlashcards: () => void;
   onStartQuiz: (mode: QuizMode) => void;
 }
@@ -67,6 +70,7 @@ export function ListDetail({
   onEditList,
   onEditWord,
   onReviewTest,
+  onShareList,
   onStartFlashcards,
   onStartQuiz
 }: ListDetailProps) {
@@ -145,6 +149,9 @@ export function ListDetail({
           <h1 id="detail-title">{list.title}</h1>
         </div>
         <div className="header-actions">
+          <IconButton label="Share list" onClick={onShareList}>
+            <Share2 size={18} />
+          </IconButton>
           <IconButton label="Edit list" onClick={onEditList}>
             <Pencil size={18} />
           </IconButton>
@@ -287,6 +294,11 @@ export function ListDetail({
                 <div className="word-list">
                   {visibleItems.map((item) => (
                     <article className="word-row" key={item.id}>
+                      <ItemImage
+                        imageId={item.imageId}
+                        imageUrl={item.imageUrl}
+                        className="word-thumb"
+                      />
                       <div className="word-copy">
                         <div className="word-pair">
                           <div className="word-side">

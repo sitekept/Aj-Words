@@ -10,6 +10,7 @@ import {
   Undo2,
   Volume2
 } from "lucide-react";
+import { ItemImage } from "@/components/ItemImage";
 import { StatusBadge } from "@/components/StatusBadge";
 import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
 import { useSpeechVoices } from "@/lib/useSpeechVoices";
@@ -453,6 +454,11 @@ export function FlashcardMode({
             <span className="flashcard-side flashcard-front">
               <small>Word</small>
               <strong>{current.word}</strong>
+              <ItemImage
+                imageId={current.imageId}
+                imageUrl={current.imageUrl}
+                className="flashcard-image"
+              />
               <StatusBadge status={current.status} />
             </span>
             <span className="flashcard-side flashcard-back">

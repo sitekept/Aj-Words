@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { Download, Home, Plus, Upload } from "lucide-react";
+import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { AJWordsScene } from "@/components/AJWordsScene";
 import { BrandLogo } from "@/components/BrandLogo";
 import { FlashcardMode } from "@/components/FlashcardMode";
@@ -11,8 +12,16 @@ import { ListLibrary } from "@/components/ListLibrary";
 import { QuizRunner } from "@/components/QuizRunner";
 import { ScoreScreen } from "@/components/ScoreScreen";
 import { WordFormModal } from "@/components/WordFormModal";
-import { Button } from "@/components/ui";
+import { Button, Modal } from "@/components/ui";
+import { recordActivity } from "@/lib/activity-log";
+import { pruneImages } from "@/lib/image-store";
 import { readQuizDirection, writeQuizDirection } from "@/lib/quiz-preferences";
+import {
+  SHARE_HASH_KEY,
+  decodeShare,
+  encodeShare,
+  extractShareToken
+} from "@/lib/share-link";
 import {
   clearQuizSession,
   readQuizSession,
@@ -176,6 +185,15 @@ export function VocabularyApp() {
   const [quizInitialSession, setQuizInitialSession] =
     useState<QuizSessionState | null>(null);
   const [flashcardInitialIndex, setFlashcardInitialIndex] = useState(0);
+  const [activityVersion, setActivityVersion] = useState(0);
+  const [shareImport, setShareImport] = useState<WordList[] | null>(null);
+
+  // Log a review (or an undo, delta -1) to the activity journal and refresh the
+  // heatmap. The timestamp is captured here, at the call site.
+  const logActivity = (delta: number) => {
+    recordActivity(delta, new Date().toISOString());
+    setActivityVersion((version) => version + 1);
+  };
 
   const selectedList = selectedListId
     ? store.listMap.get(selectedListId) ?? null
@@ -199,6 +217,76 @@ export function VocabularyApp() {
 
     setUiHydrated(true);
   }, [store.hydrated, store.listMap, uiHydrated]);
+
+  // A "#share=..." fragment offers an incoming list. Decode it once hydrated,
+  // then open a confirmation modal (never a silent import) and clean the URL.
+  useEffect(() => {
+    if (!store.hydrated) {
+      return;
+    }
+
+    const token = extractShareToken(window.location.hash);
+    if (!token) {
+      return;
+    }
+
+    let cancelled = false;
+    decodeShare(token).then((payload) => {
+      if (cancelled) {
+        return;
+      }
+      // Strip the fragment (rebuild the URL, no in-place mutation).
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`
+      );
+
+      if (!payload) {
+        setTransferNotice({
+          tone: "error",
+          message: "This share link could not be read."
+        });
+        return;
+      }
+
+      try {
+        const parsed = parseExportPayload(payload);
+        if (parsed.lists.length) {
+          setShareImport(parsed.lists);
+        }
+      } catch {
+        setTransferNotice({
+          tone: "error",
+          message: "This share link is not a valid AJ Words list."
+        });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [store.hydrated]);
+
+  // Once, after hydration: drop image blobs no longer referenced by any item
+  // (e.g. a word deleted in a previous session). Best-effort, never blocks.
+  useEffect(() => {
+    if (!store.hydrated) {
+      return;
+    }
+
+    const referenced = new Set<string>();
+    store.lists.forEach((list) =>
+      list.items.forEach((item) => {
+        if (item.imageId) {
+          referenced.add(item.imageId);
+        }
+      })
+    );
+    void pruneImages(referenced);
+    // Intentionally runs only when hydration flips; later edits GC on next load.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.hydrated]);
 
   // Each list remembers its own quiz direction; refresh it on selection change.
   useEffect(() => {
@@ -412,6 +500,46 @@ export function VocabularyApp() {
     });
   };
 
+  const shareSelectedList = async (list: WordList) => {
+    try {
+      // Single-list payload; createExportPayload already strips device-local
+      // images (imageId) so only text + external imageUrl travel in the link.
+      const payload = createExportPayload([list]);
+      const encoded = await encodeShare(payload);
+
+      if (encoded.tooLarge) {
+        setTransferNotice({
+          tone: "error",
+          message: "This list is too large to share by link — use Export instead."
+        });
+        return;
+      }
+
+      const base = `${window.location.origin}${window.location.pathname}`;
+      const url = `${base}#${SHARE_HASH_KEY}=${encoded.token}`;
+
+      try {
+        await navigator.clipboard.writeText(url);
+        setTransferNotice({
+          tone: "success",
+          message: encoded.warn
+            ? "Share link copied — it's long, so some apps may trim it."
+            : "Share link copied to the clipboard."
+        });
+      } catch {
+        setTransferNotice({
+          tone: "error",
+          message: "Could not copy the link. Check clipboard permissions."
+        });
+      }
+    } catch {
+      setTransferNotice({
+        tone: "error",
+        message: "Could not create a share link for this list."
+      });
+    }
+  };
+
   const importListsFromFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
@@ -481,6 +609,33 @@ export function VocabularyApp() {
     setQuizAttempts(entry.attempts);
     setView("score");
   };
+
+  const acceptShareImport = () => {
+    if (!shareImport) {
+      return;
+    }
+
+    const summary = store.importLists(shareImport);
+    setShareImport(null);
+    if (summary.listIds.length) {
+      showList(summary.listIds[0]);
+    }
+    setTransferNotice({
+      tone: "success",
+      message: `Imported ${summary.total} ${
+        summary.total === 1 ? "list" : "lists"
+      } from a share link.`
+    });
+  };
+
+  const shareImportWordCount = shareImport
+    ? shareImport.reduce((sum, list) => sum + list.items.length, 0)
+    : 0;
+  const shareImportReplaceCount = shareImport
+    ? shareImport.filter(
+        (list) => !isPublicListId(list.id) && store.listMap.has(list.id)
+      ).length
+    : 0;
 
   const deleteWord = (listId: string, itemId: string) => {
     const result = store.deleteWord(listId, itemId);
@@ -591,6 +746,7 @@ export function VocabularyApp() {
 
         <section className="workspace-panel">
           {!hasWorkspaceSelection ? (
+            <>
             <section className="welcome-panel" aria-labelledby="welcome-title">
               <div className="welcome-copy">
                 <p className="eyebrow">AJ Words</p>
@@ -614,6 +770,8 @@ export function VocabularyApp() {
               </div>
               <AJWordsScene />
             </section>
+            <ActivityHeatmap refreshToken={activityVersion} />
+            </>
           ) : null}
 
           {hasSelectedList && !selectedList ? (
@@ -641,6 +799,7 @@ export function VocabularyApp() {
                 setWordFormOpen(true);
               }}
               onReviewTest={reviewTest}
+              onShareList={() => shareSelectedList(selectedList)}
               onStartFlashcards={() => startFlashcards(selectedList)}
               onStartQuiz={startQuiz}
             />
@@ -650,16 +809,18 @@ export function VocabularyApp() {
             <FlashcardMode
               initialIndex={flashcardInitialIndex}
               list={selectedList}
-              onAssess={(itemId, outcome) =>
-                store.recordFlashcardProgress(selectedList.id, itemId, outcome)
-              }
+              onAssess={(itemId, outcome) => {
+                store.recordFlashcardProgress(selectedList.id, itemId, outcome);
+                logActivity(1);
+              }}
               onBack={() => setView("list")}
               onPositionChange={(nextIndex) =>
                 writeFlashcardPosition(selectedList.id, nextIndex)
               }
-              onUndo={(snapshot) =>
-                store.undoFlashcardAssessment(selectedList.id, snapshot)
-              }
+              onUndo={(snapshot) => {
+                store.undoFlashcardAssessment(selectedList.id, snapshot);
+                logActivity(-1);
+              }}
             />
           ) : null}
 
@@ -669,9 +830,10 @@ export function VocabularyApp() {
               initialSession={quizInitialSession}
               list={selectedList}
               mode={quizMode}
-              onAttemptFinalized={(attempt) =>
-                store.recordQuizProgress(selectedList.id, [attempt])
-              }
+              onAttemptFinalized={(attempt) => {
+                store.recordQuizProgress(selectedList.id, [attempt]);
+                logActivity(1);
+              }}
               onBack={() => setView("list")}
               onFinish={(attempts) => {
                 clearQuizSession(selectedList.id, quizMode);
@@ -725,6 +887,44 @@ export function VocabularyApp() {
         }}
         onSubmit={submitWordForm}
       />
+
+      <Modal
+        open={Boolean(shareImport)}
+        title="Import shared list"
+        onClose={() => setShareImport(null)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setShareImport(null)}>
+              Cancel
+            </Button>
+            <Button onClick={acceptShareImport}>Import</Button>
+          </>
+        }
+      >
+        {shareImport ? (
+          <>
+            <p className="modal-lead">
+              Someone shared{" "}
+              {shareImport.length === 1 ? (
+                <strong>{shareImport[0].title}</strong>
+              ) : (
+                <strong>{shareImport.length} lists</strong>
+              )}{" "}
+              with you ({shareImportWordCount}{" "}
+              {shareImportWordCount === 1 ? "word" : "words"}).
+            </p>
+            {shareImportReplaceCount > 0 ? (
+              <p className="field-hint">
+                This will replace {shareImportReplaceCount} existing{" "}
+                {shareImportReplaceCount === 1 ? "list" : "lists"}.
+              </p>
+            ) : null}
+            <p className="field-hint">
+              Locally stored images are not included in share links.
+            </p>
+          </>
+        ) : null}
+      </Modal>
     </div>
   );
 }

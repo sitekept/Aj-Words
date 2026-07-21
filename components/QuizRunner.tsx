@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { ArrowLeft, CheckCircle2, Circle, Volume2, XCircle } from "lucide-react";
 import { Button, IconButton, cx } from "@/components/ui";
+import { ItemImage } from "@/components/ItemImage";
 import { checkAnswer, diffAnswer } from "@/lib/answer-matching";
 import { getClozePrompt, isClozeText } from "@/lib/cloze";
 import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
@@ -596,6 +597,14 @@ export function QuizRunner({
                   : `Answer: ${feedback.correctAnswer}`)}
             </span>
           </div>
+        ) : null}
+
+        {feedback ? (
+          <ItemImage
+            imageId={current.item.imageId}
+            imageUrl={current.item.imageUrl}
+            className="quiz-feedback-image"
+          />
         ) : null}
 
         {diffSegments ? (
