@@ -11,6 +11,7 @@ import {
   isPublicListId,
   loadLists,
   replaceItemInList,
+  resetItemsProgress,
   saveLists,
   touchList
 } from "@/lib/vocabulary-storage";
@@ -313,6 +314,29 @@ export const useVocabularyStore = () => {
     []
   );
 
+  /**
+   * Wipes a list's learning state: item counters, SRS scheduling and the test
+   * history, keeping every card's content.
+   *
+   * Deliberately does NOT fork a local copy of a builtin list. Progress is not
+   * content — recordQuizProgress and recordFlashcardProgress don't fork either,
+   * they write a compact overlay (see lib/vocabulary-persistence.ts). Resetting
+   * simply empties that overlay and returns the builtin list to pristine.
+   */
+  const resetProgress = useCallback((listId: string) => {
+    setLists((current) =>
+      current.map((list) =>
+        list.id === listId
+          ? touchList({
+              ...list,
+              items: resetItemsProgress(list.items),
+              testHistory: []
+            })
+          : list
+      )
+    );
+  }, []);
+
   const addTestHistory = useCallback(
     (listId: string, input: { attempts: QuizAttempt[]; mode: QuizMode }) => {
       const nextEntry = createTestHistoryEntry(input);
@@ -392,6 +416,7 @@ export const useVocabularyStore = () => {
     recordQuizProgress,
     recordFlashcardProgress,
     undoFlashcardAssessment,
+    resetProgress,
     addTestHistory,
     importLists
   };

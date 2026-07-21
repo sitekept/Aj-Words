@@ -198,6 +198,10 @@ export function VocabularyApp() {
     lists: WordList[];
     replaced: WordList[];
   } | null>(null);
+  // The list whose progress is about to be wiped, held until confirmed.
+  const [resetProgressList, setResetProgressList] = useState<WordList | null>(
+    null
+  );
 
   // Log a review (or an undo, delta -1) to the activity journal and refresh the
   // heatmap. The timestamp is captured here, at the call site.
@@ -821,6 +825,7 @@ export function VocabularyApp() {
                 setWordFormSession((session) => session + 1);
                 setWordFormOpen(true);
               }}
+              onResetProgress={() => setResetProgressList(selectedList)}
               onReviewTest={reviewTest}
               onShareList={() => shareSelectedList(selectedList)}
               onStartFlashcards={() => startFlashcards(selectedList)}
@@ -910,6 +915,58 @@ export function VocabularyApp() {
         }}
         onSubmit={submitWordForm}
       />
+
+      <Modal
+        open={Boolean(resetProgressList)}
+        title="Reset progress?"
+        onClose={() => setResetProgressList(null)}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setResetProgressList(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (resetProgressList) {
+                  store.resetProgress(resetProgressList.id);
+                  setTransferNotice({
+                    tone: "success",
+                    message: `Progress reset for "${resetProgressList.title}".`
+                  });
+                }
+                setResetProgressList(null);
+              }}
+            >
+              Reset progress
+            </Button>
+          </>
+        }
+      >
+        {resetProgressList ? (
+          <>
+            <p className="modal-lead">
+              Every card in <strong dir="auto">{resetProgressList.title}</strong>{" "}
+              goes back to new: attempts, streaks, review scheduling and the
+              test history are cleared. The {resetProgressList.items.length}{" "}
+              {resetProgressList.items.length === 1 ? "word" : "words"}{" "}
+              themselves are kept.
+            </p>
+            <p className="field-hint">
+              This cannot be undone. Export a backup first if you might want
+              this progress back.
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Download size={16} />}
+              onClick={exportLists}
+            >
+              Export backup
+            </Button>
+          </>
+        ) : null}
+      </Modal>
 
       <Modal
         open={Boolean(pendingImport)}

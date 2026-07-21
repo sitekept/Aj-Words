@@ -11,6 +11,7 @@ import {
   ListChecks,
   Pencil,
   Plus,
+  RotateCcw,
   Search,
   Share2,
   Shuffle,
@@ -45,6 +46,7 @@ interface ListDetailProps {
   onDirectionChange: (direction: QuizDirection) => void;
   onEditList: () => void;
   onEditWord: (item: VocabularyItem) => void;
+  onResetProgress: () => void;
   onReviewTest: (entry: TestHistoryEntry) => void;
   onShareList: () => void;
   onStartFlashcards: () => void;
@@ -70,6 +72,7 @@ export function ListDetail({
   onDirectionChange,
   onEditList,
   onEditWord,
+  onResetProgress,
   onReviewTest,
   onShareList,
   onStartFlashcards,
@@ -155,6 +158,11 @@ export function ListDetail({
           <IconButton label="Share list" onClick={onShareList}>
             <Share2 size={18} />
           </IconButton>
+          {hasWords ? (
+            <IconButton label="Reset progress" onClick={onResetProgress}>
+              <RotateCcw size={18} />
+            </IconButton>
+          ) : null}
           <IconButton label="Edit list" onClick={onEditList}>
             <Pencil size={18} />
           </IconButton>

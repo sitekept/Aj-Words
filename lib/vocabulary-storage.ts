@@ -724,6 +724,45 @@ export const applyFlashcardAssessmentToItems = (
     };
   });
 
+/**
+ * Clears all learning state from a list's items, returning every card to the
+ * state a freshly created one has: no counters, box 0, due now, no FSRS state,
+ * status "new". Card *content* (word, translation, note, example, tags,
+ * images) is untouched.
+ *
+ * Note the deletes: `stability`/`difficulty`/`lastTestedAt`/`lastWrongAt` are
+ * optional fields, and leaving them at 0/undefined-but-present would make
+ * normalizeItem treat the card as legacy-with-progress on the next load and
+ * infer a box back onto it.
+ */
+export const resetItemsProgress = (
+  items: VocabularyItem[]
+): VocabularyItem[] => {
+  const timestamp = now();
+
+  return items.map((item) => {
+    const reset = {
+      ...item,
+      ...createInitialProgress(),
+      box: 0,
+      // Back to the card's own creation instant, the way createItem leaves a
+      // fresh card. A past dueAt reads as due immediately, which is what a
+      // reset card should be, and it keeps builtin cards closer to their
+      // baseline than a fresh `now` would.
+      dueAt: item.createdAt,
+      status: "new" as LearningStatus,
+      updatedAt: timestamp
+    };
+
+    delete reset.lastTestedAt;
+    delete reset.lastWrongAt;
+    delete reset.stability;
+    delete reset.difficulty;
+
+    return reset;
+  });
+};
+
 // Restores a previously captured item snapshot verbatim (flashcard undo).
 export const replaceItemInList = (
   items: VocabularyItem[],
