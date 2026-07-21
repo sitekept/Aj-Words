@@ -36,6 +36,8 @@ export interface WordInput {
   example?: string;
   altAnswers?: string[];
   tags?: string[];
+  imageId?: string;
+  imageUrl?: string;
 }
 
 export interface ImportListsSummary {
@@ -198,6 +200,10 @@ export const useVocabularyStore = () => {
         example: content.example,
         altAnswers: content.altAnswers,
         tags: content.tags,
+        // These are re-assigned explicitly (not spread), so a new content field
+        // MUST be listed here too or it is silently dropped on every edit.
+        imageId: content.imageId,
+        imageUrl: content.imageUrl,
         updatedAt: new Date().toISOString()
       });
 

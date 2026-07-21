@@ -27,6 +27,8 @@ interface BuiltinVocabularyEntry {
     example?: string;
     altAnswers?: string[];
     tags?: string[];
+    imageId?: string;
+    imageUrl?: string;
   }>;
   items?: Array<Partial<VocabularyItem>>;
   testHistory?: Array<Partial<TestHistoryEntry>>;

@@ -10,6 +10,8 @@ type PersistableItem = {
   lastWrongAt?: string;
   box: number;
   dueAt: string;
+  stability?: number;
+  difficulty?: number;
   updatedAt: string;
 };
 
@@ -34,6 +36,8 @@ const PROGRESS_FIELDS = [
   "lastWrongAt",
   "box",
   "dueAt",
+  "stability",
+  "difficulty",
   "updatedAt"
 ] as const;
 
@@ -59,6 +63,8 @@ const createProgressOverlayItem = (item: PersistableItem) => ({
   lastWrongAt: item.lastWrongAt,
   box: item.box,
   dueAt: item.dueAt,
+  stability: item.stability,
+  difficulty: item.difficulty,
   updatedAt: item.updatedAt
 });
 

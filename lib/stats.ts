@@ -1,3 +1,4 @@
+import type { ActivityLog } from "@/lib/activity-log";
 import type { TestHistoryEntry, VocabularyItem } from "@/types/vocabulary";
 
 // Progress-statistics helpers (pure, framework-free).
@@ -60,13 +61,15 @@ export interface DueBucket {
 
 // Local calendar-day helpers. Buckets follow the learner's wall clock, and
 // stepping via date components (not raw ms) keeps DST shifts harmless.
-const startOfDay = (value: Date) =>
+// Exported so the activity heatmap (below) and lib/activity-log.ts agree on the
+// same day boundaries.
+export const startOfDay = (value: Date) =>
   new Date(value.getFullYear(), value.getMonth(), value.getDate());
 
-const addCalendarDays = (dayStart: Date, days: number) =>
+export const addCalendarDays = (dayStart: Date, days: number) =>
   new Date(dayStart.getFullYear(), dayStart.getMonth(), dayStart.getDate() + days);
 
-const toDateKey = (dayStart: Date) => {
+export const toDateKey = (dayStart: Date) => {
   const month = String(dayStart.getMonth() + 1).padStart(2, "0");
   const day = String(dayStart.getDate()).padStart(2, "0");
   return `${dayStart.getFullYear()}-${month}-${day}`;
@@ -130,4 +133,111 @@ export const dueByDay = (
   }
 
   return buckets;
+};
+
+// --- Activity heatmap (Anki-style) --------------------------------------
+
+export type HeatmapIntensity = 0 | 1 | 2 | 3 | 4;
+
+export interface HeatmapDay {
+  /** YYYY-MM-DD for a real day in range, or "" for a future padding cell. */
+  date: string;
+  count: number;
+  intensity: HeatmapIntensity;
+  /** False for cells past today (kept for a rectangular grid). */
+  inRange: boolean;
+}
+
+export interface HeatmapWeek {
+  /** Seven cells, index 0 = Sunday. */
+  days: HeatmapDay[];
+}
+
+export interface Heatmap {
+  weeks: HeatmapWeek[];
+  totalReviews: number;
+  maxCount: number;
+}
+
+// Fixed thresholds (not relative to the max) so the palette doesn't flicker as
+// a single big day rescales everything.
+const intensityFor = (count: number): HeatmapIntensity => {
+  if (count <= 0) {
+    return 0;
+  }
+  if (count < 3) {
+    return 1;
+  }
+  if (count < 6) {
+    return 2;
+  }
+  if (count < 11) {
+    return 3;
+  }
+  return 4;
+};
+
+/**
+ * Build a GitHub/Anki-style grid: `weeks` columns of 7 rows (Sun..Sat), the
+ * last column being the week that contains today. Cells after today are marked
+ * `inRange: false` so the grid stays rectangular.
+ */
+export const activityHeatmap = (
+  log: ActivityLog,
+  nowIso: string,
+  weeks = 53
+): Heatmap => {
+  const columns = Math.max(1, weeks);
+  const today = startOfDay(new Date(nowIso));
+  // Sunday of the current week, then step back to the first column's Sunday.
+  const thisSunday = addCalendarDays(today, -today.getDay());
+  const firstSunday = addCalendarDays(thisSunday, -(columns - 1) * 7);
+
+  const grid: HeatmapWeek[] = [];
+  let totalReviews = 0;
+  let maxCount = 0;
+
+  for (let w = 0; w < columns; w += 1) {
+    const days: HeatmapDay[] = [];
+    for (let d = 0; d < 7; d += 1) {
+      const cell = addCalendarDays(firstSunday, w * 7 + d);
+      const inRange = cell.getTime() <= today.getTime();
+      const key = toDateKey(cell);
+      const count = inRange ? log[key]?.reviews ?? 0 : 0;
+      if (inRange) {
+        totalReviews += count;
+        maxCount = Math.max(maxCount, count);
+      }
+      days.push({
+        date: inRange ? key : "",
+        count,
+        intensity: intensityFor(count),
+        inRange
+      });
+    }
+    grid.push({ days });
+  }
+
+  return { weeks: grid, totalReviews, maxCount };
+};
+
+/**
+ * Current streak of consecutive active days, with forgiveness: a not-yet-active
+ * TODAY does not break the streak (it is counted from yesterday), and a missed
+ * day simply ends the streak — nothing punitive, no debt.
+ */
+export const activityStreak = (log: ActivityLog, nowIso: string): number => {
+  const today = startOfDay(new Date(nowIso));
+  let cursor =
+    (log[toDateKey(today)]?.reviews ?? 0) > 0
+      ? today
+      : addCalendarDays(today, -1);
+
+  let streak = 0;
+  while ((log[toDateKey(cursor)]?.reviews ?? 0) > 0) {
+    streak += 1;
+    cursor = addCalendarDays(cursor, -1);
+  }
+
+  return streak;
 };
