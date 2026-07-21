@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   initialState,
   intervalDays,
+  MAX_STABILITY,
   nextState,
   DEFAULT_REQUEST_RETENTION,
   type FsrsState
@@ -67,4 +68,36 @@ test("is deterministic for the same inputs", () => {
   const a = nextState({ stability: 12, difficulty: 5 }, 3, 8);
   const b = nextState({ stability: 12, difficulty: 5 }, 3, 8);
   assert.deepEqual(a, b);
+});
+
+// Stability is persisted on the card, so it can arrive from an imported file
+// or a share link rather than from this module's own math. Unbounded, a
+// hostile value made intervalDays() return Infinity and the caller's
+// `new Date(now + interval * DAY_MS).toISOString()` throw a RangeError.
+test("intervalDays stays finite for an absurd stored stability", () => {
+  const days = intervalDays(1e308);
+
+  assert.ok(Number.isFinite(days), "interval must stay finite");
+  assert.ok(days <= MAX_STABILITY);
+
+  const dueMs = Date.UTC(2026, 6, 21) + days * 24 * 60 * 60 * 1000;
+  assert.ok(Number.isFinite(dueMs));
+  // The call that used to throw.
+  assert.doesNotThrow(() => new Date(dueMs).toISOString());
+});
+
+test("intervalDays survives non-finite stability", () => {
+  for (const value of [Infinity, -Infinity, NaN]) {
+    const days = intervalDays(value);
+    assert.ok(Number.isFinite(days), `interval must stay finite for ${value}`);
+    assert.ok(days >= 1);
+  }
+});
+
+test("nextState never returns a stability past the ceiling", () => {
+  const absurd: FsrsState = { stability: 1e308, difficulty: 5 };
+  const next = nextState(absurd, 4, 0);
+
+  assert.ok(Number.isFinite(next.stability));
+  assert.ok(next.stability <= MAX_STABILITY);
 });

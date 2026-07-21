@@ -31,6 +31,7 @@ import { useVocabularyStore, type WordInput } from "@/lib/useVocabularyStore";
 import {
   createExportPayload,
   isPublicListId,
+  MAX_IMPORT_BYTES,
   parseExportPayload
 } from "@/lib/vocabulary-storage";
 import type {
@@ -70,6 +71,11 @@ type FlashcardPositionStore = Record<
     updatedAt: string;
   }
 >;
+
+const formatFileSize = (bytes: number) => {
+  const mb = bytes / (1024 * 1024);
+  return mb >= 10 ? `${Math.round(mb)} MB` : `${mb.toFixed(1)} MB`;
+};
 
 const readFlashcardPositions = (): FlashcardPositionStore => {
   if (typeof window === "undefined") {
@@ -187,6 +193,11 @@ export function VocabularyApp() {
   const [flashcardInitialIndex, setFlashcardInitialIndex] = useState(0);
   const [activityVersion, setActivityVersion] = useState(0);
   const [shareImport, setShareImport] = useState<WordList[] | null>(null);
+  // A file import that would overwrite existing lists, held until confirmed.
+  const [pendingImport, setPendingImport] = useState<{
+    lists: WordList[];
+    replaced: WordList[];
+  } | null>(null);
 
   // Log a review (or an undo, delta -1) to the activity journal and refresh the
   // heatmap. The timestamp is captured here, at the call site.
@@ -540,6 +551,19 @@ export function VocabularyApp() {
     }
   };
 
+  const applyImport = (lists: WordList[]) => {
+    const summary = store.importLists(lists);
+    if (summary.listIds.length) {
+      showList(summary.listIds[0]);
+    }
+    setTransferNotice({
+      tone: "success",
+      message: `Imported ${summary.total} ${
+        summary.total === 1 ? "list" : "lists"
+      }: ${summary.added} added, ${summary.replaced} replaced.`
+    });
+  };
+
   const importListsFromFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
 
@@ -548,6 +572,16 @@ export function VocabularyApp() {
     }
 
     try {
+      // Checked before reading: file.text() + JSON.parse on a multi-gigabyte
+      // file would freeze the tab before any validation could run.
+      if (file.size > MAX_IMPORT_BYTES) {
+        throw new Error(
+          `This file is ${formatFileSize(file.size)}, over the ${formatFileSize(
+            MAX_IMPORT_BYTES
+          )} import limit.`
+        );
+      }
+
       const text = await file.text();
       let payload: unknown;
 
@@ -559,37 +593,21 @@ export function VocabularyApp() {
 
       const parsed = parseExportPayload(payload);
 
-      if (!parsed.lists.length) {
-        throw new Error("This export does not contain any lists.");
-      }
+      // The *stored* lists, not the incoming ones: the modal must show what is
+      // about to be lost, not what is arriving to replace it.
+      const replaced = parsed.lists
+        .filter((list) => !isPublicListId(list.id) && store.listMap.has(list.id))
+        .map((list) => store.listMap.get(list.id))
+        .filter((list): list is WordList => Boolean(list));
 
-      const existingCount = parsed.lists.filter(
-        (list) => !isPublicListId(list.id) && store.listMap.has(list.id)
-      ).length;
-
-      if (
-        existingCount &&
-        !window.confirm(
-          `Importing this file will replace ${existingCount} existing ${
-            existingCount === 1 ? "list" : "lists"
-          }. Continue?`
-        )
-      ) {
-        setTransferNotice({
-          tone: "error",
-          message: "Import cancelled."
-        });
+      // Overwriting a list destroys its words and its progress. Name what is
+      // at stake instead of asking to confirm a bare count.
+      if (replaced.length) {
+        setPendingImport({ lists: parsed.lists, replaced });
         return;
       }
 
-      const summary = store.importLists(parsed.lists);
-      showList(summary.listIds[0]);
-      setTransferNotice({
-        tone: "success",
-        message: `Imported ${summary.total} ${
-          summary.total === 1 ? "list" : "lists"
-        }: ${summary.added} added, ${summary.replaced} replaced.`
-      });
+      applyImport(parsed.lists);
     } catch (error) {
       setTransferNotice({
         tone: "error",
@@ -885,6 +903,66 @@ export function VocabularyApp() {
         }}
         onSubmit={submitWordForm}
       />
+
+      <Modal
+        open={Boolean(pendingImport)}
+        title="Replace existing lists?"
+        onClose={() => {
+          setPendingImport(null);
+          setTransferNotice({ tone: "error", message: "Import cancelled." });
+        }}
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setPendingImport(null);
+                setTransferNotice({
+                  tone: "error",
+                  message: "Import cancelled."
+                });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (pendingImport) {
+                  applyImport(pendingImport.lists);
+                }
+                setPendingImport(null);
+              }}
+            >
+              Replace
+            </Button>
+          </>
+        }
+      >
+        {pendingImport ? (
+          <>
+            <p className="modal-lead">
+              This import overwrites {pendingImport.replaced.length}{" "}
+              {pendingImport.replaced.length === 1 ? "list" : "lists"} you
+              already have. Their current words and progress are lost.
+            </p>
+            <ul className="import-replace-list">
+              {pendingImport.replaced.map((list) => (
+                <li key={list.id}>
+                  <strong dir="auto">{list.title}</strong>{" "}
+                  <span className="muted">
+                    ({list.items.length}{" "}
+                    {list.items.length === 1 ? "word" : "words"} now)
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="field-hint">
+              Export a backup first if you are not sure.
+            </p>
+          </>
+        ) : null}
+      </Modal>
 
       <Modal
         open={Boolean(shareImport)}
