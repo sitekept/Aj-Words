@@ -5,6 +5,7 @@ import { ArrowLeft, CheckCircle2, Circle, Volume2, XCircle } from "lucide-react"
 import { Button, IconButton, cx } from "@/components/ui";
 import { ItemImage } from "@/components/ItemImage";
 import { checkAnswer, diffAnswer } from "@/lib/answer-matching";
+import { buildOptions, canUseChoice, shuffle } from "@/lib/quiz-options";
 import { getClozePrompt, isClozeText } from "@/lib/cloze";
 import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
 import { useSpeechVoices } from "@/lib/useSpeechVoices";
@@ -49,15 +50,6 @@ const modeTitles: Record<QuizMode, string> = {
   "full-review": "Full review"
 };
 
-const shuffle = <T,>(values: T[]) => {
-  const next = [...values];
-  for (let index = next.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
-    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
-  }
-  return next;
-};
-
 // Cloze items store a sentence with a blank in `translation` and the missing
 // word in `word`; the quiz always shows the sentence and asks for the word,
 // regardless of direction. Everything else follows the requested direction.
@@ -76,29 +68,6 @@ const describePromptAnswer = (
   return direction === "reverse"
     ? { prompt: item.translation, answer: item.word, isCloze: false }
     : { prompt: item.word, answer: item.translation, isCloze: false };
-};
-
-const buildOptions = (
-  item: VocabularyItem,
-  items: VocabularyItem[],
-  direction: QuizDirection
-) => {
-  // Distractors come from the same side of the cards as the correct answer.
-  const answerFor = (candidate: VocabularyItem) =>
-    direction === "reverse" ? candidate.word : candidate.translation;
-
-  const wrongAnswers = shuffle(
-    Array.from(
-      new Set(
-        items
-          .filter((candidate) => candidate.id !== item.id)
-          .map(answerFor)
-          .filter(Boolean)
-      )
-    )
-  ).slice(0, 3);
-
-  return shuffle(Array.from(new Set([answerFor(item), ...wrongAnswers]))).slice(0, 4);
 };
 
 const getAdaptivePriority = (item: VocabularyItem) => {
@@ -162,17 +131,17 @@ const getSessionItems = (
 const getQuestionType = (
   mode: QuizMode,
   index: number,
-  canUseChoice: boolean
+  choiceAvailable: boolean
 ): QuizQuestionType => {
   if (mode === "choice") {
-    return canUseChoice ? "choice" : "written";
+    return choiceAvailable ? "choice" : "written";
   }
 
   if (mode === "written") {
     return "written";
   }
 
-  return index % 2 === 0 && canUseChoice ? "choice" : "written";
+  return index % 2 === 0 && choiceAvailable ? "choice" : "written";
 };
 
 const buildQuestions = (
@@ -182,7 +151,9 @@ const buildQuestions = (
 ): BuiltQuestion[] => {
   const now = new Date().toISOString();
   const items = getSessionItems(list.items, mode, now);
-  const canUseChoice = list.items.length >= 4;
+  // Distinct answers on the graded side, not card count: four cards sharing
+  // three translations cannot fill four options.
+  const choiceAvailable = canUseChoice(list.items, direction);
 
   return items.map((item, index) => {
     const promptAnswer = describePromptAnswer(item, direction);
@@ -190,7 +161,7 @@ const buildQuestions = (
     // choice/written alternation for that question only.
     const type = promptAnswer.isCloze
       ? "written"
-      : getQuestionType(mode, index, canUseChoice);
+      : getQuestionType(mode, index, choiceAvailable);
 
     return {
       item,

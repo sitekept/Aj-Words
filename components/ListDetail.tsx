@@ -22,6 +22,7 @@ import { ProgressSummary } from "@/components/ProgressSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TestHistory } from "@/components/TestHistory";
 import { countDue } from "@/lib/srs";
+import { canUseChoice } from "@/lib/quiz-options";
 import { canSpeak, resolveSpeechLangs, speak } from "@/lib/speech";
 import { useSpeechVoices } from "@/lib/useSpeechVoices";
 import { Button, IconButton } from "@/components/ui";
@@ -100,7 +101,9 @@ export function ListDetail({
   }
 
   const hasWords = list.items.length > 0;
-  const hasChoiceSet = list.items.length >= 4;
+  // Must agree with QuizRunner: offering "Multiple choice" for a list that
+  // cannot fill four distinct options would silently fall back to written.
+  const hasChoiceSet = canUseChoice(list.items, direction);
   const dueCount = countDue(list.items, new Date().toISOString());
 
   const normalizedQuery = query.trim().toLowerCase();
