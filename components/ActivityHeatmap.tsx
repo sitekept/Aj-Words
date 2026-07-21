@@ -22,7 +22,7 @@ interface ActivityHeatmapProps {
   refreshToken: number;
 }
 
-const WEEKS = 26; // ~6 months — comfortable on a sidebar without scrolling.
+const WEEKS = 18; // ~4 months — fits the library sidebar; scrolls if narrower.
 
 const formatDay = (date: string): string => {
   const parsed = new Date(`${date}T00:00:00`);

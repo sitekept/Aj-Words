@@ -734,6 +734,7 @@ export function VocabularyApp() {
 
       <main className={`workspace ${hasWorkspaceSelection ? "has-selection" : ""}`}>
         <aside className="library-panel">
+          <ActivityHeatmap refreshToken={activityVersion} />
           <ListLibrary
             lists={store.lists}
             selectedListId={selectedListId}
@@ -746,7 +747,6 @@ export function VocabularyApp() {
 
         <section className="workspace-panel">
           {!hasWorkspaceSelection ? (
-            <>
             <section className="welcome-panel" aria-labelledby="welcome-title">
               <div className="welcome-copy">
                 <p className="eyebrow">AJ Words</p>
@@ -770,8 +770,6 @@ export function VocabularyApp() {
               </div>
               <AJWordsScene />
             </section>
-            <ActivityHeatmap refreshToken={activityVersion} />
-            </>
           ) : null}
 
           {hasSelectedList && !selectedList ? (
