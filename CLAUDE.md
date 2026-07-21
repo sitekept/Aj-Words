@@ -90,7 +90,7 @@ When you change the data model, update **both** the runtime path (`vocabulary-st
 
 ### Progress & status derivation
 
-Mastery is driven by a **Leitner spaced-repetition engine** (`lib/srs.ts`). Each `VocabularyItem` carries `box` + `dueAt`; `scheduleNext` promotes a card one box on a correct answer (longer interval) and demotes it one box (due now) on a miss. `status` is **always derived, never trusted** — `deriveStatusFromBox` returns `new` (no attempts), `mastered` (`box >= MASTERED_BOX`), else `learning`. The two mutators are `applyAttemptsToItems` (quiz, applied per finalized attempt) and `applyFlashcardAssessmentToItems` (a single swipe — `mastered` promotes, `learning` resets). Legacy items without SRS fields are migrated in `normalizeItem` via `inferSrsFromLegacy`. Test results are also appended to `list.testHistory` (capped at 30 entries).
+Mastery is driven by a **Leitner box** (`lib/srs.ts`) for status, and **FSRS** (`lib/fsrs.ts`) for scheduling. Each `VocabularyItem` carries `box` + `dueAt` (+ optional `stability`/`difficulty`). The two mutators `applyAttemptsToItems` (quiz) and `applyFlashcardAssessmentToItems` (swipe) advance `box` via `scheduleNext` **and** compute the next FSRS state to set `dueAt` — **`box` still owns status, FSRS owns `dueAt`** (see the ADR in `docs/ARCHITECTURE.md` §7). `status` is **always derived, never trusted** — `deriveStatusFromBox` returns `new` (no attempts), `mastered` (`box >= MASTERED_BOX`), else `learning`. Legacy items are migrated in `normalizeItem` (`inferSrsFromLegacy` for box; FSRS state inferred from box, **never touching an existing `dueAt`**). Test results are also appended to `list.testHistory` (capped at 30 entries). **Adding a card field?** Extend `lib/item-content.ts` (it fans out to five parse sites automatically) **and** the two hand-written mirrors — `useVocabularyStore.updateWord` (re-assigns each field explicitly, so a missed one is silently dropped on every edit) and `scripts/import-phone-export.mjs`.
 
 ### Quiz engine (`components/QuizRunner.tsx`)
 
@@ -115,10 +115,17 @@ Two unrelated import paths — don't confuse them:
 - Any caching/offline change must be verified with `npm run build` + `npm run start`, not `npm run dev`.
 - If you bump cache behavior, bump `CACHE_NAME` in `public/sw.js`.
 
+## Horizon 3 modules (differentiators)
+
+- `lib/fsrs.ts` — FSRS-5 scheduler (pure). Drives `dueAt` only; `box` stays the mastery scale. See the ADR in `docs/ARCHITECTURE.md` §7.
+- `lib/activity-log.ts` + `lib/daily-goal.ts` — global daily-review journal (`ajwords.v1.activityLog`) and opt-in goal (`ajwords.v1.dailyGoal`), same pattern as `lib/quiz-preferences.ts`. Fed from `VocabularyApp` callbacks (quiz attempt + flashcard swipe log +1; undo logs −1). **No streak is stored** — it is recomputed with forgiveness in `lib/stats.ts` (`activityStreak`/`activityHeatmap`). `components/ActivityHeatmap.tsx` renders it, in the **library panel** so it shows on the desktop sidebar and the mobile home.
+- `lib/image-store.ts` — IndexedDB blob store (`ajwords.images`) for card images. **Only images go to IndexedDB; lists stay in localStorage.** `lib/image-compress.ts` downscales uploads; `lib/useItemImage.ts`/`components/ItemImage.tsx` resolve `imageId`→object URL (or render `imageUrl`). **Never put image binary in the export/backup JSON** — `createExportPayload` strips `imageId` (backups cap at 1.5 MB; a data-URI would blow the quota). Orphan blobs are GC'd on load in `VocabularyApp`.
+- `lib/share-link.ts` — client-only list sharing: a compressed (`CompressionStream`, `deflate-raw`) export payload in the URL **fragment** (`#share=…`, never the query string). `VocabularyApp` decodes a `#share=` fragment on load and opens a confirm-to-import modal, then strips the fragment.
+
 ## Other notes
 
 - `components/AJWordsScene.tsx` is the welcome-screen CSS visual. Keep it dependency-light and honor `prefers-reduced-motion`.
-- `components/ui.tsx` holds the shared design-system primitives (`Button`, `IconButton`, `Modal`, `TextField`, and the `cx` class-name helper) — reuse these rather than hand-rolling buttons/inputs.
+- `components/ui.tsx` holds the shared design-system primitives (`Button`, `IconButton`, `Modal`, `TextField`, and the `cx` class-name helper) — reuse these rather than hand-rolling buttons/inputs. `Modal` **portals to `document.body`**, so it renders above any local stacking context (e.g. opened from the heatmap deep in the library panel).
 - `next.config.ts` defines `allowedDevOrigins` (private-network ranges for phone testing), security headers, and explicit no-cache headers for `/sw.js`.
 - `package.json` has a PostCSS override because Next pins a vulnerable transitive version; verify `npm audit` when touching framework dependencies.
 - `eslint.config.mjs` disables `react-hooks/set-state-in-effect` — the store's hydration pattern depends on setting state inside effects.
