@@ -1,5 +1,38 @@
 import type { NextConfig } from "next";
 
+// A static CSP, deliberately without a nonce. Nonces require per-request
+// generation via middleware, which forces dynamic rendering — this app is
+// fully static and its service worker caches the navigation response, so a
+// nonce would buy nothing and risk the offline path.
+//
+// 'unsafe-inline' on script-src is unavoidable: Next's hydration payload ships
+// as inline <script> whose content changes every build, so no stable hash
+// exists. That is an acceptable trade here — the app has no eval, no
+// dangerouslySetInnerHTML in production (the only inline script, the local
+// service-worker reset in app/layout.tsx, is dev-only) and loads no
+// third-party script. The real hardening is everything else: nothing can be
+// framed, no plugins, no base-tag injection, no form posting or network call
+// to a foreign origin.
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  // React style={} props and Next's injected <style> blocks.
+  "style-src 'self' 'unsafe-inline'",
+  // blob: for card images resolved from IndexedDB via URL.createObjectURL
+  // (lib/useItemImage.ts); https: for the user-supplied external imageUrl.
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "media-src 'self'",
+  // Service-worker registration (/sw.js).
+  "worker-src 'self'",
+  "manifest-src 'self'"
+].join("; ");
+
 const securityHeaders = [
   {
     key: "X-Content-Type-Options",
@@ -8,6 +41,32 @@ const securityHeaders = [
   {
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin"
+  },
+  {
+    key: "Content-Security-Policy",
+    value: contentSecurityPolicy
+  },
+  {
+    // The app needs none of these. speechSynthesis (TTS) is not gated by
+    // Permissions-Policy, so muting everything here costs no feature.
+    key: "Permissions-Policy",
+    value: [
+      "accelerometer=()",
+      "camera=()",
+      "geolocation=()",
+      "gyroscope=()",
+      "magnetometer=()",
+      "microphone=()",
+      "payment=()",
+      "usb=()"
+    ].join(", ")
+  },
+  {
+    // Ignored by browsers over plain http, so this is inert on the LAN/dev
+    // hosts and only takes effect on the HTTPS deployment. No "preload": that
+    // commits the whole domain and is painful to walk back.
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains"
   }
 ];
 
