@@ -679,6 +679,9 @@ export function VocabularyApp() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#workspace">
+        Skip to content
+      </a>
       <header className="app-topbar">
         <button type="button" className="brand-button" onClick={goHome}>
           <BrandLogo />
@@ -750,7 +753,11 @@ export function VocabularyApp() {
         </div>
       ) : null}
 
-      <main className={`workspace ${hasWorkspaceSelection ? "has-selection" : ""}`}>
+      <main
+        id="workspace"
+        tabIndex={-1}
+        className={`workspace ${hasWorkspaceSelection ? "has-selection" : ""}`}
+      >
         <aside className="library-panel">
           <ActivityHeatmap refreshToken={activityVersion} />
           <ListLibrary

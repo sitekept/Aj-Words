@@ -392,6 +392,15 @@ export function FlashcardMode({
         </div>
       </header>
 
+      {/* The deck advances and flips without moving focus, so nothing would
+          otherwise tell a screen-reader user the card changed. Mounted for the
+          whole session so each update registers as a change. */}
+      <p className="sr-only" role="status" aria-live="polite">
+        {`Card ${index + 1} of ${cards.length}. ${
+          flipped ? `Translation: ${current.translation}` : `Word: ${current.word}`
+        }`}
+      </p>
+
       <div
         className="flashcard-progress"
         role="progressbar"

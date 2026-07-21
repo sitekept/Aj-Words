@@ -84,6 +84,9 @@ export function ActivityHeatmap({ refreshToken }: ActivityHeatmapProps) {
             <span className="heatmap-streak" title={`${streak}-day streak`}>
               <Flame size={16} aria-hidden="true" />
               {streak}
+              {/* The number alone reads as a bare digit; title is not
+                  announced on a non-interactive element. */}
+              <span className="sr-only"> day streak</span>
             </span>
           ) : null}
           <IconButton
