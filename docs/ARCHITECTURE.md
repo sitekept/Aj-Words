@@ -387,6 +387,31 @@ There are **three distinct** data paths — don't conflate them:
 - [`next.config.ts`](../next.config.ts) — `allowedDevOrigins` (private-network ranges so
   the dev server works when tested from a phone), security headers, and explicit
   no-cache headers for `/sw.js`.
+
+### ADR: `ListDetail` renders every row, and that is fine
+
+`ListDetail` renders all of a list's items at once. The obvious optimisations —
+`content-visibility: auto` or row virtualisation — were **measured and rejected**.
+
+Measured in a production build against a synthetic 2000-item list (12× the largest
+list the app ships, which is 159 items; 1080 items across all 19 builtin lists):
+
+| Metric | Plain | With `content-visibility: auto` |
+| --- | ---: | ---: |
+| Median forced layout of the list | 12.2 ms | 49.6 ms |
+| `list.scrollHeight` | 525 309 px | 611 988 px |
+
+Full page load with those 2000 rows: `domInteractive` 69 ms, `domComplete` 118 ms.
+
+So the budget is already met with an order of magnitude to spare, and
+`content-visibility` made layout **four times slower** here while inflating
+`scrollHeight` by 16% — `contain-intrinsic-size` is an estimate, and wrong estimates
+show up as a jumping scrollbar. Virtualisation was rejected earlier still: it breaks
+native find-in-page and complicates keyboard focus for a load this size.
+
+Revisit only if a real list reaches several thousand items, and re-measure rather
+than assuming — and if `content-visibility` is tried again, verify that off-screen
+rows stay in the accessibility tree and reachable by browser find.
 - [`package.json`](../package.json) — contains a PostCSS override so Next's pinned
   transitive PostCSS dependency resolves to a patched `8.5.x` version.
 - [`eslint.config.mjs`](../eslint.config.mjs) — extends `next` core-web-vitals +
