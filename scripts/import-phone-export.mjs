@@ -113,12 +113,18 @@ const contentFields = (source) => {
   const example = trimmedString(source.example);
   const altAnswers = stringList(source.altAnswers);
   const tags = stringList(source.tags);
+  // imageId is device-local (IndexedDB) and is stripped from exports, so it
+  // never reaches this seed path; imageUrl (external) is portable and kept.
+  const imageId = trimmedString(source.imageId);
+  const imageUrl = trimmedString(source.imageUrl);
 
   return {
     ...(note ? { note } : {}),
     ...(example ? { example } : {}),
     ...(altAnswers ? { altAnswers } : {}),
-    ...(tags ? { tags } : {})
+    ...(tags ? { tags } : {}),
+    ...(imageId ? { imageId } : {}),
+    ...(imageUrl ? { imageUrl } : {})
   };
 };
 

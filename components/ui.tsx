@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   type ReactNode
 } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 export const cx = (...classes: Array<string | false | null | undefined>) =>
@@ -133,7 +134,7 @@ export function Modal({ open, title, children, footer, onClose }: ModalProps) {
     }
   };
 
-  return (
+  const overlay = (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         ref={dialogRef}
@@ -155,6 +156,12 @@ export function Modal({ open, title, children, footer, onClose }: ModalProps) {
       </section>
     </div>
   );
+
+  // Portal to the body so the modal escapes any local stacking context (e.g.
+  // the daily-goal modal opened from the heatmap inside the library panel).
+  return typeof document !== "undefined"
+    ? createPortal(overlay, document.body)
+    : overlay;
 }
 
 const getFocusableElements = (root: HTMLElement | null) => {

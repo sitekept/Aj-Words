@@ -26,6 +26,10 @@ export interface VocabularyItem {
   altAnswers?: string[];
   /** Free-form organizational tags. */
   tags?: string[];
+  /** Reference to a locally stored image blob in IndexedDB (lib/image-store.ts). */
+  imageId?: string;
+  /** External image URL, rendered directly; survives export/share (imageId does not). */
+  imageUrl?: string;
   status: LearningStatus;
   attempts: number;
   correctCount: number;
@@ -34,9 +38,14 @@ export interface VocabularyItem {
   wrongStreak: number;
   lastTestedAt?: string;
   lastWrongAt?: string;
-  // Spaced-repetition scheduling (Leitner). See lib/srs.ts.
+  // Spaced-repetition scheduling. `box` is the Leitner mastery scale (lib/srs.ts)
+  // that drives status; `dueAt` is scheduled by FSRS (lib/fsrs.ts). `stability`
+  // and `difficulty` are the FSRS card state — optional: absent on brand-new
+  // cards, inferred lazily on load for pre-FSRS data.
   box: number;
   dueAt: string;
+  stability?: number;
+  difficulty?: number;
   createdAt: string;
   updatedAt: string;
 }

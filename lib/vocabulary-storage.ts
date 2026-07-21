@@ -22,10 +22,18 @@ import {
   deriveStatusFromBox,
   inferSrsFromLegacy,
   initialSrs,
+  LEITNER_INTERVALS,
   scheduleNext
 } from "@/lib/srs";
+import {
+  intervalDays,
+  nextState as fsrsNextState,
+  type FsrsGrade,
+  type FsrsState
+} from "@/lib/fsrs";
 
 const STORAGE_KEY = "worddeck.v1.lists";
+const DAY_MS = 24 * 60 * 60 * 1000;
 export const EXPORT_APP_ID = "aj-words";
 export const EXPORT_VERSION = 1;
 
@@ -77,6 +85,98 @@ const createInitialProgress = () => ({
   wrongStreak: 0
 });
 
+// --- FSRS scheduling helpers --------------------------------------------
+// FSRS (lib/fsrs.ts) decides WHEN a card is due (dueAt); the Leitner box stays
+// the mastery scale that drives status (see the FSRS ADR in docs/ARCHITECTURE).
+
+const elapsedDaysSince = (
+  lastTestedAt: string | undefined,
+  nowIso: string
+): number => {
+  if (!lastTestedAt) {
+    return 0;
+  }
+
+  const prev = new Date(lastTestedAt).getTime();
+  const current = new Date(nowIso).getTime();
+  if (!Number.isFinite(prev) || !Number.isFinite(current)) {
+    return 0;
+  }
+
+  return Math.max(0, (current - prev) / DAY_MS);
+};
+
+const readFsrsState = (
+  item: Pick<VocabularyItem, "stability" | "difficulty">
+): FsrsState | null =>
+  typeof item.stability === "number" &&
+  Number.isFinite(item.stability) &&
+  item.stability > 0 &&
+  typeof item.difficulty === "number" &&
+  Number.isFinite(item.difficulty)
+    ? { stability: item.stability, difficulty: item.difficulty }
+    : null;
+
+// One review outcome → the next box (Leitner, unchanged), dueAt (FSRS) and the
+// FSRS card state. A correct answer maps to Good, a miss to Again; the finer
+// Hard/Easy grades are reserved (they aren't derivable from a boolean attempt).
+const advanceSchedule = (
+  item: VocabularyItem,
+  correct: boolean,
+  timestamp: string
+): Pick<VocabularyItem, "box" | "dueAt" | "stability" | "difficulty"> => {
+  const box = scheduleNext(item.box, correct, timestamp).box;
+  const grade: FsrsGrade = correct ? 3 : 1;
+  const state = fsrsNextState(
+    readFsrsState(item),
+    grade,
+    elapsedDaysSince(item.lastTestedAt, timestamp)
+  );
+  const dueAt = new Date(
+    new Date(timestamp).getTime() + intervalDays(state.stability) * DAY_MS
+  ).toISOString();
+
+  return {
+    box,
+    dueAt,
+    stability: state.stability,
+    difficulty: state.difficulty
+  };
+};
+
+// Lazy migration of pre-FSRS cards. A card with an explicit finite state keeps
+// it; a brand-new (untouched) card gets none (first review initializes it); a
+// legacy card with counters gets a state inferred from its Leitner box and
+// miss count — WITHOUT ever moving its existing dueAt.
+const normalizeFsrsFields = (
+  item: Partial<VocabularyItem>,
+  box: number,
+  wrongCount: number,
+  hasStats: boolean
+): { stability?: number; difficulty?: number } => {
+  if (
+    typeof item.stability === "number" &&
+    Number.isFinite(item.stability) &&
+    item.stability > 0 &&
+    typeof item.difficulty === "number" &&
+    Number.isFinite(item.difficulty)
+  ) {
+    return {
+      stability: item.stability,
+      difficulty: Math.min(10, Math.max(1, item.difficulty))
+    };
+  }
+
+  if (!hasStats) {
+    return {};
+  }
+
+  const interval = LEITNER_INTERVALS[clampBox(box)] ?? 0;
+  const stability = interval > 0 ? interval : 1;
+  const difficulty = Math.min(10, Math.max(1, 5 + Math.min(10, wrongCount) * 0.5));
+  return { stability, difficulty };
+};
+
 const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => {
   const hasStats = hasProgressStats(item);
   const timestamp = now();
@@ -113,6 +213,9 @@ const normalizeItem = (item: Partial<VocabularyItem>): VocabularyItem => {
     ...normalizeContentFields(item),
     box: srs.box,
     dueAt: srs.dueAt,
+    // FSRS state: kept if present, inferred for legacy cards, absent for new
+    // ones — never disturbing the dueAt computed above.
+    ...normalizeFsrsFields(item, srs.box, normalized.wrongCount, hasStats),
     status: deriveStatusFromBox({ box: srs.box, attempts: normalized.attempts })
   };
 };
@@ -196,6 +299,8 @@ const mergeBuiltinListWithLocalState = (storedList: WordList): WordList => {
         lastWrongAt: storedItem.lastWrongAt,
         box: storedItem.box,
         dueAt: storedItem.dueAt,
+        stability: storedItem.stability,
+        difficulty: storedItem.difficulty,
         updatedAt: storedItem.updatedAt
       };
     }),
@@ -223,11 +328,32 @@ export const createLocalCopy = (list: WordList): WordList => {
   };
 };
 
+// A locally stored image blob (imageId → IndexedDB) can't travel in a JSON
+// export or a share link, and binary would blow the backup/URL size budgets.
+// Drop imageId on the way out; external imageUrl survives.
+const stripDeviceLocalImage = (list: WordList): WordList => {
+  if (!list.items.some((item) => item.imageId)) {
+    return list;
+  }
+
+  return {
+    ...list,
+    items: list.items.map((item) => {
+      if (!item.imageId) {
+        return item;
+      }
+      const copy = { ...item };
+      delete copy.imageId;
+      return copy;
+    })
+  };
+};
+
 export const createExportPayload = (lists: WordList[]): VocabularyExportFile => ({
   app: EXPORT_APP_ID,
   version: EXPORT_VERSION,
   exportedAt: now(),
-  lists: lists.map((list) => normalizeList(list))
+  lists: lists.map((list) => stripDeviceLocalImage(normalizeList(list)))
 });
 
 export const parseExportPayload = (payload: unknown): ImportedListsResult => {
@@ -360,6 +486,8 @@ export interface CreateItemInput {
   example?: string;
   altAnswers?: string[];
   tags?: string[];
+  imageId?: string;
+  imageUrl?: string;
 }
 
 export const createList = (input: {
@@ -472,12 +600,14 @@ export const applyAttemptsToItems = (
             lastTestedAt: timestamp,
             lastWrongAt: timestamp
           };
-      const schedule = scheduleNext(nextItem.box, attempt.isCorrect, timestamp);
+      const schedule = advanceSchedule(nextItem, attempt.isCorrect, timestamp);
       const merged = {
         ...nextItem,
         ...counters,
         box: schedule.box,
         dueAt: schedule.dueAt,
+        stability: schedule.stability,
+        difficulty: schedule.difficulty,
         updatedAt: timestamp
       };
 
@@ -520,12 +650,14 @@ export const applyFlashcardAssessmentToItems = (
           lastTestedAt: timestamp,
           lastWrongAt: timestamp
         };
-    const schedule = scheduleNext(item.box, correct, timestamp);
+    const schedule = advanceSchedule(item, correct, timestamp);
     const merged = {
       ...item,
       ...counters,
       box: schedule.box,
       dueAt: schedule.dueAt,
+      stability: schedule.stability,
+      difficulty: schedule.difficulty,
       updatedAt: timestamp
     };
 

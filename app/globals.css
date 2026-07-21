@@ -2073,3 +2073,202 @@ blockquote {
   min-width: 0;
   overflow-wrap: break-word;
 }
+
+/* ── Activity heatmap (library sidebar / mobile home) ────────────────── */
+.heatmap {
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.heatmap[aria-hidden="true"] {
+  min-height: 120px;
+}
+
+.heatmap-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.heatmap-heading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.heatmap-subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.heatmap-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.heatmap-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.heatmap-goal {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.heatmap-goal-met {
+  background: var(--success-soft);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 3px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmap-week {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.heatmap-cell {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.heatmap-cell-empty {
+  background: transparent;
+  border-color: transparent;
+}
+
+.heatmap-cell[data-intensity="0"] {
+  background: var(--surface-soft);
+}
+
+.heatmap-cell[data-intensity="1"] {
+  background: #cdeae2;
+}
+
+.heatmap-cell[data-intensity="2"] {
+  background: #86c9ba;
+}
+
+.heatmap-cell[data-intensity="3"] {
+  background: #4c9e8d;
+}
+
+.heatmap-cell[data-intensity="4"] {
+  background: var(--primary-strong);
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.heatmap-legend .heatmap-cell {
+  border: 1px solid var(--border);
+}
+
+/* Daily-goal modal controls */
+.modal-lead {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.field-checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-checkbox input {
+  width: auto;
+}
+
+/* ── Card images ─────────────────────────────────────────────────────── */
+.word-thumb {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.word-image-field {
+  gap: 10px;
+}
+
+.word-image-preview {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.word-image-preview img {
+  max-width: 140px;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.word-image-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.visually-hidden-input {
+  display: none;
+}
+
+.flashcard-image {
+  max-width: 72%;
+  max-height: 130px;
+  object-fit: contain;
+  border-radius: var(--radius);
+  margin: 6px 0;
+}
+
+.quiz-feedback-image {
+  display: block;
+  max-width: 200px;
+  max-height: 150px;
+  object-fit: contain;
+  margin: 12px auto 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}

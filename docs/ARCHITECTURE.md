@@ -75,7 +75,7 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | Type | Key fields | Notes |
 | --- | --- | --- |
 | `WordList` | `id`, `title`, `language?`, `items[]`, `testHistory[]`, `createdAt`, `updatedAt` | Top-level container. |
-| `VocabularyItem` | `id`, `word`, `translation`, `status`, `attempts`, `correctCount`, `wrongCount`, `correctStreak`, `wrongStreak`, `lastTestedAt?`, `lastWrongAt?`, `box`, `dueAt`, `createdAt`, `updatedAt` | `status` is `new \| learning \| mastered`, always derived from `box`. `box`/`dueAt` drive spaced repetition (see [§7](#7-progress-and-mastery)). |
+| `VocabularyItem` | `id`, `word`, `translation`, `note?`, `example?`, `altAnswers?`, `tags?`, `imageId?`, `imageUrl?`, `status`, `attempts`, `correctCount`, `wrongCount`, `correctStreak`, `wrongStreak`, `lastTestedAt?`, `lastWrongAt?`, `box`, `dueAt`, `stability?`, `difficulty?`, `createdAt`, `updatedAt` | `status` is `new \| learning \| mastered`, always derived from `box`. `box` is the Leitner mastery scale; `dueAt` is scheduled by **FSRS** from `stability`/`difficulty` (see [§7](#7-progress-and-mastery)). `imageId` points to a local blob in IndexedDB; `imageUrl` is an external image. |
 | `TestHistoryEntry` | `id`, `mode`, `attempts[]`, `correctCount`, `total`, `score`, `createdAt` | One completed quiz; `score` is a 0–100 percentage. |
 | `QuizAttempt` | `itemId`, `questionType`, `prompt`, `correctAnswer`, `userAnswer`, `isCorrect`, `options?` | `questionType` is `written \| choice`; `options` only for choice. |
 | `ListProgress` | `total`, `mastered`, `learning`, `fresh` | **Derived** (via `getProgress`), never stored. |
@@ -90,6 +90,17 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | `ajwords.v1.ui` | `{ selectedListId }` — last opened list (also mirrored to the `?list=` URL param) | `VocabularyApp` |
 | `ajwords.v1.flashcards` | `{ [listId]: { nextIndex, updatedAt } }` — per-list flashcard resume position | `VocabularyApp` |
 | `ajwords.v1.quizSessions` | `{ [listId:mode]: QuizSessionState }` — in-progress quiz, resumed after reload | `lib/quiz-session-storage.ts` |
+| `ajwords.v1.quizPrefs` | `{ [listId]: { direction } }` — per-list quiz direction | `lib/quiz-preferences.ts` |
+| `ajwords.v1.activityLog` | `{ "YYYY-MM-DD": { reviews } }` — global daily review counts (heatmap + goal) | `lib/activity-log.ts` |
+| `ajwords.v1.dailyGoal` | `{ enabled, target }` — opt-in daily review goal | `lib/daily-goal.ts` |
+
+> **IndexedDB, not localStorage, for images.** Card image blobs live in an
+> IndexedDB database `ajwords.images` (object store `images`, keyed by
+> `imageId`), managed by [`lib/image-store.ts`](../lib/image-store.ts). List
+> data stays in localStorage — only binary lives in IndexedDB, keeping the ~5 MB
+> localStorage quota and the rotating backups (which cap the JSON payload at
+> 1.5 MB) safe. Exports and share links strip `imageId`; a locally stored image
+> stays on the device that created it.
 
 ## 4. State and persistence
 
@@ -223,6 +234,36 @@ nothing stays hidden).
 Completed quizzes are also appended to `list.testHistory`, **capped at the 30 most recent
 entries** (`addTestHistory` slices to 30).
 
+### ADR: FSRS schedules `dueAt`; the Leitner box stays the mastery scale
+
+**Context.** The Leitner engine above spaces cards on six boxes (plus two "mature"
+boxes to 150 days). The product audit found the gap to FSRS is real — roughly 20–30 %
+fewer reviews for the same retention — but secondary to *having* an SRS at all. Once
+the fundamentals were in place, closing that gap became worthwhile.
+
+**Decision.** [`lib/fsrs.ts`](../lib/fsrs.ts) implements FSRS-5 (19 default weights,
+request retention 0.9) as pure functions: `nextState(prev, grade, elapsedDays)` and
+`intervalDays(stability)`. It drives **`dueAt` only**. The `box` counter is unchanged —
+it still moves ±1 per outcome and remains the single source of `status`
+(`deriveStatusFromBox`), `ProgressSummary`, and everything the tests assert. Concretely,
+the two write sites (`applyAttemptsToItems`, `applyFlashcardAssessmentToItems`) advance
+`box` via `scheduleNext` exactly as before, then overwrite `dueAt` with
+`now + intervalDays(nextStability)` and store the new `stability`/`difficulty`.
+
+**Grade mapping.** A wrong answer → *Again*; a correct answer → *Good*; a flashcard
+`learning` swipe → *Again*, `mastered` → *Good*. *Hard* and *Easy* are reserved (a
+boolean attempt can't distinguish them), so the "small typo" verdict does not yet feed a
+softer grade — a future refinement.
+
+**Migration.** `stability`/`difficulty` are optional. `normalizeItem` infers them lazily
+for pre-FSRS cards (`stability ≈ the card's Leitner interval`, `difficulty` seeded from
+misses) and **never touches an existing `dueAt`**; a brand-new card gets no FSRS state
+until its first review, which initializes it. The bundled JSON carries no FSRS fields —
+`builtin-vocabulary.ts` does not require them.
+
+**Rollback.** `scheduleNext` remains exported; repointing the two write sites back to its
+`dueAt` restores pure Leitner scheduling without a data change.
+
 ## 8. Quiz engine
 
 [`components/QuizRunner.tsx`](../components/QuizRunner.tsx) builds a session up front with
@@ -288,6 +329,16 @@ There are **three distinct** data paths — don't conflate them:
    [`scripts/import-phone-export.mjs`](../scripts/import-phone-export.mjs), which takes an
    in-app export and rewrites `lib/builtin-vocabulary-data.json`. This is how the bundled
    starter lists are refreshed from a real device.
+4. **Share by link** — [`lib/share-link.ts`](../lib/share-link.ts) is a fourth path, still
+   100 % client-side (no backend). The Share button builds a single-list
+   `createExportPayload`, JSON-serializes it, compresses it with the native
+   `CompressionStream` (`deflate-raw`, with a raw base64url fallback), and puts it in the
+   URL **fragment** (`#share=…`) — never the query string, so it is never sent to a server.
+   On load, `VocabularyApp` detects a `#share=` fragment, decodes it, and opens a
+   **confirm-to-import** modal (never a silent import) before reusing
+   `parseExportPayload` → `store.importLists` (so builtin ids fork to a local copy). The
+   fragment is stripped from the URL afterward. Locally stored images (`imageId`) are not
+   included; an external `imageUrl` is.
 
 ## 11. PWA and service worker
 
@@ -321,12 +372,14 @@ There are **three distinct** data paths — don't conflate them:
 | `FlashcardMode.tsx` | Swipe flashcard deck ([§9](#9-flashcards)). |
 | `QuizRunner.tsx` | Quiz engine UI and session logic ([§8](#8-quiz-engine)). |
 | `ScoreScreen.tsx` | Post-quiz results, insights, and review. |
-| `ListFormModal.tsx` / `WordFormModal.tsx` | Create/edit modals for lists and words. |
+| `ListFormModal.tsx` / `WordFormModal.tsx` | Create/edit modals for lists and words (`WordFormModal` also handles image upload/URL). |
 | `ProgressSummary.tsx` | Mastered/learning/new breakdown for a list. |
 | `StatusBadge.tsx` | Small badge rendering a word's status. |
 | `TestHistory.tsx` | Past test entries with a "review" action. |
+| `ActivityHeatmap.tsx` | Home/library activity heatmap fed by `lib/activity-log.ts`, plus the opt-in daily goal. |
+| `ItemImage.tsx` | Renders a card image from `imageId` (IndexedDB blob) or `imageUrl`; thin wrapper over `lib/useItemImage.ts`. |
 | `BrandLogo.tsx` | The AJ Words mark. |
-| `ui.tsx` | Design-system primitives: `Button`, `IconButton`, `Modal`, `TextField`, and the `cx` class-name helper. |
+| `ui.tsx` | Design-system primitives: `Button`, `IconButton`, `Modal` (portaled to `document.body`), `TextField`, and the `cx` class-name helper. |
 | `AJWordsScene.tsx` | Dependency-light CSS welcome visual (a floating card stack). Honors reduced-motion without WebGL. |
 
 ## 13. Configuration notes
@@ -366,7 +419,10 @@ Two independent layers:
   grid + highlighting, <4-word fallback), `direction-cloze` (reverse direction,
   cloze forcing typed input), `flashcards` (assess/undo/shuffle/progress),
   `import-export` (download round-trip, invalid-file errors), `session-reload`
-  (mid-quiz resume), `offline` (SW caches serve the shell with the network cut).
+  (mid-quiz resume), `offline` (SW caches serve the shell with the network cut),
+  `heatmap` (a finished quiz fills the activity heatmap; the opt-in daily goal),
+  `share-link` (Share copies a `#share=` URL that round-trips into a confirmed
+  import).
 
   Because quiz question order is intentionally randomized, specs derive each
   expected answer from the displayed prompt via lookup maps in

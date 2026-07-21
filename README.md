@@ -9,8 +9,11 @@ A premium, offline-first vocabulary learning PWA. Build word lists, drill them w
 - **Local word lists** — create, edit, and organize vocabulary lists in the browser.
 - **Swipe flashcards** — tactile pointer-driven deck; swipe right to mark *mastered*, left for *learning*. Resumes where you left off, per list.
 - **Adaptive quizzes** — five modes (written, multiple choice, mixed, test, full review). Weak, due, and recently-missed words surface first; every mode, full review included, feeds the spaced-repetition schedule.
+- **FSRS scheduling** — a modern spaced-repetition algorithm (FSRS-5) decides when each card is due, on top of the Leitner mastery scale.
+- **Activity heatmap & gentle daily goal** — an Anki-style calendar of your review activity, with an opt-in daily goal that has *no* streak debt: a missed day never breaks anything.
+- **Card images** — attach a picture to a word (uploaded and stored on-device, or an external URL). Shown in the list, on flashcards, and after a quiz answer.
 - **Progress & mastery tracking** — per-word attempts, streaks, and a derived `new → learning → mastered` status, plus per-list test history.
-- **Import / export** — move your data between devices as JSON, or paste tab-separated terms straight from Quizlet.
+- **Import / export & share by link** — move your data between devices as JSON, paste tab-separated terms from Quizlet, or share a whole list through a single compressed link (100 % client-side, no server).
 - **Installable PWA** — works offline once installed; bundled starter lists (Darija + Hebrew Quizlet units) ship with the app.
 
 ## Tech stack

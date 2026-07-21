@@ -1,6 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dueByDay, hardestWords, sessionSuccessSeries } from "./stats.ts";
+import {
+  activityHeatmap,
+  activityStreak,
+  dueByDay,
+  hardestWords,
+  sessionSuccessSeries
+} from "./stats.ts";
+import type { ActivityLog } from "./activity-log.ts";
 import type { TestHistoryEntry, VocabularyItem } from "../types/vocabulary.ts";
 
 const NOW = "2026-06-07T12:00:00.000Z";
@@ -160,4 +167,74 @@ test("dueByDay returns empty buckets for empty input and honors the window size"
   );
 
   assert.deepEqual(dueByDay([makeItem({ id: "x" })], NOW, 0), []);
+});
+
+// Build a local-calendar-day key relative to NOW so tests are timezone-safe.
+const dayKey = (offsetDays: number): string => {
+  const base = new Date(NOW);
+  const local = new Date(base.getFullYear(), base.getMonth(), base.getDate() + offsetDays);
+  const month = String(local.getMonth() + 1).padStart(2, "0");
+  const day = String(local.getDate()).padStart(2, "0");
+  return `${local.getFullYear()}-${month}-${day}`;
+};
+
+test("activityHeatmap builds a rectangular weeks × 7 grid ending today", () => {
+  const log: ActivityLog = {
+    [dayKey(0)]: { reviews: 4 },
+    [dayKey(-1)]: { reviews: 12 }
+  };
+  const heat = activityHeatmap(log, NOW, 8);
+
+  assert.equal(heat.weeks.length, 8);
+  for (const week of heat.weeks) {
+    assert.equal(week.days.length, 7);
+  }
+  assert.equal(heat.totalReviews, 16);
+  assert.equal(heat.maxCount, 12);
+
+  // Today lives in the last column and is in range.
+  const lastWeek = heat.weeks[heat.weeks.length - 1];
+  const todayCell = lastWeek.days.find((d) => d.date === dayKey(0));
+  assert.ok(todayCell);
+  assert.equal(todayCell?.count, 4);
+  assert.equal(todayCell?.intensity, 2); // 3..5 → intensity 2
+  assert.equal(todayCell?.inRange, true);
+});
+
+test("activityHeatmap marks future cells out of range", () => {
+  const heat = activityHeatmap({}, NOW, 4);
+  const future = heat.weeks.flatMap((w) => w.days).filter((d) => !d.inRange);
+  // There is at least one padding cell unless today is a Saturday.
+  for (const cell of future) {
+    assert.equal(cell.date, "");
+    assert.equal(cell.count, 0);
+  }
+});
+
+test("activityStreak counts consecutive active days with forgiveness", () => {
+  // Active today, yesterday, two days ago → streak 3.
+  const log: ActivityLog = {
+    [dayKey(0)]: { reviews: 1 },
+    [dayKey(-1)]: { reviews: 2 },
+    [dayKey(-2)]: { reviews: 1 }
+  };
+  assert.equal(activityStreak(log, NOW), 3);
+});
+
+test("activityStreak forgives a not-yet-active today", () => {
+  // Nothing today, but active yesterday and the day before → streak 2.
+  const log: ActivityLog = {
+    [dayKey(-1)]: { reviews: 2 },
+    [dayKey(-2)]: { reviews: 1 }
+  };
+  assert.equal(activityStreak(log, NOW), 2);
+});
+
+test("activityStreak is zero after a gap", () => {
+  const log: ActivityLog = {
+    [dayKey(-2)]: { reviews: 1 },
+    [dayKey(-3)]: { reviews: 1 }
+  };
+  // Missed today AND yesterday → streak broken.
+  assert.equal(activityStreak(log, NOW), 0);
 });
