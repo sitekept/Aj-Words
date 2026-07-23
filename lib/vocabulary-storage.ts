@@ -275,7 +275,7 @@ const normalizeTestHistoryEntry = (
   };
 };
 
-const normalizeList = (list: Partial<WordList>): WordList => ({
+export const normalizeList = (list: Partial<WordList>): WordList => ({
   id: typeof list.id === "string" ? list.id : createId(),
   title: typeof list.title === "string" ? list.title : "Untitled list",
   language: typeof list.language === "string" ? list.language : "",

@@ -13,6 +13,22 @@ import type { NextConfig } from "next";
 // third-party script. The real hardening is everything else: nothing can be
 // framed, no plugins, no base-tag injection, no form posting or network call
 // to a foreign origin.
+// When cloud sync is configured, its Supabase origin must be reachable by the
+// browser (auth, REST, storage). We read the same public env var the client
+// uses and add ONLY that exact origin to connect-src — the strict default
+// (connect-src 'self') is kept whenever sync is off. Card images already fall
+// under img-src's blanket https:, so no img-src change is needed.
+const supabaseOrigin = (() => {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  try {
+    return raw ? new URL(raw).origin : null;
+  } catch {
+    return null;
+  }
+})();
+
+const connectSrc = ["'self'", supabaseOrigin].filter(Boolean).join(" ");
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -23,10 +39,11 @@ const contentSecurityPolicy = [
   // React style={} props and Next's injected <style> blocks.
   "style-src 'self' 'unsafe-inline'",
   // blob: for card images resolved from IndexedDB via URL.createObjectURL
-  // (lib/useItemImage.ts); https: for the user-supplied external imageUrl.
+  // (lib/useItemImage.ts); https: for the user-supplied external imageUrl and
+  // Supabase Storage public image URLs.
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  `connect-src ${connectSrc}`,
   "media-src 'self'",
   // Service-worker registration (/sw.js).
   "worker-src 'self'",

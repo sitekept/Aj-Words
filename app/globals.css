@@ -2307,3 +2307,54 @@ blockquote {
   border-radius: var(--radius);
   border: 1px solid var(--border);
 }
+
+/* Device-pairing modal (cloud sync) */
+.sync-device {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sync-device-intro {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.sync-device-intro svg {
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
+.sync-device-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.sync-device-qr img {
+  width: 192px;
+  height: 192px;
+  image-rendering: pixelated;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #ffffff;
+  padding: 8px;
+}
+
+.sync-device-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.sync-device-loading {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+}

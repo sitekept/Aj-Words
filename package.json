@@ -14,8 +14,10 @@
     "import:phone": "node scripts/import-phone-export.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.8",
     "lucide-react": "^1.14.0",
     "next": "^16.2.9",
+    "qrcode-generator": "^1.5.2",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },

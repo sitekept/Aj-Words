@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { Download, Home, Plus, Upload } from "lucide-react";
+import { Download, Home, Plus, Smartphone, Upload } from "lucide-react";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { AJWordsScene } from "@/components/AJWordsScene";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -11,8 +11,10 @@ import { ListFormModal } from "@/components/ListFormModal";
 import { ListLibrary } from "@/components/ListLibrary";
 import { QuizRunner } from "@/components/QuizRunner";
 import { ScoreScreen } from "@/components/ScoreScreen";
+import { SyncDeviceModal } from "@/components/SyncDeviceModal";
 import { WordFormModal } from "@/components/WordFormModal";
 import { Button, Modal } from "@/components/ui";
+import { useCloudSync } from "@/lib/useCloudSync";
 import { recordActivity } from "@/lib/activity-log";
 import { pruneImages } from "@/lib/image-store";
 import { readQuizDirection, writeQuizDirection } from "@/lib/quiz-preferences";
@@ -175,7 +177,9 @@ const writePreferredListId = (listId: string | null) => {
 
 export function VocabularyApp() {
   const store = useVocabularyStore();
+  const cloudSync = useCloudSync(store);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [view, setView] = useState<AppView>("home");
   const [uiHydrated, setUiHydrated] = useState(false);
@@ -714,6 +718,18 @@ export function VocabularyApp() {
           >
             <span className="topbar-action-label">Import</span>
           </Button>
+          {cloudSync.cloudEnabled ? (
+            <Button
+              className="topbar-transfer"
+              variant="secondary"
+              size="sm"
+              icon={<Smartphone size={17} />}
+              onClick={() => setSyncModalOpen(true)}
+              title={`Sync status: ${cloudSync.status}`}
+            >
+              <span className="topbar-action-label">Sync</span>
+            </Button>
+          ) : null}
           <Button
             className="topbar-new-list"
             size="sm"
@@ -756,6 +772,12 @@ export function VocabularyApp() {
           {transferNotice.message}
         </div>
       ) : null}
+
+      <SyncDeviceModal
+        open={syncModalOpen}
+        onClose={() => setSyncModalOpen(false)}
+        makePairingLink={cloudSync.makePairingLink}
+      />
 
       <main
         id="workspace"

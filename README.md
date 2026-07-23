@@ -20,7 +20,7 @@ A premium, offline-first vocabulary learning PWA. Build word lists, drill them w
 
 Next.js 16 (App Router) · React 19 · TypeScript (strict) · lucide-react.
 
-There is **no backend and no database** — all state lives in the browser's `localStorage`.
+By default there is **no backend and no database** — all state lives in the browser's `localStorage`. An **optional** cloud-sync layer (Supabase) can be switched on to carry your lists between devices without exporting a file; it stays completely off unless configured (see [Cloud sync](#cloud-sync-optional)).
 
 ## Quick start
 
@@ -50,6 +50,27 @@ Pure logic tests use Node's built-in runner. Validate changes with `npm test`, `
 ## Data & privacy
 
 Everything you create stays on your device in `localStorage`. There are no accounts, servers, or telemetry. Use **Export** to download a JSON snapshot and **Import** to restore it on another device or browser.
+
+## Cloud sync (optional)
+
+Instead of exporting/importing a file, you can sync your lists through a Supabase database so they appear on your phone automatically. It is **opt-in and off by default**: when the two env vars below are absent, none of this code runs, the **Sync** button never appears, and the app behaves exactly as the local-only version above.
+
+What it does (kept deliberately simple):
+
+- **Syncs list *content* only** — words, translations, notes, examples, alt-answers, tags, and images. Learning **progress** (SRS boxes, due dates, streaks, test history) is **not** synced; it stays per-device. A list pulled onto a new device starts fresh.
+- **Only your own lists** upload. The bundled starter lists already ship on every device, so they are never sent.
+- **Duplicate lists are collapsed** on the way up: if two lists share (almost) all their word/translation pairs, only the one with the most words is kept.
+- **Images** upload to a public Storage bucket and render on every device via a durable URL.
+- **No login, no code to type.** The first device signs in anonymously; to bring in your phone, open **Sync → scan the QR** with the phone's camera. The QR carries a short, single-use pairing code that expires in a few minutes.
+  - Trade-off: an anonymous identity has **no recovery** — clearing browser data on every device, or losing your only device before pairing a second, orphans the cloud copy. Your local cache and the JSON **Export** remain the safety nets.
+
+### Setup
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. In the dashboard: **Authentication → Providers → Anonymous → On**.
+3. Open **SQL → New query**, paste [`supabase/schema.sql`](supabase/schema.sql), and **Run** (creates the tables, the pairing RPC, and the `card-images` bucket).
+4. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Supabase **Settings → API**).
+5. `npm run build && npm run start`. The **Sync** button now appears; the build automatically adds your Supabase origin to the Content-Security-Policy `connect-src`.
 
 ## PWA & offline
 
