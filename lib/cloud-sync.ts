@@ -14,7 +14,6 @@
 //    can never lose data. (Cross-device deletion propagation is a later step.)
 
 import { dedupeLists } from "@/lib/list-dedupe";
-import { uploadItemImage } from "@/lib/cloud-images";
 import { getSupabase } from "@/lib/supabase-client";
 import { isPublicListId, normalizeList } from "@/lib/vocabulary-storage";
 import type { VocabularyItem, WordList } from "@/types/vocabulary";
@@ -29,7 +28,6 @@ interface CloudItem {
   example?: string;
   altAnswers?: string[];
   tags?: string[];
-  imageUrl?: string;
 }
 
 interface CloudListRow {
@@ -57,38 +55,26 @@ const rowToList = (row: CloudListRow): WordList =>
     updatedAt: row.updated_at
   });
 
-// A local item → its content-only cloud shape. A device-local image blob
-// (imageId) is uploaded and replaced by a durable public imageUrl.
-const itemToCloud = async (
-  uid: string,
-  item: VocabularyItem
-): Promise<CloudItem> => {
-  let imageUrl = item.imageUrl;
-  if (!imageUrl && item.imageId) {
-    imageUrl = (await uploadItemImage(uid, item.imageId)) ?? undefined;
-  }
+// A local item → its content-only cloud shape.
+const itemToCloud = (item: VocabularyItem): CloudItem => ({
+  id: item.id,
+  word: item.word,
+  translation: item.translation,
+  ...(item.note ? { note: item.note } : {}),
+  ...(item.example ? { example: item.example } : {}),
+  ...(item.altAnswers?.length ? { altAnswers: item.altAnswers } : {}),
+  ...(item.tags?.length ? { tags: item.tags } : {})
+});
 
-  return {
-    id: item.id,
-    word: item.word,
-    translation: item.translation,
-    ...(item.note ? { note: item.note } : {}),
-    ...(item.example ? { example: item.example } : {}),
-    ...(item.altAnswers?.length ? { altAnswers: item.altAnswers } : {}),
-    ...(item.tags?.length ? { tags: item.tags } : {}),
-    ...(imageUrl ? { imageUrl } : {})
-  };
-};
-
-const listToRow = async (
+const listToRow = (
   uid: string,
   list: WordList
-): Promise<Omit<CloudListRow, "owner"> & { owner: string }> => ({
+): Omit<CloudListRow, "owner"> & { owner: string } => ({
   id: list.id,
   owner: uid,
   title: list.title,
   language: list.language ?? null,
-  content: await Promise.all(list.items.map((item) => itemToCloud(uid, item))),
+  content: list.items.map((item) => itemToCloud(item)),
   created_at: list.createdAt,
   updated_at: list.updatedAt
 });
@@ -129,7 +115,7 @@ export const pushLocalLists = async (lists: WordList[]): Promise<boolean> => {
     return true;
   }
 
-  const rows = await Promise.all(localLists.map((list) => listToRow(uid, list)));
+  const rows = localLists.map((list) => listToRow(uid, list));
   const { error } = await supabase
     .from(LISTS_TABLE)
     .upsert(rows, { onConflict: "owner,id" });

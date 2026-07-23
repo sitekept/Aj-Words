@@ -18,7 +18,6 @@ import {
   Trash2,
   Volume2
 } from "lucide-react";
-import { ItemImage } from "@/components/ItemImage";
 import { ProgressSummary } from "@/components/ProgressSummary";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TestHistory } from "@/components/TestHistory";
@@ -305,11 +304,6 @@ export function ListDetail({
                 <div className="word-list">
                   {visibleItems.map((item) => (
                     <article className="word-row" key={item.id}>
-                      <ItemImage
-                        imageId={item.imageId}
-                        imageUrl={item.imageUrl}
-                        className="word-thumb"
-                      />
                       <div className="word-copy">
                         <div className="word-pair">
                           <div className="word-side">

@@ -350,32 +350,11 @@ export const createLocalCopy = (list: WordList): WordList => {
   };
 };
 
-// A locally stored image blob (imageId → IndexedDB) can't travel in a JSON
-// export or a share link, and binary would blow the backup/URL size budgets.
-// Drop imageId on the way out; external imageUrl survives.
-const stripDeviceLocalImage = (list: WordList): WordList => {
-  if (!list.items.some((item) => item.imageId)) {
-    return list;
-  }
-
-  return {
-    ...list,
-    items: list.items.map((item) => {
-      if (!item.imageId) {
-        return item;
-      }
-      const copy = { ...item };
-      delete copy.imageId;
-      return copy;
-    })
-  };
-};
-
 export const createExportPayload = (lists: WordList[]): VocabularyExportFile => ({
   app: EXPORT_APP_ID,
   version: EXPORT_VERSION,
   exportedAt: now(),
-  lists: lists.map((list) => stripDeviceLocalImage(normalizeList(list)))
+  lists: lists.map((list) => normalizeList(list))
 });
 
 export const parseExportPayload = (payload: unknown): ImportedListsResult => {
@@ -543,8 +522,6 @@ export interface CreateItemInput {
   example?: string;
   altAnswers?: string[];
   tags?: string[];
-  imageId?: string;
-  imageUrl?: string;
 }
 
 export const createList = (input: {
@@ -727,8 +704,8 @@ export const applyFlashcardAssessmentToItems = (
 /**
  * Clears all learning state from a list's items, returning every card to the
  * state a freshly created one has: no counters, box 0, due now, no FSRS state,
- * status "new". Card *content* (word, translation, note, example, tags,
- * images) is untouched.
+ * status "new". Card *content* (word, translation, note, example, tags) is
+ * untouched.
  *
  * Note the deletes: `stability`/`difficulty`/`lastTestedAt`/`lastWrongAt` are
  * optional fields, and leaving them at 0/undefined-but-present would make

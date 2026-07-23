@@ -1,13 +1,10 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { ImagePlus, Save, X } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { Save } from "lucide-react";
 import type { VocabularyItem } from "@/types/vocabulary";
 import type { WordInput } from "@/lib/useVocabularyStore";
-import { Button, IconButton, Modal, TextField } from "@/components/ui";
-import { compressImageFile, createImageId } from "@/lib/image-compress";
-import { putImage } from "@/lib/image-store";
-import { useItemImage } from "@/lib/useItemImage";
+import { Button, Modal, TextField } from "@/components/ui";
 
 interface WordFormModalProps {
   open: boolean;
@@ -39,12 +36,6 @@ export function WordFormModal({
   const [example, setExample] = useState("");
   const [altAnswersText, setAltAnswersText] = useState("");
   const [tagsText, setTagsText] = useState("");
-  const [imageId, setImageId] = useState<string | undefined>(undefined);
-  const [imageUrl, setImageUrl] = useState("");
-  const [imageBusy, setImageBusy] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const previewSrc = useItemImage(imageId, imageUrl);
 
   useEffect(() => {
     if (open) {
@@ -54,39 +45,8 @@ export function WordFormModal({
       setExample(item?.example ?? "");
       setAltAnswersText(joinCommaList(item?.altAnswers));
       setTagsText(joinCommaList(item?.tags));
-      setImageId(item?.imageId);
-      setImageUrl(item?.imageUrl ?? "");
-      setImageBusy(false);
     }
   }, [item, open]);
-
-  const handleImageFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = ""; // allow re-picking the same file
-    if (!file) {
-      return;
-    }
-
-    setImageBusy(true);
-    try {
-      const blob = await compressImageFile(file);
-      const id = createImageId();
-      const stored = await putImage(id, blob);
-      if (stored) {
-        // A local image and an external URL are mutually exclusive.
-        setImageId(id);
-        setImageUrl("");
-      }
-    } finally {
-      setImageBusy(false);
-    }
-  };
-
-  const clearImage = () => {
-    // The old blob (if any) is left for load-time GC in image-store.
-    setImageId(undefined);
-    setImageUrl("");
-  };
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -101,9 +61,7 @@ export function WordFormModal({
       note,
       example,
       altAnswers: splitCommaList(altAnswersText),
-      tags: splitCommaList(tagsText),
-      imageId,
-      imageUrl: imageUrl.trim()
+      tags: splitCommaList(tagsText)
     });
   };
 
@@ -170,58 +128,6 @@ export function WordFormModal({
           hint="Comma-separated"
           onChange={setTagsText}
         />
-
-        <div className="field word-image-field">
-          <span>Image</span>
-          {previewSrc ? (
-            <div className="word-image-preview">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewSrc} alt="" />
-              <IconButton
-                label="Remove image"
-                variant="danger"
-                onClick={clearImage}
-              >
-                <X size={16} />
-              </IconButton>
-            </div>
-          ) : null}
-          <div className="word-image-actions">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<ImagePlus size={16} />}
-              disabled={imageBusy}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {imageBusy ? "Processing…" : previewSrc ? "Replace" : "Upload"}
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="visually-hidden-input"
-              onChange={handleImageFile}
-            />
-          </div>
-          <TextField
-            id="word-image-url"
-            label="…or image URL"
-            value={imageUrl}
-            placeholder="https://example.com/word.jpg"
-            hint={
-              imageId
-                ? "Remove the uploaded image to use an external URL instead."
-                : "Stored images live on this device; a URL travels with sharing."
-            }
-            onChange={(value) => {
-              setImageUrl(value);
-              if (value.trim()) {
-                setImageId(undefined);
-              }
-            }}
-          />
-        </div>
       </form>
     </Modal>
   );

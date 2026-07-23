@@ -2253,61 +2253,6 @@ blockquote {
   width: auto;
 }
 
-/* ── Card images ─────────────────────────────────────────────────────── */
-.word-thumb {
-  width: 46px;
-  height: 46px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.word-image-field {
-  gap: 10px;
-}
-
-.word-image-preview {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.word-image-preview img {
-  max-width: 140px;
-  max-height: 120px;
-  object-fit: cover;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-}
-
-.word-image-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.visually-hidden-input {
-  display: none;
-}
-
-.flashcard-image {
-  max-width: 72%;
-  max-height: 130px;
-  object-fit: contain;
-  border-radius: var(--radius);
-  margin: 6px 0;
-}
-
-.quiz-feedback-image {
-  display: block;
-  max-width: 200px;
-  max-height: 150px;
-  object-fit: contain;
-  margin: 12px auto 0;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-}
-
 /* Device-pairing modal (cloud sync) */
 .sync-device {
   display: flex;

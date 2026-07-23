@@ -75,7 +75,7 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | Type | Key fields | Notes |
 | --- | --- | --- |
 | `WordList` | `id`, `title`, `language?`, `items[]`, `testHistory[]`, `createdAt`, `updatedAt` | Top-level container. |
-| `VocabularyItem` | `id`, `word`, `translation`, `note?`, `example?`, `altAnswers?`, `tags?`, `imageId?`, `imageUrl?`, `status`, `attempts`, `correctCount`, `wrongCount`, `correctStreak`, `wrongStreak`, `lastTestedAt?`, `lastWrongAt?`, `box`, `dueAt`, `stability?`, `difficulty?`, `createdAt`, `updatedAt` | `status` is `new \| learning \| mastered`, always derived from `box`. `box` is the Leitner mastery scale; `dueAt` is scheduled by **FSRS** from `stability`/`difficulty` (see [§7](#7-progress-and-mastery)). `imageId` points to a local blob in IndexedDB; `imageUrl` is an external image. |
+| `VocabularyItem` | `id`, `word`, `translation`, `note?`, `example?`, `altAnswers?`, `tags?`, `status`, `attempts`, `correctCount`, `wrongCount`, `correctStreak`, `wrongStreak`, `lastTestedAt?`, `lastWrongAt?`, `box`, `dueAt`, `stability?`, `difficulty?`, `createdAt`, `updatedAt` | `status` is `new \| learning \| mastered`, always derived from `box`. `box` is the Leitner mastery scale; `dueAt` is scheduled by **FSRS** from `stability`/`difficulty` (see [§7](#7-progress-and-mastery)). |
 | `TestHistoryEntry` | `id`, `mode`, `attempts[]`, `correctCount`, `total`, `score`, `createdAt` | One completed quiz; `score` is a 0–100 percentage. |
 | `QuizAttempt` | `itemId`, `questionType`, `prompt`, `correctAnswer`, `userAnswer`, `isCorrect`, `options?` | `questionType` is `written \| choice`; `options` only for choice. |
 | `ListProgress` | `total`, `mastered`, `learning`, `fresh` | **Derived** (via `getProgress`), never stored. |
@@ -93,14 +93,6 @@ All types are defined in [`types/vocabulary.ts`](../types/vocabulary.ts).
 | `ajwords.v1.quizPrefs` | `{ [listId]: { direction } }` — per-list quiz direction | `lib/quiz-preferences.ts` |
 | `ajwords.v1.activityLog` | `{ "YYYY-MM-DD": { reviews } }` — global daily review counts (heatmap + goal) | `lib/activity-log.ts` |
 | `ajwords.v1.dailyGoal` | `{ enabled, target }` — opt-in daily review goal | `lib/daily-goal.ts` |
-
-> **IndexedDB, not localStorage, for images.** Card image blobs live in an
-> IndexedDB database `ajwords.images` (object store `images`, keyed by
-> `imageId`), managed by [`lib/image-store.ts`](../lib/image-store.ts). List
-> data stays in localStorage — only binary lives in IndexedDB, keeping the ~5 MB
-> localStorage quota and the rotating backups (which cap the JSON payload at
-> 1.5 MB) safe. Exports and share links strip `imageId`; a locally stored image
-> stays on the device that created it.
 
 ## 4. State and persistence
 
@@ -337,8 +329,7 @@ There are **three distinct** data paths — don't conflate them:
    On load, `VocabularyApp` detects a `#share=` fragment, decodes it, and opens a
    **confirm-to-import** modal (never a silent import) before reusing
    `parseExportPayload` → `store.importLists` (so builtin ids fork to a local copy). The
-   fragment is stripped from the URL afterward. Locally stored images (`imageId`) are not
-   included; an external `imageUrl` is.
+   fragment is stripped from the URL afterward.
 
 ## 11. PWA and service worker
 
@@ -372,12 +363,11 @@ There are **three distinct** data paths — don't conflate them:
 | `FlashcardMode.tsx` | Swipe flashcard deck ([§9](#9-flashcards)). |
 | `QuizRunner.tsx` | Quiz engine UI and session logic ([§8](#8-quiz-engine)). |
 | `ScoreScreen.tsx` | Post-quiz results, insights, and review. |
-| `ListFormModal.tsx` / `WordFormModal.tsx` | Create/edit modals for lists and words (`WordFormModal` also handles image upload/URL). |
+| `ListFormModal.tsx` / `WordFormModal.tsx` | Create/edit modals for lists and words. |
 | `ProgressSummary.tsx` | Mastered/learning/new breakdown for a list. |
 | `StatusBadge.tsx` | Small badge rendering a word's status. |
 | `TestHistory.tsx` | Past test entries with a "review" action. |
 | `ActivityHeatmap.tsx` | Home/library activity heatmap fed by `lib/activity-log.ts`, plus the opt-in daily goal. |
-| `ItemImage.tsx` | Renders a card image from `imageId` (IndexedDB blob) or `imageUrl`; thin wrapper over `lib/useItemImage.ts`. |
 | `BrandLogo.tsx` | The AJ Words mark. |
 | `ui.tsx` | Design-system primitives: `Button`, `IconButton`, `Modal` (portaled to `document.body`), `TextField`, and the `cx` class-name helper. |
 | `AJWordsScene.tsx` | Dependency-light CSS welcome visual (a floating card stack). Honors reduced-motion without WebGL. |

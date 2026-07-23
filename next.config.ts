@@ -14,10 +14,9 @@ import type { NextConfig } from "next";
 // framed, no plugins, no base-tag injection, no form posting or network call
 // to a foreign origin.
 // When cloud sync is configured, its Supabase origin must be reachable by the
-// browser (auth, REST, storage). We read the same public env var the client
-// uses and add ONLY that exact origin to connect-src — the strict default
-// (connect-src 'self') is kept whenever sync is off. Card images already fall
-// under img-src's blanket https:, so no img-src change is needed.
+// browser (auth, REST). We read the same public env var the client uses and add
+// ONLY that exact origin to connect-src — the strict default (connect-src
+// 'self') is kept whenever sync is off.
 const supabaseOrigin = (() => {
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL;
   try {
@@ -38,10 +37,8 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline'",
   // React style={} props and Next's injected <style> blocks.
   "style-src 'self' 'unsafe-inline'",
-  // blob: for card images resolved from IndexedDB via URL.createObjectURL
-  // (lib/useItemImage.ts); https: for the user-supplied external imageUrl and
-  // Supabase Storage public image URLs.
-  "img-src 'self' data: blob: https:",
+  // data: for the pairing QR code (a GIF data URL in components/SyncDeviceModal).
+  "img-src 'self' data:",
   "font-src 'self' data:",
   `connect-src ${connectSrc}`,
   "media-src 'self'",
