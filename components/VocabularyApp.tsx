@@ -16,7 +16,6 @@ import { WordFormModal } from "@/components/WordFormModal";
 import { Button, Modal } from "@/components/ui";
 import { useCloudSync } from "@/lib/useCloudSync";
 import { recordActivity } from "@/lib/activity-log";
-import { pruneImages } from "@/lib/image-store";
 import { readQuizDirection, writeQuizDirection } from "@/lib/quiz-preferences";
 import {
   SHARE_HASH_KEY,
@@ -287,26 +286,6 @@ export function VocabularyApp() {
     };
   }, [store.hydrated]);
 
-  // Once, after hydration: drop image blobs no longer referenced by any item
-  // (e.g. a word deleted in a previous session). Best-effort, never blocks.
-  useEffect(() => {
-    if (!store.hydrated) {
-      return;
-    }
-
-    const referenced = new Set<string>();
-    store.lists.forEach((list) =>
-      list.items.forEach((item) => {
-        if (item.imageId) {
-          referenced.add(item.imageId);
-        }
-      })
-    );
-    void pruneImages(referenced);
-    // Intentionally runs only when hydration flips; later edits GC on next load.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [store.hydrated]);
-
   // Each list remembers its own quiz direction; refresh it on selection change.
   useEffect(() => {
     setQuizDirection(selectedListId ? readQuizDirection(selectedListId) : "forward");
@@ -521,8 +500,6 @@ export function VocabularyApp() {
 
   const shareSelectedList = async (list: WordList) => {
     try {
-      // Single-list payload; createExportPayload already strips device-local
-      // images (imageId) so only text + external imageUrl travel in the link.
       const payload = createExportPayload([list]);
       const encoded = await encodeShare(payload);
 
@@ -1081,9 +1058,6 @@ export function VocabularyApp() {
                 {shareImportReplaceCount === 1 ? "list" : "lists"}.
               </p>
             ) : null}
-            <p className="field-hint">
-              Locally stored images are not included in share links.
-            </p>
           </>
         ) : null}
       </Modal>

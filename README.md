@@ -11,7 +11,6 @@ A premium, offline-first vocabulary learning PWA. Build word lists, drill them w
 - **Adaptive quizzes** — five modes (written, multiple choice, mixed, test, full review). Weak, due, and recently-missed words surface first; every mode, full review included, feeds the spaced-repetition schedule.
 - **FSRS scheduling** — a modern spaced-repetition algorithm (FSRS-5) decides when each card is due, on top of the Leitner mastery scale.
 - **Activity heatmap & gentle daily goal** — an Anki-style calendar of your review activity, with an opt-in daily goal that has *no* streak debt: a missed day never breaks anything.
-- **Card images** — attach a picture to a word (uploaded and stored on-device, or an external URL). Shown in the list, on flashcards, and after a quiz answer.
 - **Progress & mastery tracking** — per-word attempts, streaks, and a derived `new → learning → mastered` status, plus per-list test history.
 - **Import / export & share by link** — move your data between devices as JSON, paste tab-separated terms from Quizlet, or share a whole list through a single compressed link (100 % client-side, no server).
 - **Installable PWA** — works offline once installed; bundled starter lists (Darija + Hebrew Quizlet units) ship with the app.
@@ -57,10 +56,9 @@ Instead of exporting/importing a file, you can sync your lists through a Supabas
 
 What it does (kept deliberately simple):
 
-- **Syncs list *content* only** — words, translations, notes, examples, alt-answers, tags, and images. Learning **progress** (SRS boxes, due dates, streaks, test history) is **not** synced; it stays per-device. A list pulled onto a new device starts fresh.
+- **Syncs list *content* only** — words, translations, notes, examples, alt-answers, and tags. Learning **progress** (SRS boxes, due dates, streaks, test history) is **not** synced; it stays per-device. A list pulled onto a new device starts fresh.
 - **Only your own lists** upload. The bundled starter lists already ship on every device, so they are never sent.
 - **Duplicate lists are collapsed** on the way up: if two lists share (almost) all their word/translation pairs, only the one with the most words is kept.
-- **Images** upload to a public Storage bucket and render on every device via a durable URL.
 - **No login, no code to type.** The first device signs in anonymously; to bring in your phone, open **Sync → scan the QR** with the phone's camera. The QR carries a short, single-use pairing code that expires in a few minutes.
   - Trade-off: an anonymous identity has **no recovery** — clearing browser data on every device, or losing your only device before pairing a second, orphans the cloud copy. Your local cache and the JSON **Export** remain the safety nets.
 
@@ -68,7 +66,7 @@ What it does (kept deliberately simple):
 
 1. Create a free project at [supabase.com](https://supabase.com).
 2. In the dashboard: **Authentication → Providers → Anonymous → On**.
-3. Open **SQL → New query**, paste [`supabase/schema.sql`](supabase/schema.sql), and **Run** (creates the tables, the pairing RPC, and the `card-images` bucket).
+3. Open **SQL → New query**, paste [`supabase/schema.sql`](supabase/schema.sql), and **Run** (creates the tables and the pairing RPC).
 4. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Supabase **Settings → API**).
 5. `npm run build && npm run start`. The **Sync** button now appears; the build automatically adds your Supabase origin to the Content-Security-Policy `connect-src`.
 

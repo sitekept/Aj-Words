@@ -26,10 +26,6 @@ export interface VocabularyItem {
   altAnswers?: string[];
   /** Free-form organizational tags. */
   tags?: string[];
-  /** Reference to a locally stored image blob in IndexedDB (lib/image-store.ts). */
-  imageId?: string;
-  /** External image URL, rendered directly; survives export/share (imageId does not). */
-  imageUrl?: string;
   status: LearningStatus;
   attempts: number;
   correctCount: number;

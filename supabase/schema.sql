@@ -7,7 +7,6 @@
 --   * public.lists            — one row per user-owned list (CONTENT only).
 --   * public.device_pairings  — short-lived, single-use QR pairing codes.
 --   * public.redeem_device_pairing(text) — exchange a code for a session.
---   * storage bucket "card-images" (public) + owner-scoped write policies.
 --
 -- Progress/learning state is intentionally NOT stored here; it stays on-device.
 
@@ -88,41 +87,3 @@ end;
 $FUNC$;
 
 grant execute on function public.redeem_device_pairing(text) to public;
-
--- ---------------------------------------------------------------------------
--- Card images. Public bucket (stable public URLs render through the existing
--- <img> path). Writes are restricted to each signed-in user's own {uid}/
--- folder; `auth.uid() is not null` gates out unauthenticated (anon-role)
--- requests. Anonymous sign-ins carry the `authenticated` role + a uid, so they
--- can write their own folder.
--- ---------------------------------------------------------------------------
-insert into storage.buckets (id, name, public)
-  values ('card-images', 'card-images', true)
-  on conflict (id) do nothing;
-
-drop policy if exists "card_images_insert" on storage.objects;
-create policy "card_images_insert" on storage.objects
-  for insert
-  with check (
-    bucket_id = 'card-images'
-    and auth.uid() is not null
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
-
-drop policy if exists "card_images_update" on storage.objects;
-create policy "card_images_update" on storage.objects
-  for update
-  using (
-    bucket_id = 'card-images'
-    and auth.uid() is not null
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );
-
-drop policy if exists "card_images_delete" on storage.objects;
-create policy "card_images_delete" on storage.objects
-  for delete
-  using (
-    bucket_id = 'card-images'
-    and auth.uid() is not null
-    and (storage.foldername(name))[1] = auth.uid()::text
-  );

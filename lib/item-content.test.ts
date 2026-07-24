@@ -7,26 +7,14 @@ test("preserves valid content fields", () => {
     note: "feminine noun",
     example: "M3mra b l3sl",
     altAnswers: ["filled", "full"],
-    tags: ["food", "unit 1"],
-    imageId: "img-42",
-    imageUrl: "https://example.com/pic.jpg"
+    tags: ["food", "unit 1"]
   });
 
   assert.deepEqual(result, {
     note: "feminine noun",
     example: "M3mra b l3sl",
     altAnswers: ["filled", "full"],
-    tags: ["food", "unit 1"],
-    imageId: "img-42",
-    imageUrl: "https://example.com/pic.jpg"
-  });
-});
-
-test("omits absent or empty image fields", () => {
-  assert.equal("imageId" in normalizeContentFields({ imageUrl: "  " }), false);
-  assert.equal("imageUrl" in normalizeContentFields({ note: "n" }), false);
-  assert.deepEqual(normalizeContentFields({ imageId: "  a  " }), {
-    imageId: "a"
+    tags: ["food", "unit 1"]
   });
 });
 

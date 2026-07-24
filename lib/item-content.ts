@@ -11,8 +11,6 @@ export interface ItemContentFields {
   example?: string;
   altAnswers?: string[];
   tags?: string[];
-  imageId?: string;
-  imageUrl?: string;
 }
 
 const cleanText = (value: unknown): string | undefined => {
@@ -51,22 +49,16 @@ export const normalizeContentFields = (item: {
   example?: unknown;
   altAnswers?: unknown;
   tags?: unknown;
-  imageId?: unknown;
-  imageUrl?: unknown;
 }): ItemContentFields => {
   const note = cleanText(item.note);
   const example = cleanText(item.example);
   const altAnswers = cleanStringList(item.altAnswers);
   const tags = cleanStringList(item.tags);
-  const imageId = cleanText(item.imageId);
-  const imageUrl = cleanText(item.imageUrl);
 
   return {
     ...(note ? { note } : {}),
     ...(example ? { example } : {}),
     ...(altAnswers ? { altAnswers } : {}),
-    ...(tags ? { tags } : {}),
-    ...(imageId ? { imageId } : {}),
-    ...(imageUrl ? { imageUrl } : {})
+    ...(tags ? { tags } : {})
   };
 };
