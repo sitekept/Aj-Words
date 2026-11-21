@@ -5,6 +5,7 @@ import { AlertTriangle, Download, RotateCcw } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui";
 import { APP_BUILD_LABEL, buildFeedbackUrl } from "@/lib/app-version";
+import { wrapExportPayload } from "@/lib/export-format";
 
 // Without this, any render error in VocabularyApp (which is the whole app —
 // one big client component behind a four-line page) left the tester on a blank
@@ -37,7 +38,24 @@ export default function AppError({
   const exportRawLists = () => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      const blob = new Blob([raw ?? "[]"], { type: "application/json" });
+
+      // The file has to go back in through the normal Import action, which
+      // rejects anything that is not the tagged `{app, version, lists}`
+      // envelope — a bare array was silently unimportable, which defeats the
+      // point of offering the download at all. Re-parsed rather than
+      // string-spliced so corrupt storage yields an empty-but-valid export
+      // instead of a broken JSON file.
+      let lists: unknown[] = [];
+      try {
+        const parsed: unknown = raw ? JSON.parse(raw) : [];
+        lists = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        lists = [];
+      }
+
+      const blob = new Blob([JSON.stringify(wrapExportPayload(lists))], {
+        type: "application/json"
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

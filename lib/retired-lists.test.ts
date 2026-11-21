@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { RETIRED_BUILTIN_IDS, isRetiredBuiltinList } from "./retired-lists.ts";
+import {
+  RETIRED_BUILTIN_IDS,
+  importedListId,
+  isRetiredBuiltinList,
+  restoredListId
+} from "./retired-lists.ts";
 
 const item = (word = "", translation = "") => ({ word, translation });
 
@@ -81,4 +86,40 @@ test("the id check is why imports must be re-id'd, not why they are dropped", ()
     }),
     false
   );
+});
+
+test("a restored id is stable, so re-importing replaces instead of duplicating", () => {
+  const retired = "0b43895e-5ce3-409a-b1ac-4f989fba0dae";
+
+  // Deterministic: importing the same pre-removal export twice must land on
+  // the same id, or the second import adds a duplicate list instead of
+  // following the ordinary same-id replacement path.
+  assert.equal(restoredListId(retired), restoredListId(retired));
+});
+
+test("a restored id escapes the tombstone filter", () => {
+  for (const retired of RETIRED_BUILTIN_IDS) {
+    const restored = restoredListId(retired);
+    assert.notEqual(restored, retired);
+    assert.equal(
+      RETIRED_BUILTIN_IDS.has(restored),
+      false,
+      `${restored} must not itself be retired`
+    );
+    assert.equal(
+      isRetiredBuiltinList({ id: restored, items: [item("sali", "prier")] }),
+      false,
+      `${restored} must survive the load-time migration`
+    );
+  }
+});
+
+test("importedListId maps a retired id to its restored one, and leaves others alone", () => {
+  // The store and the UI both call this. When they disagreed, re-importing a
+  // pre-removal export overwrote the restored list with no confirmation.
+  const retired = "quizlet-166616674";
+  assert.equal(importedListId(retired), restoredListId(retired));
+  assert.equal(importedListId("ma-liste"), "ma-liste");
+  // Idempotent: a restored id imported again maps to itself, so it replaces.
+  assert.equal(importedListId(restoredListId(retired)), restoredListId(retired));
 });

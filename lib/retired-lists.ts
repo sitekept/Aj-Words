@@ -87,3 +87,34 @@ const isOrphanedProgressOverlay = (list: RetirableList): boolean =>
  */
 export const isRetiredBuiltinList = (list: RetirableList): boolean =>
   RETIRED_BUILTIN_IDS.has(list.id) || isOrphanedProgressOverlay(list);
+
+/**
+ * The id a retired builtin list takes when it is imported back from an export
+ * made before the removal.
+ *
+ * It must differ from the retired id, or `isRetiredBuiltinList` would delete
+ * the list on the next load. It must also be **deterministic**: a random id
+ * would make a second import of the same file land as a duplicate instead of
+ * matching the first and following the ordinary same-id replacement path.
+ *
+ * The suffix cannot collide with the tombstone set, whose entries are fixed
+ * strings, so a restored list is never purged.
+ */
+export const restoredListId = (retiredId: string): string =>
+  `${retiredId}-restored`;
+
+/**
+ * The id an imported list will actually be stored under.
+ *
+ * One source of truth for two callers that must agree: the store, which does
+ * the re-id, and the UI, which decides whether an import would overwrite
+ * something and needs confirming. When they disagreed, re-importing a
+ * pre-removal export silently overwrote the already-restored list — no
+ * "Replace existing lists?" prompt, because the incoming retired id matched
+ * nothing in the library.
+ *
+ * Public (builtin) ids are NOT handled here: those fork to a fresh random id
+ * through `createLocalCopy`, and never replace anything.
+ */
+export const importedListId = (id: string): string =>
+  RETIRED_BUILTIN_IDS.has(id) ? restoredListId(id) : id;

@@ -23,6 +23,7 @@ import { WordFormModal } from "@/components/WordFormModal";
 import { Button, Modal } from "@/components/ui";
 import { useCloudSync, type CloudSyncStatus } from "@/lib/useCloudSync";
 import { APP_BUILD_LABEL, buildFeedbackUrl } from "@/lib/app-version";
+import { importedListId } from "@/lib/retired-lists";
 import { recordActivity } from "@/lib/activity-log";
 import { readQuizDirection, writeQuizDirection } from "@/lib/quiz-preferences";
 import {
@@ -606,9 +607,18 @@ export function VocabularyApp() {
 
       // The *stored* lists, not the incoming ones: the modal must show what is
       // about to be lost, not what is arriving to replace it.
+      //
+      // Matched on `importedListId`, not on the raw incoming id: a list from a
+      // pre-removal export arrives under a retired id but is stored under its
+      // restored one, so comparing the raw id found nothing and the overwrite
+      // went through with no confirmation at all.
       const replaced = parsed.lists
-        .filter((list) => !isPublicListId(list.id) && store.listMap.has(list.id))
-        .map((list) => store.listMap.get(list.id))
+        .filter(
+          (list) =>
+            !isPublicListId(list.id) &&
+            store.listMap.has(importedListId(list.id))
+        )
+        .map((list) => store.listMap.get(importedListId(list.id)))
         .filter((list): list is WordList => Boolean(list));
 
       // Overwriting a list destroys its words and its progress. Name what is

@@ -19,6 +19,7 @@ import {
   DEMO_LIST_PAIRS,
   DEMO_LIST_TITLE
 } from "@/lib/demo-list";
+import { EXPORT_APP_ID, EXPORT_VERSION } from "@/lib/export-format";
 import { normalizeContentFields } from "./item-content";
 import { isRetiredBuiltinList } from "@/lib/retired-lists";
 import { isQuizMode } from "@/lib/quiz-modes";
@@ -42,8 +43,9 @@ import {
 
 const STORAGE_KEY = "worddeck.v1.lists";
 const DAY_MS = 24 * 60 * 60 * 1000;
-export const EXPORT_APP_ID = "aj-words";
-export const EXPORT_VERSION = 1;
+// Re-exported so existing importers keep working; the values live in a module
+// with no imports, which app/error.tsx can safely depend on.
+export { EXPORT_APP_ID, EXPORT_VERSION };
 
 // Import ceilings. For scale: an export of everything AJ Words ships — 19
 // lists, 1080 items, full progress — is about 0.7 MB. These bound the work
