@@ -6,6 +6,7 @@ import {
   applyAttemptsToItems,
   createItem,
   createList,
+  createId,
   createLocalCopy,
   createTestHistoryEntry,
   isPublicListId,
@@ -16,6 +17,7 @@ import {
   touchList
 } from "@/lib/vocabulary-storage";
 import { normalizeContentFields } from "@/lib/item-content";
+import { RETIRED_BUILTIN_IDS } from "@/lib/retired-lists";
 import type {
   FlashcardAssessment,
   QuizAttempt,
@@ -356,7 +358,25 @@ export const useVocabularyStore = () => {
       const uniqueIncomingLists = Array.from(
         new Map(
           incomingLists
-            .map((list) => (isPublicListId(list.id) ? createLocalCopy(list) : list))
+            .map((list) => {
+              if (isPublicListId(list.id)) {
+                return createLocalCopy(list);
+              }
+
+              // A list carrying the id of a retired builtin (the 22 starter
+              // lists AJ Words used to bundle) would be dropped by the
+              // load-time migration in lib/retired-lists.ts on the very next
+              // reload — silent data loss for anyone re-importing an export
+              // taken before those lists were removed. Give it a fresh id so
+              // it survives. The title is kept as-is: unlike a copy-on-write
+              // fork there is no original left to tell it apart from, so
+              // "(local copy)" would be a lie.
+              if (RETIRED_BUILTIN_IDS.has(list.id)) {
+                return { ...list, id: createId() };
+              }
+
+              return list;
+            })
             .map((list) => [list.id, list])
         ).values()
       );

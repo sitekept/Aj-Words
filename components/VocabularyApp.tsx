@@ -1,7 +1,14 @@
 "use client";
 
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { Download, Home, Plus, Smartphone, Upload } from "lucide-react";
+import {
+  Download,
+  Home,
+  MessageSquare,
+  Plus,
+  Smartphone,
+  Upload
+} from "lucide-react";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { AJWordsScene } from "@/components/AJWordsScene";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -14,7 +21,8 @@ import { ScoreScreen } from "@/components/ScoreScreen";
 import { SyncDeviceModal } from "@/components/SyncDeviceModal";
 import { WordFormModal } from "@/components/WordFormModal";
 import { Button, Modal } from "@/components/ui";
-import { useCloudSync } from "@/lib/useCloudSync";
+import { useCloudSync, type CloudSyncStatus } from "@/lib/useCloudSync";
+import { APP_BUILD_LABEL, buildFeedbackUrl } from "@/lib/app-version";
 import { recordActivity } from "@/lib/activity-log";
 import { readQuizDirection, writeQuizDirection } from "@/lib/quiz-preferences";
 import {
@@ -61,6 +69,17 @@ type TransferNotice = {
   tone: "success" | "error";
   message: string;
 } | null;
+
+// The raw CloudSyncStatus values leaked into the UI through the Sync button's
+// tooltip ("Sync status: synced"). Keys stay as the type defines them; only the
+// displayed wording is translated.
+const SYNC_STATUS_LABELS: Record<CloudSyncStatus, string> = {
+  disabled: "désactivée",
+  connecting: "connexion…",
+  syncing: "en cours…",
+  synced: "à jour",
+  error: "échec"
+};
 
 const UI_STATE_KEY = "ajwords.v1.ui";
 const FLASHCARD_STATE_KEY = "ajwords.v1.flashcards";
@@ -180,6 +199,9 @@ export function VocabularyApp() {
   const importInputRef = useRef<HTMLInputElement>(null);
   const [syncModalOpen, setSyncModalOpen] = useState(false);
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
+  // Resolved after mount: buildFeedbackUrl reads navigator.userAgent, so each
+  // report arrives already labelled with the build and the browser.
+  const [feedbackUrl, setFeedbackUrl] = useState<string | null>(null);
   const [view, setView] = useState<AppView>("home");
   const [uiHydrated, setUiHydrated] = useState(false);
   const [transferNotice, setTransferNotice] = useState<TransferNotice>(null);
@@ -263,7 +285,7 @@ export function VocabularyApp() {
       if (!payload) {
         setTransferNotice({
           tone: "error",
-          message: "This share link could not be read."
+          message: "Ce lien de partage n'a pas pu être lu."
         });
         return;
       }
@@ -276,7 +298,7 @@ export function VocabularyApp() {
       } catch {
         setTransferNotice({
           tone: "error",
-          message: "This share link is not a valid AJ Words list."
+          message: "Ce lien de partage ne contient pas une liste AJ Words valide."
         });
       }
     });
@@ -285,6 +307,10 @@ export function VocabularyApp() {
       cancelled = true;
     };
   }, [store.hydrated]);
+
+  useEffect(() => {
+    setFeedbackUrl(buildFeedbackUrl());
+  }, []);
 
   // Each list remembers its own quiz direction; refresh it on selection change.
   useEffect(() => {
@@ -365,12 +391,12 @@ export function VocabularyApp() {
       setTransferNotice({
         tone: "error",
         message:
-          "Online lists stay available for everyone. Edit or add a word to create your local copy."
+          "Les listes partagées restent disponibles pour tout le monde. Modifiez-la ou ajoutez un mot pour en créer votre copie locale."
       });
       return;
     }
 
-    if (window.confirm(`Delete "${list.title}" and all of its words?`)) {
+    if (window.confirm(`Supprimer « ${list.title} » et tous ses mots ?`)) {
       const result = store.deleteList(listId);
       if (result.deleted && selectedListId === listId) {
         goHome();
@@ -388,7 +414,7 @@ export function VocabularyApp() {
         showList(result.listId);
         setTransferNotice({
           tone: "success",
-          message: "Created a local copy for your edits."
+          message: "Une copie locale a été créée pour vos modifications."
         });
       }
       setListFormState(null);
@@ -431,7 +457,7 @@ export function VocabularyApp() {
       showList(result.listId);
       setTransferNotice({
         tone: "success",
-        message: "Created a local copy for your word changes."
+        message: "Une copie locale a été créée pour vos modifications."
       });
     }
 
@@ -467,7 +493,7 @@ export function VocabularyApp() {
     if (!store.lists.length) {
       setTransferNotice({
         tone: "error",
-        message: "Create a list before exporting."
+        message: "Créez une liste avant d'exporter."
       });
       return;
     }
@@ -492,8 +518,8 @@ export function VocabularyApp() {
 
     setTransferNotice({
       tone: "success",
-      message: `Exported ${store.lists.length} ${
-        store.lists.length === 1 ? "list" : "lists"
+      message: `${store.lists.length} ${
+        store.lists.length <= 1 ? "liste exportée" : "listes exportées"
       }.`
     });
   };
@@ -506,7 +532,7 @@ export function VocabularyApp() {
       if (encoded.tooLarge) {
         setTransferNotice({
           tone: "error",
-          message: "This list is too large to share by link — use Export instead."
+          message: "Cette liste est trop volumineuse pour un lien de partage — utilisez plutôt l'export."
         });
         return;
       }
@@ -519,19 +545,19 @@ export function VocabularyApp() {
         setTransferNotice({
           tone: "success",
           message: encoded.warn
-            ? "Share link copied — it's long, so some apps may trim it."
-            : "Share link copied to the clipboard."
+            ? "Lien de partage copié — il est long, certaines applications risquent de le tronquer."
+            : "Lien de partage copié dans le presse-papiers."
         });
       } catch {
         setTransferNotice({
           tone: "error",
-          message: "Could not copy the link. Check clipboard permissions."
+          message: "Impossible de copier le lien. Vérifiez les autorisations du presse-papiers."
         });
       }
     } catch {
       setTransferNotice({
         tone: "error",
-        message: "Could not create a share link for this list."
+        message: "Impossible de créer un lien de partage pour cette liste."
       });
     }
   };
@@ -543,9 +569,9 @@ export function VocabularyApp() {
     }
     setTransferNotice({
       tone: "success",
-      message: `Imported ${summary.total} ${
-        summary.total === 1 ? "list" : "lists"
-      }: ${summary.added} added, ${summary.replaced} replaced.`
+      message: `${summary.total} ${
+        summary.total <= 1 ? "liste importée" : "listes importées"
+      } : ${summary.added} ajoutée(s), ${summary.replaced} remplacée(s).`
     });
   };
 
@@ -561,9 +587,9 @@ export function VocabularyApp() {
       // file would freeze the tab before any validation could run.
       if (file.size > MAX_IMPORT_BYTES) {
         throw new Error(
-          `This file is ${formatFileSize(file.size)}, over the ${formatFileSize(
+          `Ce fichier pèse ${formatFileSize(file.size)}, au-delà de la limite d'import de ${formatFileSize(
             MAX_IMPORT_BYTES
-          )} import limit.`
+          )}.`
         );
       }
 
@@ -573,7 +599,7 @@ export function VocabularyApp() {
       try {
         payload = JSON.parse(text);
       } catch {
-        throw new Error("This file is not valid JSON.");
+        throw new Error("Ce fichier n'est pas du JSON valide.");
       }
 
       const parsed = parseExportPayload(payload);
@@ -599,7 +625,7 @@ export function VocabularyApp() {
         message:
           error instanceof Error
             ? error.message
-            : "This file could not be imported."
+            : "Ce fichier n'a pas pu être importé."
       });
     } finally {
       event.target.value = "";
@@ -625,9 +651,9 @@ export function VocabularyApp() {
     }
     setTransferNotice({
       tone: "success",
-      message: `Imported ${summary.total} ${
-        summary.total === 1 ? "list" : "lists"
-      } from a share link.`
+      message: `${summary.total} ${
+        summary.total <= 1 ? "liste importée" : "listes importées"
+      } depuis un lien de partage.`
     });
   };
 
@@ -646,7 +672,7 @@ export function VocabularyApp() {
       showList(result.listId);
       setTransferNotice({
         tone: "success",
-        message: "Created a local copy for your word changes."
+        message: "Une copie locale a été créée pour vos modifications."
       });
     }
   };
@@ -656,7 +682,7 @@ export function VocabularyApp() {
       <main className="loading-screen">
         <div className="loading-card">
           <BrandLogo />
-          <span>Loading AJ Words</span>
+          <span>Chargement d&rsquo;AJ Words</span>
         </div>
       </main>
     );
@@ -665,7 +691,7 @@ export function VocabularyApp() {
   return (
     <div className="app-shell">
       <a className="skip-link" href="#workspace">
-        Skip to content
+        Aller au contenu
       </a>
       <header className="app-topbar">
         <button type="button" className="brand-button" onClick={goHome}>
@@ -674,7 +700,7 @@ export function VocabularyApp() {
         </button>
         <div className="topbar-actions">
           <Button variant="ghost" size="sm" icon={<Home size={17} />} onClick={goHome}>
-            Home
+            Accueil
           </Button>
           <Button
             className="topbar-transfer"
@@ -684,7 +710,7 @@ export function VocabularyApp() {
             onClick={exportLists}
             disabled={!store.lists.length}
           >
-            <span className="topbar-action-label">Export</span>
+            <span className="topbar-action-label">Exporter</span>
           </Button>
           <Button
             className="topbar-transfer"
@@ -693,7 +719,7 @@ export function VocabularyApp() {
             icon={<Upload size={17} />}
             onClick={() => importInputRef.current?.click()}
           >
-            <span className="topbar-action-label">Import</span>
+            <span className="topbar-action-label">Importer</span>
           </Button>
           {cloudSync.cloudEnabled ? (
             <Button
@@ -702,9 +728,9 @@ export function VocabularyApp() {
               size="sm"
               icon={<Smartphone size={17} />}
               onClick={() => setSyncModalOpen(true)}
-              title={`Sync status: ${cloudSync.status}`}
+              title={`Synchronisation : ${SYNC_STATUS_LABELS[cloudSync.status]}`}
             >
-              <span className="topbar-action-label">Sync</span>
+              <span className="topbar-action-label">Synchroniser</span>
             </Button>
           ) : null}
           <Button
@@ -713,7 +739,7 @@ export function VocabularyApp() {
             icon={<Plus size={17} />}
             onClick={() => setListFormState({ mode: "create" })}
           >
-            <span className="topbar-new-label">New list</span>
+            <span className="topbar-new-label">Nouvelle liste</span>
           </Button>
           <input
             ref={importInputRef}
@@ -721,7 +747,7 @@ export function VocabularyApp() {
             type="file"
             accept="application/json,.json"
             onChange={importListsFromFile}
-            aria-label="Import AJ Words JSON file"
+            aria-label="Importer un fichier JSON AJ Words"
           />
         </div>
       </header>
@@ -736,7 +762,7 @@ export function VocabularyApp() {
             onClick={exportLists}
             disabled={!store.lists.length}
           >
-            Export lists
+            Exporter mes listes
           </Button>
         </div>
       ) : null}
@@ -771,6 +797,17 @@ export function VocabularyApp() {
             onEdit={(list) => setListFormState({ mode: "edit", list })}
             onSelect={openList}
           />
+          {/* Deliberately in the library panel rather than the welcome panel:
+              below 760px the welcome panel is display:none, so anything put
+              there would never reach a phone. */}
+          <footer className="app-footer">
+            <span>Version {APP_BUILD_LABEL}</span>
+            {feedbackUrl ? (
+              <a href={feedbackUrl}>
+                <MessageSquare size={14} aria-hidden="true" /> Donner mon avis
+              </a>
+            ) : null}
+          </footer>
         </aside>
 
         <section className="workspace-panel">
@@ -778,21 +815,25 @@ export function VocabularyApp() {
             <section className="welcome-panel" aria-labelledby="welcome-title">
               <div className="welcome-copy">
                 <p className="eyebrow">AJ Words</p>
-                <h1 id="welcome-title">Learn words with focus and rhythm</h1>
+                <h1 id="welcome-title">
+                  Apprenez vos mots avec rythme et concentration
+                </h1>
                 <p>
-                  Build local word lists, flip tactile cards, and test recall
-                  without losing speed.
+                  Créez vos listes de vocabulaire, révisez-les en cartes mémo et
+                  testez votre mémoire. Tout reste sur votre appareil.
                 </p>
                 <div className="welcome-actions">
                   <Button
                     icon={<Plus size={18} />}
                     onClick={() => setListFormState({ mode: "create" })}
                   >
-                    Create list
+                    Créer une liste
                   </Button>
                   <span className="welcome-metric">
                     <strong>{store.lists.length}</strong>
-                    {store.lists.length === 1 ? " saved list" : " saved lists"}
+                    {store.lists.length <= 1
+                      ? " liste enregistrée"
+                      : " listes enregistrées"}
                   </span>
                 </div>
               </div>
@@ -803,7 +844,7 @@ export function VocabularyApp() {
           {hasSelectedList && !selectedList ? (
             <section className="detail" aria-labelledby="list-loading-title">
               <div className="empty-state">
-                <h2 id="list-loading-title">Loading list</h2>
+                <h2 id="list-loading-title">Chargement de la liste</h2>
               </div>
             </section>
           ) : null}
@@ -917,12 +958,12 @@ export function VocabularyApp() {
 
       <Modal
         open={Boolean(resetProgressList)}
-        title="Reset progress?"
+        title="Réinitialiser la progression ?"
         onClose={() => setResetProgressList(null)}
         footer={
           <>
             <Button variant="ghost" onClick={() => setResetProgressList(null)}>
-              Cancel
+              Annuler
             </Button>
             <Button
               variant="danger"
@@ -931,13 +972,13 @@ export function VocabularyApp() {
                   store.resetProgress(resetProgressList.id);
                   setTransferNotice({
                     tone: "success",
-                    message: `Progress reset for "${resetProgressList.title}".`
+                    message: `Progression réinitialisée pour « ${resetProgressList.title} ».`
                   });
                 }
                 setResetProgressList(null);
               }}
             >
-              Reset progress
+              Réinitialiser
             </Button>
           </>
         }
@@ -945,15 +986,18 @@ export function VocabularyApp() {
         {resetProgressList ? (
           <>
             <p className="modal-lead">
-              Every card in <strong dir="auto">{resetProgressList.title}</strong>{" "}
-              goes back to new: attempts, streaks, review scheduling and the
-              test history are cleared. The {resetProgressList.items.length}{" "}
-              {resetProgressList.items.length === 1 ? "word" : "words"}{" "}
-              themselves are kept.
+              Toutes les cartes de{" "}
+              <strong dir="auto">{resetProgressList.title}</strong> repassent à
+              l&rsquo;état « nouveau » : tentatives, séries, planification des
+              révisions et historique des tests sont effacés.{" "}
+              {resetProgressList.items.length <= 1
+                ? "Le mot lui-même est conservé"
+                : `Les ${resetProgressList.items.length} mots eux-mêmes sont conservés`}
+              .
             </p>
             <p className="field-hint">
-              This cannot be undone. Export a backup first if you might want
-              this progress back.
+              C&rsquo;est irréversible. Exportez une sauvegarde d&rsquo;abord si
+              vous pensez vouloir retrouver cette progression.
             </p>
             <Button
               variant="secondary"
@@ -961,7 +1005,7 @@ export function VocabularyApp() {
               icon={<Download size={16} />}
               onClick={exportLists}
             >
-              Export backup
+              Exporter une sauvegarde
             </Button>
           </>
         ) : null}
@@ -969,10 +1013,10 @@ export function VocabularyApp() {
 
       <Modal
         open={Boolean(pendingImport)}
-        title="Replace existing lists?"
+        title="Remplacer des listes existantes ?"
         onClose={() => {
           setPendingImport(null);
-          setTransferNotice({ tone: "error", message: "Import cancelled." });
+          setTransferNotice({ tone: "error", message: "Import annulé." });
         }}
         footer={
           <>
@@ -982,11 +1026,11 @@ export function VocabularyApp() {
                 setPendingImport(null);
                 setTransferNotice({
                   tone: "error",
-                  message: "Import cancelled."
+                  message: "Import annulé."
                 });
               }}
             >
-              Cancel
+              Annuler
             </Button>
             <Button
               variant="danger"
@@ -997,7 +1041,7 @@ export function VocabularyApp() {
                 setPendingImport(null);
               }}
             >
-              Replace
+              Remplacer
             </Button>
           </>
         }
@@ -1005,9 +1049,11 @@ export function VocabularyApp() {
         {pendingImport ? (
           <>
             <p className="modal-lead">
-              This import overwrites {pendingImport.replaced.length}{" "}
-              {pendingImport.replaced.length === 1 ? "list" : "lists"} you
-              already have. Their current words and progress are lost.
+              Cet import écrase {pendingImport.replaced.length}{" "}
+              {pendingImport.replaced.length <= 1
+                ? "liste que vous avez déjà"
+                : "listes que vous avez déjà"}
+              . Leurs mots et leur progression actuels seront perdus.
             </p>
             <ul className="import-replace-list">
               {pendingImport.replaced.map((list) => (
@@ -1015,13 +1061,13 @@ export function VocabularyApp() {
                   <strong dir="auto">{list.title}</strong>{" "}
                   <span className="muted">
                     ({list.items.length}{" "}
-                    {list.items.length === 1 ? "word" : "words"} now)
+                    {list.items.length <= 1 ? "mot" : "mots"} actuellement)
                   </span>
                 </li>
               ))}
             </ul>
             <p className="field-hint">
-              Export a backup first if you are not sure.
+              Exportez une sauvegarde d&rsquo;abord si vous avez un doute.
             </p>
           </>
         ) : null}
@@ -1029,33 +1075,36 @@ export function VocabularyApp() {
 
       <Modal
         open={Boolean(shareImport)}
-        title="Import shared list"
+        title="Importer une liste partagée"
         onClose={() => setShareImport(null)}
         footer={
           <>
             <Button variant="ghost" onClick={() => setShareImport(null)}>
-              Cancel
+              Annuler
             </Button>
-            <Button onClick={acceptShareImport}>Import</Button>
+            <Button onClick={acceptShareImport}>Importer</Button>
           </>
         }
       >
         {shareImport ? (
           <>
             <p className="modal-lead">
-              Someone shared{" "}
+              Quelqu&rsquo;un a partagé{" "}
               {shareImport.length === 1 ? (
                 <strong>{shareImport[0].title}</strong>
               ) : (
-                <strong>{shareImport.length} lists</strong>
+                <strong>{shareImport.length} listes</strong>
               )}{" "}
-              with you ({shareImportWordCount}{" "}
-              {shareImportWordCount === 1 ? "word" : "words"}).
+              avec vous ({shareImportWordCount}{" "}
+              {shareImportWordCount <= 1 ? "mot" : "mots"}).
             </p>
             {shareImportReplaceCount > 0 ? (
               <p className="field-hint">
-                This will replace {shareImportReplaceCount} existing{" "}
-                {shareImportReplaceCount === 1 ? "list" : "lists"}.
+                Cela remplacera {shareImportReplaceCount}{" "}
+                {shareImportReplaceCount <= 1
+                  ? "liste existante"
+                  : "listes existantes"}
+                .
               </p>
             ) : null}
           </>

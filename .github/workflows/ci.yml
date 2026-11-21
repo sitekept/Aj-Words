@@ -1,0 +1,55 @@
+name: CI
+
+# Nothing ran these automatically before. `npm run lint`, `npm test` and
+# `npm run build` all existed and passed, but a broken push only surfaced when
+# someone happened to run them — which, during a beta with testers on the
+# deployed link, is too late.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm test
+
+      # No NEXT_PUBLIC_SUPABASE_* here on purpose: this is the local-only
+      # build the beta ships, and it keeps CI from needing any secret.
+      - run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts builds and serves production itself.
+      - run: npm run e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

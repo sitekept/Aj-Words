@@ -1,4 +1,4 @@
-const CACHE_NAME = "aj-words-v4";
+const CACHE_NAME = "aj-words-v5";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -40,8 +40,17 @@ const cacheFirst = async (request) => {
   }
 
   const response = await fetch(request);
-  const cache = await caches.open(CACHE_NAME);
-  cache.put(request, response.clone());
+
+  // Only cache a response that actually succeeded. Without this check a 404 or
+  // a 502 served during a deploy was cached and then replayed to the user until
+  // CACHE_NAME changed — `staleWhileRevalidate` below already guards the same
+  // way. On a beta where installs land mid-deploy, that is a real way to strand
+  // someone on a broken page.
+  if (response.ok) {
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(request, response.clone());
+  }
+
   return response;
 };
 
@@ -91,8 +100,13 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
+          // Same guard as cacheFirst: an error page must never be stored as the
+          // app shell, or every later offline load would serve it.
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
+          }
+
           return response;
         })
         .catch(() => caches.match(request).then((match) => match || caches.match("/")))

@@ -2,6 +2,7 @@ import { BookOpen, Pencil, Plus, Trash2 } from "lucide-react";
 import { ProgressSummary } from "@/components/ProgressSummary";
 import { countDue } from "@/lib/srs";
 import { Button, IconButton, cx } from "@/components/ui";
+import { UI_LOCALE } from "@/lib/formatting";
 import type { WordList } from "@/types/vocabulary";
 
 interface ListLibraryProps {
@@ -14,7 +15,7 @@ interface ListLibraryProps {
 }
 
 const formatDate = (value: string) =>
-  new Intl.DateTimeFormat(undefined, {
+  new Intl.DateTimeFormat(UI_LOCALE, {
     month: "short",
     day: "numeric"
   }).format(new Date(value));
@@ -33,11 +34,11 @@ export function ListLibrary({
     <section className="library" aria-labelledby="library-title">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">AJ Library</p>
-          <h2 id="library-title">Word lists</h2>
+          <p className="eyebrow">Bibliothèque</p>
+          <h2 id="library-title">Listes de mots</h2>
         </div>
         <Button size="sm" icon={<Plus size={17} />} onClick={onCreate}>
-          New
+          Nouvelle
         </Button>
       </div>
 
@@ -62,30 +63,30 @@ export function ListLibrary({
                 <span>
                   <strong>{list.title}</strong>
                   <small>
-                    {list.items.length} words
-                    {list.language ? ` - ${list.language}` : ""}
+                    {list.items.length} {list.items.length <= 1 ? "mot" : "mots"}
+                    {list.language ? ` · ${list.language}` : ""}
                   </small>
                 </span>
               </button>
               <ProgressSummary items={list.items} compact />
               <div className="list-card-footer">
                 <span>
-                  Updated {formatDate(list.updatedAt)}
+                  Modifiée le {formatDate(list.updatedAt)}
                   {countDue(list.items, now) > 0 ? (
                     <>
                       {" "}
                       <span className="due-badge">
-                        {countDue(list.items, now)} due
+                        {countDue(list.items, now)} à revoir
                       </span>
                     </>
                   ) : null}
                 </span>
                 <div className="inline-actions">
-                  <IconButton label={`Edit ${list.title}`} onClick={() => onEdit(list)}>
+                  <IconButton label={`Modifier ${list.title}`} onClick={() => onEdit(list)}>
                     <Pencil size={16} />
                   </IconButton>
                   <IconButton
-                    label={`Delete ${list.title}`}
+                    label={`Supprimer ${list.title}`}
                     variant="danger"
                     onClick={() => onDelete(list.id)}
                   >
@@ -99,9 +100,14 @@ export function ListLibrary({
       ) : (
         <div className="empty-state">
           <BookOpen size={28} />
-          <h3>No lists yet</h3>
+          <h3>Aucune liste pour l&rsquo;instant</h3>
+          <p>
+            Créez une liste de mots, ou collez directement vos termes exportés
+            depuis Quizlet. Vous pourrez ensuite la réviser en cartes mémo ou
+            vous tester dessus.
+          </p>
           <Button icon={<Plus size={18} />} onClick={onCreate}>
-            Create list
+            Créer une liste
           </Button>
         </div>
       )}

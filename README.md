@@ -13,7 +13,7 @@ A premium, offline-first vocabulary learning PWA. Build word lists, drill them w
 - **Activity heatmap & gentle daily goal** — an Anki-style calendar of your review activity, with an opt-in daily goal that has *no* streak debt: a missed day never breaks anything.
 - **Progress & mastery tracking** — per-word attempts, streaks, and a derived `new → learning → mastered` status, plus per-list test history.
 - **Import / export & share by link** — move your data between devices as JSON, paste tab-separated terms from Quizlet, or share a whole list through a single compressed link (100 % client-side, no server).
-- **Installable PWA** — works offline once installed; bundled starter lists (Darija + Hebrew Quizlet units) ship with the app.
+- **Installable PWA** — works offline once installed. No vocabulary ships with the app: a fresh install seeds one small, deletable demo list and nothing else.
 
 ## Tech stack
 
@@ -50,6 +50,8 @@ Pure logic tests use Node's built-in runner. Validate changes with `npm test`, `
 
 Everything you create stays on your device in `localStorage`. There are no accounts, servers, or telemetry. Use **Export** to download a JSON snapshot and **Import** to restore it on another device or browser.
 
+The interface is in French. The app ships **no** vocabulary of its own; a brand-new install seeds a single 12-word demo list (`lib/demo-list.ts`) that can be deleted like any other and never comes back.
+
 ## Cloud sync (optional)
 
 Instead of exporting/importing a file, you can sync your lists through a Supabase database so they appear on your phone automatically. It is **opt-in and off by default**: when the two env vars below are absent, none of this code runs, the **Sync** button never appears, and the app behaves exactly as the local-only version above.
@@ -69,6 +71,41 @@ What it does (kept deliberately simple):
 3. Open **SQL → New query**, paste [`supabase/schema.sql`](supabase/schema.sql), and **Run** (creates the tables and the pairing RPC).
 4. Copy `.env.example` to `.env.local` and fill in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Supabase **Settings → API**).
 5. `npm run build && npm run start`. The **Sync** button now appears; the build automatically adds your Supabase origin to the Content-Security-Policy `connect-src`.
+
+## Deployment
+
+The app builds as a regular Next.js application — `next.config.ts` sets no
+`output` mode, and its security headers (the CSP included) are served by
+`async headers()`. **It must be deployed somewhere that runs Next**; copied to a
+static file host, every header would be silently dropped.
+
+Recommended: Vercel, connected to this repository.
+
+1. Import the repository in the Vercel dashboard. The defaults are right
+   (`npm run build`, framework Next.js); `engines.node` pins the runtime.
+2. **Set no environment variables.** Without `NEXT_PUBLIC_SUPABASE_*` the app
+   is fully local, the **Sync** button is hidden, and the CSP tightens to
+   `connect-src 'self'`. See [Cloud sync](#cloud-sync-optional) to turn it on.
+3. Optional: set `NEXT_PUBLIC_SITE_URL` to the deployment URL. It is only used
+   as the `metadataBase` for the Open Graph share card; Vercel's own
+   `VERCEL_PROJECT_PRODUCTION_URL` is used automatically when it is absent.
+
+Beta notes:
+
+- `app/layout.tsx` sets `robots: { index: false, follow: false }`. The link is
+  meant to be handed to testers, not indexed — **remove that line** when the app
+  goes public.
+- The build identity (version + short commit SHA) is shown at the foot of the
+  library panel, so a tester can say which build a report refers to.
+- Feedback goes to the address in `FEEDBACK_EMAIL` (`lib/app-version.ts`)
+  through a plain `mailto:` link — the app has no backend, so there is nothing
+  that could receive a submitted form. The build label and the tester's browser
+  are pre-filled in the message body, since a tester cannot be expected to know
+  either. Set the constant to an empty string to hide the link entirely rather
+  than ship a dead one. Note the address ships in the client bundle and in this
+  public repository, so it is collectable by spam crawlers.
+- `.github/workflows/ci.yml` runs lint, unit tests, the production build and the
+  Playwright suite on every push and pull request.
 
 ## PWA & offline
 

@@ -2303,3 +2303,123 @@ blockquote {
   text-align: center;
   color: var(--muted);
 }
+
+/* The collapsed "what does each mode do?" help under the study-mode grid.
+   A native <details> so it works without JavaScript and stays keyboard
+   accessible; the descriptions live here rather than in each button's `title`,
+   which would otherwise become the button's accessible name. */
+.mode-help > summary {
+  cursor: pointer;
+  font-size: 0.86rem;
+  color: var(--muted);
+  padding: 4px 0;
+}
+
+.mode-help > summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.mode-help dl {
+  display: grid;
+  gap: 2px 12px;
+  margin: 8px 0 0;
+  font-size: 0.86rem;
+}
+
+.mode-help dt {
+  font-weight: 600;
+}
+
+.mode-help dd {
+  margin: 0 0 8px;
+  color: var(--muted);
+}
+
+@media (min-width: 560px) {
+  .mode-help dl {
+    grid-template-columns: minmax(auto, 10rem) 1fr;
+  }
+
+  .mode-help dt {
+    grid-column: 1;
+  }
+
+  .mode-help dd {
+    grid-column: 2;
+    margin-bottom: 4px;
+  }
+}
+
+/* The error / not-found screens. Shaped like the loading card so a crash still
+   looks like the same app rather than a browser default page. */
+.error-screen {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px;
+}
+
+.error-card {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  max-width: 34rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 22px;
+  box-shadow: var(--shadow-3d);
+}
+
+.error-card .brand-logo {
+  width: 46px;
+  height: 46px;
+}
+
+.error-card h1 {
+  font-size: 1.45rem;
+  margin: 0;
+}
+
+.error-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.error-card .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* Build identity + feedback entry point. Lives at the foot of the library
+   panel, the one region that is on screen for both the desktop sidebar and the
+   mobile home. */
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 4px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.app-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--primary);
+  font-weight: 600;
+}

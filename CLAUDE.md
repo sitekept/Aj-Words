@@ -80,13 +80,28 @@ Two small modules the storage module depends on:
 
 ### Builtin ("public") lists vs. local lists — copy-on-write
 
-This is the central non-obvious concept. `lib/builtin-vocabulary-data.json` ships 19 pre-seeded lists (Darija + Hebrew Quizlet units), compiled into typed `WordList`s by `lib/builtin-vocabulary.ts`. These are treated as **shared/read-only**:
+**The bundled seed file now ships EMPTY (`[]`), so there are currently no builtin lists at all.** The machinery below is intact, compiled and tested, but dormant — `isPublicListId` is always false and `initialLists` is `[]`. A fresh install is seeded instead with a single ordinary, **deletable** local list (`lib/demo-list.ts`, assembled by `createList` inside `loadLists`); a builtin could not serve as the demo, because builtins cannot be deleted.
+
+Removing those lists required a migration, not just emptying the JSON — see **Retired builtin lists** below. Read that before re-adding any bundled list.
+
+Historically `lib/builtin-vocabulary-data.json` shipped 19 pre-seeded lists (Darija + Hebrew Quizlet units), compiled into typed `WordList`s by `lib/builtin-vocabulary.ts`. Builtin lists are treated as **shared/read-only**:
 
 - `isPublicListId` / `isBuiltinListId` gate behavior anywhere a list could be mutated.
 - A public list **cannot be deleted**, and any edit to it (rename, add/edit/delete a word) does **not** mutate it. Instead the store calls `createLocalCopy` to fork a brand-new local list (fresh id, title suffixed "(local copy)") and switches the user to it. Every mutator in `useVocabularyStore.ts` returns `{ copied: boolean, listId }` so the UI can react to the fork.
 - On load, `mergeBuiltinListWithLocalState` re-applies the user's stored per-item progress onto the canonical builtin definitions — so word content always comes from the JSON, but attempts/streaks/status survive. Non-public lists load verbatim.
 
 When you change the data model, update **both** the runtime path (`vocabulary-storage.ts` `normalize*`) and the build-time path (`lib/builtin-vocabulary.ts` and `scripts/import-phone-export.mjs`), which independently parse/validate the same shapes.
+
+### Retired builtin lists (`lib/retired-lists.ts`)
+
+A builtin list is never stored whole: `createPublicListOverlay` writes a compact **progress overlay** holding only the items whose progress changed, and only their `id` + progress fields — no `word`, no `translation`. Re-inflating that overlay depends on the canonical builtin still existing. Drop the builtins and `isPublicListId` goes permanently false, so those overlays fall through the "local lists" filter in `mergeStoredLists` and resurface as **real, editable lists of blank cards**, which `saveLists` then rewrites in full.
+
+`isRetiredBuiltinList` drops them on load, inside `mergeStoredLists` — the single funnel used by both `loadLists` and `loadListsFromBackup` (the rotating backups hold the lists in full, so they are a second resurrection path). It matches on two things:
+
+- `RETIRED_BUILTIN_IDS`, a **permanent tombstone list** of all 22 ids ever bundled (19 plus 3 duplicate Darija lists shipped in `d207199` and dropped in `77298ec`). **Never remove an entry**, and append to it before removing any list from the bundle.
+- A shape check: a list whose every card has neither a word nor a translation. This catches overlays whose ids were never enumerated. `items.length > 0` is required, or a list the user just created and has not filled in would be eaten too.
+
+Consequence to keep in mind: a list imported from an export taken *before* the removal carries a retired id with real content. `importLists` in `useVocabularyStore.ts` therefore re-ids those on the way in (keeping the title — there is no original to tell it apart from), or the tombstone filter would delete them on the next reload.
 
 ### Progress & status derivation
 
@@ -105,7 +120,7 @@ Pointer-event swipe deck: swipe right = "mastered", left = "learning" (threshold
 Two unrelated import paths — don't confuse them:
 - **In-app export/import** (`VocabularyApp.tsx` + `parseExportPayload`/`createExportPayload`): JSON tagged `app: "aj-words", version: 1`. Import validates that tag and forces a local copy of any public-list id.
 - **Quizlet paste** (`lib/vocabulary-import.ts`): parses tab-separated `word\ttranslation` lines.
-- **CLI seed regeneration** (`scripts/import-phone-export.mjs`, via `npm run import:phone`): takes an in-app export and rewrites `lib/builtin-vocabulary-data.json`. This is how the bundled lists are updated.
+- **CLI seed regeneration** (`scripts/import-phone-export.mjs`, via `npm run import:phone`): takes an in-app export and rewrites `lib/builtin-vocabulary-data.json`. **The app deliberately ships that file empty now**; running this re-introduces public, undeletable lists carrying whoever exported them's progress, and `lib/builtin-vocabulary.test.ts` fails on purpose if it happens. Append any new ids to `RETIRED_BUILTIN_IDS` before removing them again.
 
 ## PWA & the dev service-worker gotcha
 
@@ -134,8 +149,10 @@ Off by default. `lib/supabase-client.ts` `isCloudEnabled()` gates the whole feat
 
 - `components/AJWordsScene.tsx` is the welcome-screen CSS visual. Keep it dependency-light and honor `prefers-reduced-motion`.
 - `components/ui.tsx` holds the shared design-system primitives (`Button`, `IconButton`, `Modal`, `TextField`, and the `cx` class-name helper) — reuse these rather than hand-rolling buttons/inputs. `Modal` **portals to `document.body`**, so it renders above any local stacking context (e.g. opened from the heatmap deep in the library panel).
-- `next.config.ts` defines `allowedDevOrigins` (private-network ranges for phone testing), security headers, and explicit no-cache headers for `/sw.js`.
+- `next.config.ts` defines `allowedDevOrigins` (private-network ranges for phone testing), security headers, and explicit no-cache headers for `/sw.js`. Its `script-src` adds `'unsafe-eval'` **in development only** (`NODE_ENV === "development"`): React Refresh evaluates code as a string, so without it `npm run dev` dies on an `EvalError` and never hydrates — the page just sits on the loading screen. Never let that keyword reach the production CSP; check with `curl -sI http://localhost:3000/ | grep -i content-security` after `npm run build && npm run start`.
 - `package.json` has a PostCSS override because Next pins a vulnerable transitive version; verify `npm audit` when touching framework dependencies.
 - `eslint.config.mjs` disables `react-hooks/set-state-in-effect` — the store's hydration pattern depends on setting state inside effects.
-- Bundled list content includes Hebrew (RTL) and Darija; preserve the original strings when editing the data files.
+- **The UI is in French.** Strings are hardcoded in place — there is no i18n layer, deliberately. Translate the *values* of the label maps (`StatusBadge`, `STATUS_FILTERS`, `modeTitles`/`modeLabels`/`questionTypeLabels`) and never their keys: those are persisted `status` / `QuizMode` data and also feed CSS classes and storage keys. User-facing strings also live in `lib/vocabulary-storage.ts` (import errors, storage-full messages, `"Liste sans titre"`, the `" (copie locale)"` suffix). Dates go through `UI_LOCALE` (`lib/formatting.ts`), pinned to `fr-FR` so a device set to English does not render half the interface in English. Pluralisation uses `n <= 1`, not `n === 1`: **zero is singular in French**.
+- The e2e specs select by visible French text, so any label change breaks them. `getByRole("button", { name })` matches the accessible name, which for `IconButton` comes from its `label` prop — renaming one silently breaks specs that never mention the component. Beware `title` on a `Button`: it wins the accessible-name computation, which is why the study-mode descriptions live in a `<details>` rather than in tooltips.
+- `lib/app-version.ts` exposes the build identity (injected by `next.config.ts` from `package.json` + `VERCEL_GIT_COMMIT_SHA`) and `FEEDBACK_EMAIL`. The "Donner mon avis" link is a `mailto:` with the build and the browser pre-filled in the body — there is no backend to post a form to. An empty `FEEDBACK_EMAIL` hides the link rather than shipping a dead one, and the link must NOT carry `target="_blank"`: browsers hand a `mailto:` to the mail client and leave an empty tab behind.
 - The working tree accumulates **cloud-sync conflict copies** named `<name> 2.ts` / `CLAUDE 2.md` (iCloud/Dropbox duplicates). They are stale snapshots, not real modules: `tsconfig.json` excludes `**/* ?.ts(x)`, eslint ignores them, and the `lib/*.test.ts` test glob doesn't match them. (The exclude uses `?`, not `[0-9]` — TypeScript globs support `*` and `?` but not character classes — and it covers ` 2` through ` 9`, because iCloud does produce copies past ` 2`, including inside `.next/`, where they break `tsc`.) Never edit one and never treat one as the source of truth — delete them instead. If you find a symbol only in a `* 2.ts` file, it was removed from the real one on purpose.

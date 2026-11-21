@@ -68,15 +68,15 @@ export function WordFormModal({
   return (
     <Modal
       open={open}
-      title={item ? "Edit word" : "Add word"}
+      title={item ? "Modifier le mot" : "Ajouter un mot"}
       onClose={onClose}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            Annuler
           </Button>
           <Button form="word-form" type="submit" icon={<Save size={18} />}>
-            Save word
+            Enregistrer
           </Button>
         </>
       }
@@ -84,48 +84,48 @@ export function WordFormModal({
       <form id="word-form" className="form-stack" onSubmit={handleSubmit}>
         <TextField
           id="word"
-          label="Word"
+          label="Mot"
           value={word}
           required
-          placeholder="bonjour"
+          placeholder="hola"
           onChange={setWord}
         />
         <TextField
           id="translation"
-          label="Translation"
+          label="Traduction"
           value={translation}
           required
-          placeholder="hello"
+          placeholder="bonjour"
           onChange={setTranslation}
         />
         <TextField
           id="word-note"
           label="Note"
           value={note}
-          placeholder="Optional reminder or nuance"
+          placeholder="Rappel ou nuance (facultatif)"
           onChange={setNote}
         />
         <TextField
           id="word-example"
-          label="Example sentence"
+          label="Phrase d'exemple"
           value={example}
-          placeholder="Bonjour, comment ça va ?"
+          placeholder="¿Hola, qué tal?"
           onChange={setExample}
         />
         <TextField
           id="word-alt-answers"
-          label="Alternative answers"
+          label="Autres réponses acceptées"
           value={altAnswersText}
-          placeholder="hi, good morning"
-          hint="Comma-separated; also accepted in written quizzes"
+          placeholder="salut, bonjour"
+          hint="Séparées par des virgules ; acceptées aussi dans les quiz écrits"
           onChange={setAltAnswersText}
         />
         <TextField
           id="word-tags"
-          label="Tags"
+          label="Étiquettes"
           value={tagsText}
-          placeholder="greetings, unit 1"
-          hint="Comma-separated"
+          placeholder="salutations, unité 1"
+          hint="Séparées par des virgules"
           onChange={setTagsText}
         />
       </form>

@@ -4,7 +4,10 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "AJ Words",
     short_name: "AJ Words",
-    description: "A premium vocabulary learning app",
+    description:
+      "Créez vos listes de vocabulaire, révisez-les en cartes mémo et testez votre mémoire. Tout reste sur votre appareil.",
+    lang: "fr",
+    dir: "ltr",
     start_url: "/",
     scope: "/",
     display: "standalone",

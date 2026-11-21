@@ -77,41 +77,42 @@ export function SyncDeviceModal({
   return (
     <Modal
       open={open}
-      title="Sync another device"
+      title="Synchroniser un autre appareil"
       onClose={onClose}
       footer={
         <>
           {link ? (
             <Button variant="secondary" icon={<Copy size={16} />} onClick={copyLink}>
-              {copied ? "Link copied" : "Copy link"}
+              {copied ? "Lien copié" : "Copier le lien"}
             </Button>
           ) : null}
           <Button variant="ghost" onClick={onClose}>
-            Done
+            Terminé
           </Button>
         </>
       }
     >
       <div className="sync-device">
         <p className="sync-device-intro">
-          <Smartphone size={16} aria-hidden="true" /> Scan this code with your
-          phone&rsquo;s camera to bring your lists onto it — no login, no code to
-          type. The code works once and expires in a few minutes.
+          <Smartphone size={16} aria-hidden="true" /> Scannez ce code avec
+          l&rsquo;appareil photo de votre téléphone pour y retrouver vos listes —
+          sans compte, sans code à saisir. Le code ne sert qu&rsquo;une fois et
+          expire au bout de quelques minutes.
         </p>
 
         {failed ? (
           <p className="field-error" role="alert">
-            Could not create a pairing code. Check your connection and try again.
+            Impossible de créer un code d&rsquo;association. Vérifiez votre connexion et réessayez.
           </p>
         ) : link ? (
           <div className="sync-device-qr">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={toQrDataUrl(link.url)} alt="Pairing QR code" width={192} height={192} />
+            <img src={toQrDataUrl(link.url)} alt="QR code d'association" width={192} height={192} />
             <code className="sync-device-code">{link.code}</code>
           </div>
         ) : (
           <p className="sync-device-loading" role="status">
-            Preparing a pairing code&hellip;
+            Création du code d&rsquo;association&hellip;
           </p>
         )}
       </div>

@@ -26,22 +26,22 @@ export function ProgressSummary({ items, compact }: ProgressSummaryProps) {
         <span className="progress-learning" style={{ width: learningWidth }} />
         <span className="progress-new" style={{ width: freshWidth }} />
       </div>
-      <dl className="progress-stats" aria-label="Learning progress">
+      <dl className="progress-stats" aria-label="Progression d'apprentissage">
         <div>
           <dt>
-            <CheckCircle2 size={14} /> Mastered
+            <CheckCircle2 size={14} /> Acquis
           </dt>
           <dd>{progress.mastered}</dd>
         </div>
         <div>
           <dt>
-            <Clock3 size={14} /> Learning
+            <Clock3 size={14} /> En cours
           </dt>
           <dd>{progress.learning}</dd>
         </div>
         <div>
           <dt>
-            <Circle size={14} /> New
+            <Circle size={14} /> Nouveaux
           </dt>
           <dd>{progress.fresh}</dd>
         </div>

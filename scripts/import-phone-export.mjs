@@ -1,5 +1,20 @@
 #!/usr/bin/env node
 
+// Regenerates the bundled seed lists from an in-app JSON export.
+//
+// CAREFUL: AJ Words deliberately ships this file EMPTY (`[]`). It carries no
+// vocabulary of its own — a fresh install seeds one small, deletable demo list
+// instead (lib/demo-list.ts). Running this script writes a personal export back
+// into the bundle, where every list becomes PUBLIC: read-only, undeletable, and
+// visible to every user of the build, carrying whatever study progress the
+// export contained. lib/builtin-vocabulary.test.ts fails on purpose if that
+// happens.
+//
+// If you do re-introduce bundled lists, append their ids to
+// RETIRED_BUILTIN_IDS in lib/retired-lists.ts BEFORE ever removing them again,
+// or their stored progress overlays will resurface as lists of blank cards.
+// See docs/ARCHITECTURE.md §5.1.
+
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

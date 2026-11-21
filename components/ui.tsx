@@ -169,7 +169,7 @@ export function Modal({ open, title, children, footer, onClose }: ModalProps) {
       >
         <header className="modal-header">
           <h2 id={titleId}>{title}</h2>
-          <IconButton label="Close" onClick={onClose}>
+          <IconButton label="Fermer" onClick={onClose}>
             <X size={18} />
           </IconButton>
         </header>

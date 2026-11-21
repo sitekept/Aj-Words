@@ -11,17 +11,17 @@ const WORDS: WordPair[] = [
 test("create a list, add words, and survive a reload", async ({ page }) => {
   await gotoHome(page);
 
-  // Create an empty list via the "New list" modal.
-  await page.getByRole("button", { name: "New list" }).click();
+  // Create an empty list via the "Nouvelle liste" modal.
+  await page.getByRole("button", { name: "Nouvelle liste" }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("List name").fill("E2E Colors");
-  await dialog.getByLabel("Language").fill("French");
-  await dialog.getByRole("button", { name: "Save list" }).click();
+  await dialog.getByLabel("Nom de la liste").fill("E2E Colors");
+  await dialog.getByLabel("Langue").fill("Français");
+  await dialog.getByRole("button", { name: "Enregistrer" }).click();
   await expect(
     page.getByRole("heading", { level: 1, name: "E2E Colors" })
   ).toBeVisible();
 
-  // Add four words through the "Add word" modal.
+  // Add four words through the "Ajouter un mot" modal.
   for (const pair of WORDS) {
     await addWordViaModal(page, pair);
   }

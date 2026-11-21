@@ -13,7 +13,14 @@ import {
   getBuiltinList,
   isBuiltinListId
 } from "@/lib/builtin-vocabulary";
+import {
+  DEMO_LIST_ID,
+  DEMO_LIST_LANGUAGE,
+  DEMO_LIST_PAIRS,
+  DEMO_LIST_TITLE
+} from "@/lib/demo-list";
 import { normalizeContentFields } from "./item-content";
+import { isRetiredBuiltinList } from "@/lib/retired-lists";
 import { isQuizMode } from "@/lib/quiz-modes";
 import { readLatestBackup, writeRotatingBackup } from "@/lib/local-backup";
 import { createPersistedLists } from "@/lib/vocabulary-persistence";
@@ -277,7 +284,7 @@ const normalizeTestHistoryEntry = (
 
 export const normalizeList = (list: Partial<WordList>): WordList => ({
   id: typeof list.id === "string" ? list.id : createId(),
-  title: typeof list.title === "string" ? list.title : "Untitled list",
+  title: typeof list.title === "string" ? list.title : "Liste sans titre",
   language: typeof list.language === "string" ? list.language : "",
   items: Array.isArray(list.items) ? list.items.map(normalizeItem) : [],
   testHistory: Array.isArray(list.testHistory)
@@ -340,7 +347,7 @@ export const createLocalCopy = (list: WordList): WordList => {
   return {
     ...list,
     id: createId(),
-    title: `${list.title} (local copy)`,
+    title: `${list.title} (copie locale)`,
     createdAt: timestamp,
     updatedAt: timestamp,
     items: list.items.map((item) => ({
@@ -359,26 +366,26 @@ export const createExportPayload = (lists: WordList[]): VocabularyExportFile => 
 
 export const parseExportPayload = (payload: unknown): ImportedListsResult => {
   if (!isRecord(payload)) {
-    throw new Error("This file is not a valid AJ Words export.");
+    throw new Error("Ce fichier n'est pas un export AJ Words valide.");
   }
 
   if (payload.app !== EXPORT_APP_ID || payload.version !== EXPORT_VERSION) {
-    throw new Error("This file was not created by this version of AJ Words.");
+    throw new Error("Ce fichier n'a pas été créé par cette version d'AJ Words.");
   }
 
   if (!Array.isArray(payload.lists)) {
-    throw new Error("This export does not include any word lists.");
+    throw new Error("Cet export ne contient aucune liste de mots.");
   }
 
   if (!payload.lists.length) {
     // Rejected here rather than at the call site, so the share-link path gets
     // the same guard as the file-import path.
-    throw new Error("This export does not contain any lists.");
+    throw new Error("Cet export ne contient aucune liste.");
   }
 
   if (payload.lists.length > MAX_IMPORT_LISTS) {
     throw new Error(
-      `This export holds more than ${MAX_IMPORT_LISTS} lists, which is more than AJ Words can import at once.`
+      `Cet export contient plus de ${MAX_IMPORT_LISTS} listes, ce qui dépasse ce qu'AJ Words peut importer en une fois.`
     );
   }
 
@@ -387,7 +394,7 @@ export const parseExportPayload = (payload: unknown): ImportedListsResult => {
   );
   if (oversized) {
     throw new Error(
-      `One of these lists holds more than ${MAX_IMPORT_ITEMS_PER_LIST} words, which is more than AJ Words can import.`
+      `Une de ces listes contient plus de ${MAX_IMPORT_ITEMS_PER_LIST} mots, ce qui dépasse ce qu'AJ Words peut importer.`
     );
   }
 
@@ -413,12 +420,13 @@ export const parseExportPayload = (payload: unknown): ImportedListsResult => {
 };
 
 const mergeStoredLists = (storedLists: WordList[]): WordList[] => {
-  const storedById = new Map(storedLists.map((list) => [list.id, list]));
+  const liveLists = storedLists.filter((list) => !isRetiredBuiltinList(list));
+  const storedById = new Map(liveLists.map((list) => [list.id, list]));
   const publicLists = initialLists.map((list) => {
     const storedList = storedById.get(list.id);
     return storedList ? mergeBuiltinListWithLocalState(storedList) : list;
   });
-  const localLists = storedLists.filter((list) => !isPublicListId(list.id));
+  const localLists = liveLists.filter((list) => !isPublicListId(list.id));
 
   return [...publicLists, ...localLists];
 };
@@ -437,14 +445,45 @@ const loadListsFromBackup = (): WordList[] | null => {
   }
 };
 
+/**
+ * The deletable starter list for a fresh install. Built with `createList` — the
+ * same helper the app uses for a user-created list — so the cards come out as
+ * genuinely new (`status: "new"`, `box: 0`) and the data model stays in one
+ * place. Only the id is overridden, to keep it stable across reloads.
+ */
+const createDemoList = (): WordList => ({
+  ...createList({
+    title: DEMO_LIST_TITLE,
+    language: DEMO_LIST_LANGUAGE,
+    items: DEMO_LIST_PAIRS
+  }),
+  id: DEMO_LIST_ID
+});
+
 export const loadLists = (): WordList[] => {
   if (typeof window === "undefined") {
     return initialLists;
   }
 
-  const raw = window.localStorage.getItem(STORAGE_KEY);
+  // Reading localStorage can THROW, not just return null: Safari with site data
+  // blocked, Lockdown Mode, and some embedded webviews raise a SecurityError on
+  // property access. This used to sit outside the try below, so it took the
+  // whole app down — and with no error boundary that meant a blank page. Such a
+  // browser gets a working, in-memory-only session instead.
+  let raw: string | null = null;
+  try {
+    raw = window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return [...initialLists, createDemoList()];
+  }
+
   if (!raw) {
-    return initialLists;
+    // Nothing stored at all: a genuinely fresh install. Seed the deletable demo
+    // list so the study modes can be tried before any word is typed in. Note
+    // this is the ONLY branch that seeds — once anything is persisted (even an
+    // empty `[]` after the tester deletes the demo) `raw` is truthy and we
+    // never seed again.
+    return [...initialLists, createDemoList()];
   }
 
   try {
@@ -481,8 +520,8 @@ export const saveLists = (lists: WordList[]): SaveResult => {
     return {
       ok: false,
       message: looksLikeQuotaError(error)
-        ? "Your browser storage is full, so the latest changes could not be saved. Export your lists to keep them safe, then free up space."
-        : "The latest changes could not be saved to browser storage. Export your lists to keep them safe."
+        ? "Le stockage de votre navigateur est plein : les dernières modifications n'ont pas pu être enregistrées. Exportez vos listes pour les mettre à l'abri, puis libérez de l'espace."
+        : "Les dernières modifications n'ont pas pu être enregistrées dans le navigateur. Exportez vos listes pour les mettre à l'abri."
     };
   }
 

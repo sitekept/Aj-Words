@@ -1,5 +1,6 @@
 import { CheckCircle2, Eye, History } from "lucide-react";
 import { Button } from "@/components/ui";
+import { UI_LOCALE } from "@/lib/formatting";
 import { dueByDay, hardestWords, sessionSuccessSeries } from "@/lib/stats";
 import type { QuizMode, TestHistoryEntry, VocabularyItem } from "@/types/vocabulary";
 
@@ -9,16 +10,17 @@ interface TestHistoryProps {
   onReview: (entry: TestHistoryEntry) => void;
 }
 
+// Labels only: the keys are the persisted QuizMode values.
 const modeLabels: Record<QuizMode, string> = {
-  written: "Written",
-  choice: "Multiple choice",
-  mixed: "Mixed",
-  test: "Test me",
-  "full-review": "Full review"
+  written: "Écrit",
+  choice: "Choix multiple",
+  mixed: "Mixte",
+  test: "Me tester",
+  "full-review": "Révision complète"
 };
 
 const formatDate = (value: string) =>
-  new Intl.DateTimeFormat(undefined, {
+  new Intl.DateTimeFormat(UI_LOCALE, {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -47,9 +49,9 @@ export function TestHistory({ entries, items, onReview }: TestHistoryProps) {
     <section className="test-history-section" aria-labelledby="test-history-heading">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Results</p>
+          <p className="eyebrow">Résultats</p>
           <h2 id="test-history-heading">
-            <History size={20} /> Test history
+            <History size={20} /> Historique des tests
           </h2>
         </div>
       </div>
@@ -58,13 +60,13 @@ export function TestHistory({ entries, items, onReview }: TestHistoryProps) {
         <div className="stats-panel">
           {sessions.length ? (
             <div className="stats-block">
-              <h3>Progress</h3>
+              <h3>Progression</h3>
               <div
                 className="stats-chart-scroll"
                 role="img"
-                aria-label={`Score per session, oldest to newest, across ${sessions.length} ${
-                  sessions.length === 1 ? "session" : "sessions"
-                }. Latest score ${latestScore} percent.`}
+                aria-label={`Score par session, de la plus ancienne à la plus récente, sur ${sessions.length} ${
+                  sessions.length <= 1 ? "session" : "sessions"
+                }. Dernier score ${latestScore} pour cent.`}
               >
                 <div
                   className="stats-bars"
@@ -86,14 +88,14 @@ export function TestHistory({ entries, items, onReview }: TestHistoryProps) {
 
           {hardest.length ? (
             <div className="stats-block">
-              <h3>Hardest words</h3>
-              <ul className="stats-chip-list" aria-label="Most-missed words">
+              <h3>Mots les plus difficiles</h3>
+              <ul className="stats-chip-list" aria-label="Mots les plus souvent manqués">
                 {hardest.map(({ item, wrongCount }) => (
                   <li className="stats-chip" key={item.id}>
                     <span dir="auto">{item.word}</span>
                     <span
                       className="stats-chip-count"
-                      aria-label={`missed ${wrongCount} ${wrongCount === 1 ? "time" : "times"}`}
+                      aria-label={`manqué ${wrongCount} fois`}
                     >
                       ✗{wrongCount}
                     </span>
@@ -105,20 +107,20 @@ export function TestHistory({ entries, items, onReview }: TestHistoryProps) {
 
           {dueTotal > 0 ? (
             <div className="stats-block">
-              <h3>Due next 7 days</h3>
+              <h3>À revoir sous 7 jours</h3>
               <div
                 className="stats-due"
                 role="img"
                 aria-label={`${dueTotal} ${
-                  dueTotal === 1 ? "card" : "cards"
-                } due in the next 7 days. ${dueSummary}.`}
+                  dueTotal <= 1 ? "carte à revoir" : "cartes à revoir"
+                } dans les 7 prochains jours. ${dueSummary}.`}
               >
                 <div className="stats-due-bars" aria-hidden="true">
                   {dueBuckets.map((bucket) => (
                     <div
                       className="stats-due-col"
                       key={bucket.date}
-                      title={`${bucket.count} due ${bucket.label}`}
+                      title={`${bucket.count} à revoir ${bucket.label}`}
                     >
                       <strong>{bucket.count}</strong>
                       <span className="stats-due-meter">
@@ -145,7 +147,7 @@ export function TestHistory({ entries, items, onReview }: TestHistoryProps) {
         <div className="history-list">
           {latestEntries.map((entry) => (
             <article className="history-row" key={entry.id}>
-              <div className="history-score" aria-label={`${entry.score} percent`}>
+              <div className="history-score" aria-label={`${entry.score} pour cent`}>
                 <strong>{entry.score}</strong>
                 <span>%</span>
               </div>
@@ -153,7 +155,7 @@ export function TestHistory({ entries, items, onReview }: TestHistoryProps) {
                 <strong>{modeLabels[entry.mode]}</strong>
                 <span>
                   <CheckCircle2 size={14} />
-                  {entry.correctCount} / {entry.total} correct
+                  {entry.correctCount} / {entry.total} justes
                 </span>
                 <small>{formatDate(entry.createdAt)}</small>
               </div>
@@ -163,14 +165,14 @@ export function TestHistory({ entries, items, onReview }: TestHistoryProps) {
                 icon={<Eye size={16} />}
                 onClick={() => onReview(entry)}
               >
-                Review
+                Revoir
               </Button>
             </article>
           ))}
         </div>
       ) : (
         <div className="history-empty">
-          <p className="muted">No test history yet.</p>
+          <p className="muted">Aucun test pour l&rsquo;instant.</p>
         </div>
       )}
     </section>

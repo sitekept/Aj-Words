@@ -3,51 +3,28 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const builtinLists = require("./builtin-vocabulary-data.json") as Array<{
-  id: string;
-  title: string;
-  language?: string;
-  items: Array<{ word: string; translation: string }>;
-}>;
+const seedData = require("./builtin-vocabulary-data.json") as unknown;
 
-const CANONICAL_DARIJA_ID = "0b43895e-5ce3-409a-b1ac-4f989fba0dae";
+// AJ Words no longer bundles any starter list. This file used to carry 19 of
+// them (Darija + Hebrew Quizlet units, 1080 words) along with their original
+// owner's real study progress, which every tester would have seen as their own.
+//
+// The guard below is the point of this test: `npm run import:phone` regenerates
+// this very file from a personal in-app export, so one stray run would quietly
+// ship someone's vocabulary and progress to everyone again. If this test fails,
+// that is almost certainly what happened — do not "fix" it by updating the
+// expectation.
+test("ships no bundled starter lists", () => {
+  assert.ok(Array.isArray(seedData), "the seed file must be a JSON array");
+  assert.deepEqual(seedData, []);
+});
 
-const normalize = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[’'`´]/g, "")
-    .replace(/[^a-z0-9\u0590-\u05ff]+/g, " ")
-    .trim()
-    .replace(/\s+/g, " ");
-
-const itemKey = (item: { word: string; translation: string }) =>
-  `${normalize(item.word)}\u0000${normalize(item.translation)}`;
-
-test("bundles a single canonical Darija list without content duplicates", () => {
-  const darijaLists = builtinLists.filter(
-    (list) => list.language === "Darija" || list.title.includes("Mots Darija")
-  );
-
-  assert.equal(darijaLists.length, 1);
-
-  const [darija] = darijaLists;
-  assert.equal(darija.id, CANONICAL_DARIJA_ID);
-  assert.equal(darija.title, "Mots Darija");
-  assert.equal(darija.language, "Darija");
-  assert.equal(darija.items.length, 159);
-
-  const uniqueKeys = new Set(darija.items.map(itemKey));
-  assert.equal(uniqueKeys.size, darija.items.length);
-
-  for (const key of [
-    "sali\u0000prier",
-    "magana\u0000montre",
-    "ktab\u0000livre",
-    "sh7al\u0000combien",
-    "ar9an\u0000chiffres"
-  ]) {
-    assert.equal(uniqueKeys.has(key), true, `Expected ${key} to be present`);
-  }
+test("the seed file is an array, so the module cannot crash at import time", () => {
+  // lib/builtin-vocabulary.ts is evaluated at import time by the only page and
+  // calls .map() on this data. An object here used to throw
+  // "builtinVocabulary.map is not a function" during `next build` and at
+  // hydration, with no error boundary to catch it. The module now guards with
+  // Array.isArray, but keeping the data file's shape pinned is cheaper than
+  // relying on the guard.
+  assert.equal(Array.isArray(seedData), true);
 });

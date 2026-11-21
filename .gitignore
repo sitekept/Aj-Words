@@ -16,3 +16,5 @@ qa-*.png
 playwright-report/
 test-results/
 tsconfig.tsbuildinfo
+.ruv-swarm
+.claude

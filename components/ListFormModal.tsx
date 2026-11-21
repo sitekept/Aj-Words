@@ -58,28 +58,29 @@ export function ListFormModal({
     });
   };
 
+  // `<= 1` throughout, not `=== 1`: zero is singular in French.
   const importSummary = hasInvalidImportLines
-    ? `${importResult.invalidLineNumbers.length} invalid ${
-        importResult.invalidLineNumbers.length === 1 ? "line" : "lines"
-      }: ${importResult.invalidLineNumbers.slice(0, 5).join(", ")}${
+    ? `${importResult.invalidLineNumbers.length} ${
+        importResult.invalidLineNumbers.length <= 1 ? "ligne invalide" : "lignes invalides"
+      } : ${importResult.invalidLineNumbers.slice(0, 5).join(", ")}${
         importResult.invalidLineNumbers.length > 5 ? ", ..." : ""
       }`
-    : `${importResult.terms.length} valid ${
-        importResult.terms.length === 1 ? "pair" : "pairs"
+    : `${importResult.terms.length} ${
+        importResult.terms.length <= 1 ? "paire valide" : "paires valides"
       }`;
 
   return (
     <Modal
       open={open}
-      title={list ? "Edit list" : "Create list"}
+      title={list ? "Modifier la liste" : "Créer une liste"}
       onClose={onClose}
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            Cancel
+            Annuler
           </Button>
           <Button form="list-form" type="submit" icon={<Save size={18} />}>
-            Save list
+            Enregistrer
           </Button>
         </>
       }
@@ -87,17 +88,17 @@ export function ListFormModal({
       <form id="list-form" className="form-stack" onSubmit={handleSubmit}>
         <TextField
           id="list-title"
-          label="List name"
+          label="Nom de la liste"
           value={title}
           required
-          placeholder="French travel"
+          placeholder="Voyage en Espagne"
           onChange={setTitle}
         />
         <TextField
           id="list-language"
-          label="Language"
+          label="Langue"
           value={language}
-          placeholder="French"
+          placeholder="Espagnol"
           onChange={setLanguage}
         />
         {isCreating ? (
@@ -105,17 +106,20 @@ export function ListFormModal({
             <div className="terms-import-heading">
               <FilePlus2 size={18} aria-hidden="true" />
               <div>
-                <h3 id="terms-import-title">Terms</h3>
-                <p>Paste Quizlet export rows with a tab between each term and translation.</p>
+                <h3 id="terms-import-title">Termes</h3>
+                <p>
+                  Collez vos lignes exportées depuis Quizlet, avec une tabulation
+                  entre chaque terme et sa traduction.
+                </p>
               </div>
             </div>
             <TextField
               id="terms-import"
-              label="Imported rows"
+              label="Lignes importées"
               value={termsInput}
               multiline
               rows={7}
-              placeholder={"bonjour\thello\nmerci\tthank you"}
+              placeholder={"hola\tbonjour\ngracias\tmerci"}
               error={hasInvalidImportLines ? importSummary : undefined}
               hint={!hasInvalidImportLines && hasImportInput ? importSummary : undefined}
               onChange={setTermsInput}
@@ -125,18 +129,18 @@ export function ListFormModal({
         {list ? (
           <section className="edit-list-words" aria-labelledby="edit-list-words-title">
             <div>
-              <p className="eyebrow">Words</p>
+              <p className="eyebrow">Mots</p>
               <h3 id="edit-list-words-title">
-                {list.items.length} {list.items.length === 1 ? "word" : "words"} in this list
+                {list.items.length} {list.items.length <= 1 ? "mot" : "mots"} dans cette liste
               </h3>
-              <p className="muted">Add vocabulary directly to this list.</p>
+              <p className="muted">Ajoutez du vocabulaire directement à cette liste.</p>
             </div>
             <Button
               variant="secondary"
               icon={<Plus size={18} />}
               onClick={() => onAddWord?.(list)}
             >
-              Add word
+              Ajouter un mot
             </Button>
           </section>
         ) : null}
