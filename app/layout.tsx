@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { canEditLibrary } from "@/lib/app-mode";
 import "./globals.css";
 
 const localServiceWorkerResetScript = `
@@ -76,8 +77,12 @@ const localServiceWorkerResetScript = `
 `;
 const shouldResetLocalServiceWorker = process.env.NODE_ENV !== "production";
 
-const APP_DESCRIPTION =
-  "Créez vos listes de vocabulaire, révisez-les en cartes mémo et testez votre mémoire. Tout reste sur votre appareil.";
+// Same reason the welcome copy is gated: a curated build cannot honour
+// "créez vos listes", and this string is the page description and the share
+// card's subtitle, so it is the first promise a tester reads.
+const APP_DESCRIPTION = canEditLibrary
+  ? "Créez vos listes de vocabulaire, révisez-les en cartes mémo et testez votre mémoire. Tout reste sur votre appareil."
+  : "Révisez vos listes de vocabulaire en cartes mémo et testez votre mémoire. Tout reste sur votre appareil.";
 
 // Where the app is served from. Needed for absolute Open Graph URLs: without a
 // metadataBase, the share card's image resolves relative to nothing and the
