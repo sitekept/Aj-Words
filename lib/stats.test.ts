@@ -115,8 +115,8 @@ test("dueByDay buckets cards by calendar day across the window", () => {
   const buckets = dueByDay(items, NOW);
 
   assert.equal(buckets.length, 7);
-  assert.equal(buckets[0].label, "Today");
-  assert.equal(buckets[1].label, "Tomorrow");
+  assert.equal(buckets[0].label, "aujourd'hui");
+  assert.equal(buckets[1].label, "demain");
   assert.deepEqual(
     buckets.map((bucket) => bucket.count),
     [1, 1, 0, 2, 0, 0, 0]
@@ -132,7 +132,7 @@ test("dueByDay buckets cards by calendar day across the window", () => {
   );
 });
 
-test("dueByDay folds overdue and invalid due dates into Today", () => {
+test("dueByDay folds overdue and invalid due dates into today", () => {
   const items = [
     makeItem({ id: "overdue", dueAt: plusDays(NOW, -5) }),
     makeItem({ id: "invalid", dueAt: "not-a-date" }),

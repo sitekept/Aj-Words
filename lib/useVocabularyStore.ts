@@ -16,6 +16,7 @@ import {
   touchList
 } from "@/lib/vocabulary-storage";
 import { normalizeContentFields } from "@/lib/item-content";
+import { RETIRED_BUILTIN_IDS, restoredListId } from "@/lib/retired-lists";
 import type {
   FlashcardAssessment,
   QuizAttempt,
@@ -356,7 +357,27 @@ export const useVocabularyStore = () => {
       const uniqueIncomingLists = Array.from(
         new Map(
           incomingLists
-            .map((list) => (isPublicListId(list.id) ? createLocalCopy(list) : list))
+            .map((list) => {
+              if (isPublicListId(list.id)) {
+                return createLocalCopy(list);
+              }
+
+              // A list carrying the id of a retired builtin (the 22 starter
+              // lists AJ Words used to bundle) would be dropped by the
+              // load-time migration in lib/retired-lists.ts on the very next
+              // reload — silent data loss for anyone re-importing an export
+              // taken before those lists were removed. Re-id it so it
+              // survives, with a DETERMINISTIC id: a random one would make a
+              // second import of the same file land as a duplicate instead of
+              // replacing the first. The title is kept as-is — unlike a
+              // copy-on-write fork there is no original left to tell it apart
+              // from, so "(local copy)" would be a lie.
+              if (RETIRED_BUILTIN_IDS.has(list.id)) {
+                return { ...list, id: restoredListId(list.id) };
+              }
+
+              return list;
+            })
             .map((list) => [list.id, list])
         ).values()
       );

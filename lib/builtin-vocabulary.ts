@@ -34,7 +34,22 @@ interface BuiltinVocabularyEntry {
   updatedAt?: string;
 }
 
-const builtinVocabulary = builtinVocabularyData as BuiltinVocabularyEntry[];
+// The bundled seed file ships EMPTY (`[]`) — AJ Words no longer carries any
+// starter list. The guard is not pedantry: this module is evaluated at import
+// time by the only page, so a malformed data file (an object, say) used to
+// throw "builtinVocabulary.map is not a function" during `next build` and at
+// hydration, with no error boundary to catch it. Degrading to "no builtin
+// lists" is always recoverable; crashing the module is not.
+const builtinVocabulary: BuiltinVocabularyEntry[] = Array.isArray(
+  builtinVocabularyData
+)
+  ? (builtinVocabularyData as BuiltinVocabularyEntry[]).filter(
+      (entry): entry is BuiltinVocabularyEntry =>
+        Boolean(entry) &&
+        typeof entry === "object" &&
+        typeof (entry as BuiltinVocabularyEntry).id === "string"
+    )
+  : [];
 
 const normalizeCount = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) && value > 0

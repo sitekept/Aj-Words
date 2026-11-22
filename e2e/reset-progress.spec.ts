@@ -25,7 +25,7 @@ const completeQuiz = async (page: Parameters<typeof gotoHome>[0]) => {
     await submitWrittenAnswer(page, answers.get(prompt) ?? "");
     await nextQuestion(page, index === WORDS.length - 1);
   }
-  await expect(page.getByRole("heading", { name: "Score" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Résultat" })).toBeVisible();
 };
 
 test("resetting a list clears progress and history but keeps the words", async ({
@@ -33,35 +33,37 @@ test("resetting a list clears progress and history but keeps the words", async (
 }) => {
   await gotoHome(page);
   await createListWithTerms(page, "Reset deck", WORDS);
-  await startMode(page, "Written quiz");
+  await startMode(page, "Quiz écrit");
   await completeQuiz(page);
 
-  await page.getByRole("button", { name: "Back" }).first().click();
+  await page.getByRole("button", { name: "Retour" }).first().click();
 
   // Progress and a test history entry now exist.
   await expect(page.getByRole("heading", { name: "Reset deck" })).toBeVisible();
   await expect(page.locator(".history-row").first()).toBeVisible();
 
-  await page.getByRole("button", { name: "Reset progress" }).click();
+  await page.getByRole("button", { name: "Réinitialiser la progression" }).click();
   const dialog = page.getByRole("dialog");
   await expect(
-    dialog.getByRole("heading", { name: "Reset progress?" })
+    dialog.getByRole("heading", { name: "Réinitialiser la progression ?" })
   ).toBeVisible();
   // The modal states the stakes and offers the backup the audit asked for.
-  await expect(dialog.getByText(/4 words/)).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Export backup" })).toBeVisible();
+  await expect(dialog.getByText(/Les 4 mots/)).toBeVisible();
+  await expect(
+    dialog.getByRole("button", { name: "Exporter une sauvegarde" })
+  ).toBeVisible();
 
   // Cancelling is a no-op.
-  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await dialog.getByRole("button", { name: "Annuler" }).click();
   await expect(page.locator(".history-row").first()).toBeVisible();
 
-  await page.getByRole("button", { name: "Reset progress" }).click();
+  await page.getByRole("button", { name: "Réinitialiser la progression" }).click();
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: "Reset progress" })
+    .getByRole("button", { name: "Réinitialiser", exact: true })
     .click();
 
-  await expect(page.getByText(/Progress reset for/)).toBeVisible();
+  await expect(page.getByText(/Progression réinitialisée pour/)).toBeVisible();
   // History gone, words intact, everything back to "new".
   await expect(page.locator(".history-row")).toHaveCount(0);
   for (const pair of WORDS) {
@@ -95,70 +97,68 @@ test("resetting a list clears progress and history but keeps the words", async (
   });
 });
 
-// Progress is not content: recording it never forks a builtin list, so
-// clearing it must not either — it just empties the stored overlay.
-test("resetting a builtin list clears its progress without forking a copy", async ({
+// AJ Words no longer bundles any builtin list, so the "resetting a builtin
+// clears its overlay without forking a copy" case this test used to cover has
+// no subject left; the write side of that overlay model is still unit-tested in
+// lib/vocabulary-persistence.test.ts. What remains worth proving end to end is
+// the other way progress is recorded — a flashcard swipe rather than a quiz —
+// and that clearing it survives a reload.
+test("resetting clears flashcard-recorded progress, and it stays cleared", async ({
   page
 }) => {
   await gotoHome(page);
+  await createListWithTerms(page, "Swipe deck", WORDS);
 
-  // Open the first bundled list and study one card via flashcards.
-  await page.locator(".list-card-main").first().click();
-  const title = await page.getByRole("heading", { level: 1 }).innerText();
-  await startMode(page, "Flashcards");
-  await page.getByRole("button", { name: "Mastered" }).click();
-  await page.getByRole("button", { name: "Back" }).first().click();
+  await startMode(page, "Cartes mémo");
+  await page.getByRole("button", { name: "Acquis" }).click();
+  await page.getByRole("button", { name: "Retour" }).first().click();
 
-  const before = await page.evaluate(() => {
-    const raw = window.localStorage.getItem("worddeck.v1.lists");
-    const parsed = raw ? JSON.parse(raw) : [];
-    const lists = Array.isArray(parsed) ? parsed : (parsed.lists ?? []);
-    return { storedLists: lists.length };
-  });
-  expect(before.storedLists).toBeGreaterThan(0);
-
-  await page.getByRole("button", { name: "Reset progress" }).click();
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Reset progress" })
-    .click();
-  await expect(page.getByText(/Progress reset for/)).toBeVisible();
-
-  // Still the same builtin list, viewed under its own title — editing a
-  // builtin forks a "(local copy)", resetting progress must not.
-  await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
-  expect(title).not.toContain("local copy");
-
-  const after = await page.evaluate(() => {
-    const raw = window.localStorage.getItem("worddeck.v1.lists");
-    const parsed = raw ? JSON.parse(raw) : [];
-    const lists = Array.isArray(parsed) ? parsed : (parsed.lists ?? []);
-    return {
-      anyLocalCopy: lists.some((l: { title?: string }) =>
-        (l.title ?? "").includes("local copy")
-      ),
-      // Whatever overlay survives must carry no progress at all.
-      anyStoredProgress: lists.some((l: { items?: Array<Record<string, unknown>> }) =>
-        (l.items ?? []).some(
-          (i) => (i.attempts as number) > 0 || (i.box as number) > 0
-        )
-      )
-    };
-  });
-  expect(after.anyLocalCopy).toBe(false);
-  expect(after.anyStoredProgress).toBe(false);
-
-  // And it survives a reload: nothing rehydrates the cleared progress.
-  await page.reload();
-  await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+  // The swipe was recorded.
   expect(
     await page.evaluate(() => {
       const raw = window.localStorage.getItem("worddeck.v1.lists");
-      const parsed = raw ? JSON.parse(raw) : [];
-      const lists = Array.isArray(parsed) ? parsed : (parsed.lists ?? []);
+      const lists = raw ? JSON.parse(raw) : [];
       return lists.some((l: { items?: Array<Record<string, unknown>> }) =>
-        (l.items ?? []).some((i) => (i.attempts as number) > 0)
+        (l.items ?? []).some((i) => (i.box as number) > 0)
       );
     })
-  ).toBe(false);
+  ).toBe(true);
+
+  await page.getByRole("button", { name: "Réinitialiser la progression" }).click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Réinitialiser", exact: true })
+    .click();
+  await expect(page.getByText(/Progression réinitialisée pour/)).toBeVisible();
+
+  // Same list, same title — resetting progress is not an edit, so nothing is
+  // renamed and no copy is forked.
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Swipe deck" })
+  ).toBeVisible();
+
+  const readState = () =>
+    page.evaluate(() => {
+      const raw = window.localStorage.getItem("worddeck.v1.lists");
+      const lists = raw ? JSON.parse(raw) : [];
+      return {
+        anyCopy: lists.some((l: { title?: string }) =>
+          (l.title ?? "").includes("copie locale")
+        ),
+        anyProgress: lists.some((l: { items?: Array<Record<string, unknown>> }) =>
+          (l.items ?? []).some(
+            (i) => (i.attempts as number) > 0 || (i.box as number) > 0
+          )
+        )
+      };
+    });
+
+  expect(await readState()).toEqual({ anyCopy: false, anyProgress: false });
+
+  // And it survives a reload: nothing rehydrates the cleared progress.
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Swipe deck" })
+  ).toBeVisible();
+  expect(await readState()).toEqual({ anyCopy: false, anyProgress: false });
 });

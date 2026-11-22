@@ -19,7 +19,9 @@ npm run lint           # eslint (next core-web-vitals + typescript configs)
 npm test               # Node built-in test runner for pure logic
 npm run e2e            # Playwright end-to-end suite (builds + serves production itself)
 
-# Regenerate the bundled seed lists from an in-app JSON export (see "Builtin lists" below):
+npm run build:curated # Production build with the curated library locked (NEXT_PUBLIC_CURATED_LIBRARY=1)
+
+# Regenerate the bundled lists from an in-app JSON export (see "Builtin lists" below):
 npm run import:phone -- <aj-words-export.json> [--output <path>]
 ```
 
@@ -38,14 +40,24 @@ creation, written/choice quizzes (tolerant matching, typo verdict, diff,
 (undo/shuffle/progress), export/import, mid-quiz reload resume, and a
 production offline smoke test through the service worker.
 
-- `npm run e2e` (or `npx playwright test`) — the config's `webServer` runs
-  `npm run build && npm run start` itself, so no server should be running on
-  port 3000. It must be the **production** server: the SW only registers in
-  production, and dev actively unregisters it (see the PWA section below).
+- `npm run e2e` is **two sequential passes** —
+  `playwright test && E2E_CURATED=1 playwright test` — because the app ships in
+  two shapes (see **App mode** below) and both builds write to `.next`:
+  - default — the authoring build; every spec except `curated-library.spec.ts`.
+  - `E2E_CURATED=1` — `npm run build:curated`, what beta testers get;
+    `curated-library.spec.ts` only.
+  The config builds and serves production itself on port 3000 both times, so
+  nothing may be listening there. It must be the **production** server: the SW
+  only registers in production, and dev actively unregisters it (see the PWA
+  section below). `reuseExistingServer` is **false**, deliberately: the two
+  passes serve different builds on the same port, so reusing a leftover server
+  silently tests the wrong one — that has already cost one bogus failure.
 - Run it before merging anything that touches components, the quiz engine,
-  persistence, or `public/sw.js`. Two projects run every spec: `desktop`
-  (1440x1000) and `mobile` (390x844, touch) — below 760px the library panel
-  and detail panel swap instead of sitting side by side.
+  persistence, or `public/sw.js`. Each pass runs two projects: `desktop`
+  (1440x1000) and `mobile` (390x844, touch) in the default pass — below 760px
+  the library panel and detail panel swap instead of sitting side by side, and
+  below 520px the topbar actions lose their labels — and `curated` /
+  `curated-mobile` in the `E2E_CURATED=1` pass.
 - One-time setup on a new machine: `npx playwright install chromium`.
 - The `e2e/` dir is excluded from `tsconfig.json` and ignored by eslint;
   Playwright transpiles the specs itself. `playwright-report/` and
@@ -80,13 +92,37 @@ Two small modules the storage module depends on:
 
 ### Builtin ("public") lists vs. local lists — copy-on-write
 
-This is the central non-obvious concept. `lib/builtin-vocabulary-data.json` ships 19 pre-seeded lists (Darija + Hebrew Quizlet units), compiled into typed `WordList`s by `lib/builtin-vocabulary.ts`. These are treated as **shared/read-only**:
+`lib/builtin-vocabulary-data.json` is the **curated library**: the lists every install receives, compiled into typed `WordList`s by `lib/builtin-vocabulary.ts`. In a `NEXT_PUBLIC_CURATED_LIBRARY=1` build (see **App mode** below) they are the only lists that can exist.
+
+The data file supports two shapes, and the difference matters:
+
+- **`terms`** → `makeItems`, which hard-codes fresh cards (`status: "new"`, `box: 0`, no attempts). **Always use this.**
+- **`items`** → `makeSnapshotItems`, which preserves whatever progress the JSON carries. This is how 19 lists once shipped with their owner's real study history for every tester to inherit. `lib/builtin-vocabulary.test.ts` fails if this shape appears in the bundle.
+
+`seedLists` in `lib/vocabulary-storage.ts` seeds the deletable demo list (`lib/demo-list.ts`) **only when the bundle is empty** — a bundled list needs no seeding, and in a curated build the demo could not be deleted anyway.
+
+Editing the bundle has two standing rules, both test-guarded: a **new** list needs a **new** id (retired ids are tombstoned on load), and a list must be added to `RETIRED_BUILTIN_IDS` **before** being removed. See **Retired builtin lists** below, and `README.md#curating-the-bundled-lists` for the authoring loop.
+
+Builtin lists are treated as **shared/read-only**:
 
 - `isPublicListId` / `isBuiltinListId` gate behavior anywhere a list could be mutated.
 - A public list **cannot be deleted**, and any edit to it (rename, add/edit/delete a word) does **not** mutate it. Instead the store calls `createLocalCopy` to fork a brand-new local list (fresh id, title suffixed "(local copy)") and switches the user to it. Every mutator in `useVocabularyStore.ts` returns `{ copied: boolean, listId }` so the UI can react to the fork.
 - On load, `mergeBuiltinListWithLocalState` re-applies the user's stored per-item progress onto the canonical builtin definitions — so word content always comes from the JSON, but attempts/streaks/status survive. Non-public lists load verbatim.
 
 When you change the data model, update **both** the runtime path (`vocabulary-storage.ts` `normalize*`) and the build-time path (`lib/builtin-vocabulary.ts` and `scripts/import-phone-export.mjs`), which independently parse/validate the same shapes.
+
+### Retired builtin lists (`lib/retired-lists.ts`)
+
+A builtin list is never stored whole: `createPublicListOverlay` writes a compact **progress overlay** holding only the items whose progress changed, and only their `id` + progress fields — no `word`, no `translation`. Re-inflating that overlay depends on the canonical builtin still existing. Drop the builtins and `isPublicListId` goes permanently false, so those overlays fall through the "local lists" filter in `mergeStoredLists` and resurface as **real, editable lists of blank cards**, which `saveLists` then rewrites in full.
+
+`isRetiredBuiltinList` drops them on load, inside `mergeStoredLists` — the single funnel used by both `loadLists` and `loadListsFromBackup` (the rotating backups hold the lists in full, so they are a second resurrection path). It matches on two things:
+
+- `RETIRED_BUILTIN_IDS`, a **permanent tombstone list** of all 22 ids ever bundled (19 plus 3 duplicate Darija lists shipped in `d207199` and dropped in `77298ec`). **Never remove an entry**, and append to it before removing any list from the bundle.
+- A shape check: a list whose every card has neither a word nor a translation. This catches overlays whose ids were never enumerated. `items.length > 0` is required, or a list the user just created and has not filled in would be eaten too.
+
+**`isRetiredBuiltinList` takes an `isLiveBuiltin` predicate, and it is not optional.** The overlay of a list that *still ships* has exactly the same textless shape as an orphaned one, so the shape check alone deleted every user's progress on every bundled list, on every load, silently — it only stopped mattering while the bundle was empty. `mergeStoredLists` passes `isPublicListId`; the tombstone still wins, because data stored under a reused id belongs to the old list. Covered by `lib/retired-lists.test.ts` and end to end by `e2e/curated-library.spec.ts`.
+
+Consequence to keep in mind: a list imported from an export taken *before* the removal carries a retired id with real content. `importLists` in `useVocabularyStore.ts` therefore re-ids those on the way in (keeping the title — there is no original to tell it apart from), or the tombstone filter would delete them on the next reload.
 
 ### Progress & status derivation
 
@@ -105,7 +141,19 @@ Pointer-event swipe deck: swipe right = "mastered", left = "learning" (threshold
 Two unrelated import paths — don't confuse them:
 - **In-app export/import** (`VocabularyApp.tsx` + `parseExportPayload`/`createExportPayload`): JSON tagged `app: "aj-words", version: 1`. Import validates that tag and forces a local copy of any public-list id.
 - **Quizlet paste** (`lib/vocabulary-import.ts`): parses tab-separated `word\ttranslation` lines.
-- **CLI seed regeneration** (`scripts/import-phone-export.mjs`, via `npm run import:phone`): takes an in-app export and rewrites `lib/builtin-vocabulary-data.json`. This is how the bundled lists are updated.
+- **CLI seed regeneration** (`scripts/import-phone-export.mjs`, via `npm run import:phone`): takes an in-app export and rewrites `lib/builtin-vocabulary-data.json`. It emits the content-only `terms` shape and drops progress and `testHistory` by omission rather than by a delete list, so a newly added progress field cannot leak in by being forgotten; it prints a line when it drops something. The export deliberately **includes** builtin lists, so regenerating from one keeps the lists already bundled instead of wiping them.
+
+## App mode (`lib/app-mode.ts`)
+
+`CURATED_LIBRARY` / `canEditLibrary`, from `NEXT_PUBLIC_CURATED_LIBRARY` (inlined by Next at build time). Absent ⇒ **authoring**: the full app, and what `npm run dev`, `npm test` and 15 of the 16 spec files use. `=1` ⇒ **curated library**: the bundled lists are the only lists.
+
+`VocabularyApp` reads the constant once and threads a `canEdit` prop into `ListLibrary` and `ListDetail`, so those components stay pure. What it hides: the topbar's « Nouvelle liste » / « Exporter » / « Importer » (and the hidden file input), per-list edit/delete, per-word edit/delete, « Ajouter un mot », « Modifier/Supprimer la liste », « Partager la liste », and **the `#share=` fragment effect** — the one inbound path that is not a button, so gating buttons alone would leave it open. Both empty states lose their call to action.
+
+**Cloud sync is gated on the mode too** — `lib/useCloudSync.ts` does `isCloudEnabled() && canEditLibrary`. A pull adds lists, so sync is an inbound content path like any other, and leaving it to the deployment's env vars is not enough: this project shipped a beta with `NEXT_PUBLIC_SUPABASE_*` set by accident, which gave every tester an anonymous identity and uploaded their lists.
+
+Deliberately kept: « Réinitialiser la progression » (progress, not content) and every study mode. The rescue download in `app/error.tsx` stays as well, but it is relabelled: with no Import action to restore it, it is offered as a diagnostic to attach to a report rather than as a recovery. The storage-full messages in `lib/vocabulary-storage.ts` drop their "exportez vos listes" advice for the same reason — pointing at a button that is not there is the hollow offer that code was written to fix.
+
+Two reasons it is a flag and not a deletion: the maintainer needs the editing UI to author the bundled lists, and 12 of the spec files build their fixtures through « Nouvelle liste ». It is also **not a permission** — client-side app, no server, no accounts: it closes the path, not the door.
 
 ## PWA & the dev service-worker gotcha
 
@@ -134,8 +182,10 @@ Off by default. `lib/supabase-client.ts` `isCloudEnabled()` gates the whole feat
 
 - `components/AJWordsScene.tsx` is the welcome-screen CSS visual. Keep it dependency-light and honor `prefers-reduced-motion`.
 - `components/ui.tsx` holds the shared design-system primitives (`Button`, `IconButton`, `Modal`, `TextField`, and the `cx` class-name helper) — reuse these rather than hand-rolling buttons/inputs. `Modal` **portals to `document.body`**, so it renders above any local stacking context (e.g. opened from the heatmap deep in the library panel).
-- `next.config.ts` defines `allowedDevOrigins` (private-network ranges for phone testing), security headers, and explicit no-cache headers for `/sw.js`.
+- `next.config.ts` defines `allowedDevOrigins` (private-network ranges for phone testing), security headers, and explicit no-cache headers for `/sw.js`. Its `script-src` adds `'unsafe-eval'` **in development only** (`NODE_ENV === "development"`): React Refresh evaluates code as a string, so without it `npm run dev` dies on an `EvalError` and never hydrates — the page just sits on the loading screen. Never let that keyword reach the production CSP; check with `curl -sI http://localhost:3000/ | grep -i content-security` after `npm run build && npm run start`.
 - `package.json` has a PostCSS override because Next pins a vulnerable transitive version; verify `npm audit` when touching framework dependencies.
 - `eslint.config.mjs` disables `react-hooks/set-state-in-effect` — the store's hydration pattern depends on setting state inside effects.
-- Bundled list content includes Hebrew (RTL) and Darija; preserve the original strings when editing the data files.
+- **The UI is in French.** Strings are hardcoded in place — there is no i18n layer, deliberately. Translate the *values* of the label maps (`StatusBadge`, `STATUS_FILTERS`, `modeTitles`/`modeLabels`/`questionTypeLabels`) and never their keys: those are persisted `status` / `QuizMode` data and also feed CSS classes and storage keys. User-facing strings also live in `lib/vocabulary-storage.ts` (import errors, storage-full messages, `"Liste sans titre"`, the `" (copie locale)"` suffix). Dates go through `UI_LOCALE` (`lib/formatting.ts`), pinned to `fr-FR` so a device set to English does not render half the interface in English. Pluralisation uses `n <= 1`, not `n === 1`: **zero is singular in French**.
+- The e2e specs select by visible French text, so any label change breaks them. `getByRole("button", { name })` matches the accessible name, which for `IconButton` comes from its `label` prop — renaming one silently breaks specs that never mention the component. Beware `title` on a `Button`: it wins the accessible-name computation, which is why the study-mode descriptions live in a `<details>` rather than in tooltips.
+- `lib/app-version.ts` exposes the build identity (injected by `next.config.ts` from `package.json` + `VERCEL_GIT_COMMIT_SHA`) and `FEEDBACK_EMAIL`. The "Donner mon avis" link is a `mailto:` with the build and the browser pre-filled in the body — there is no backend to post a form to. An empty `FEEDBACK_EMAIL` hides the link rather than shipping a dead one, and the link must NOT carry `target="_blank"`: browsers hand a `mailto:` to the mail client and leave an empty tab behind.
 - The working tree accumulates **cloud-sync conflict copies** named `<name> 2.ts` / `CLAUDE 2.md` (iCloud/Dropbox duplicates). They are stale snapshots, not real modules: `tsconfig.json` excludes `**/* ?.ts(x)`, eslint ignores them, and the `lib/*.test.ts` test glob doesn't match them. (The exclude uses `?`, not `[0-9]` — TypeScript globs support `*` and `?` but not character classes — and it covers ` 2` through ` 9`, because iCloud does produce copies past ` 2`, including inside `.next/`, where they break `tsc`.) Never edit one and never treat one as the source of truth — delete them instead. If you find a symbol only in a `* 2.ts` file, it was removed from the real one on purpose.

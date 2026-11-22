@@ -11,7 +11,7 @@ export function BrandLogo({ className, title = "AJ Words" }: BrandLogoProps) {
       className={cx("brand-logo", className)}
       viewBox="0 0 64 64"
       role="img"
-      aria-label={`${title} logo`}
+      aria-label={`Logo ${title}`}
       focusable="false"
     >
       <path

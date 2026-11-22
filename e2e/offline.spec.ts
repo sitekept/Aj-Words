@@ -7,7 +7,7 @@ test("production service worker serves the app shell offline", async ({
   page
 }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Word lists" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Listes de mots" })).toBeVisible();
 
   // Registration happens on window load; wait for the worker to activate.
   await page.evaluate(async () => {
@@ -22,7 +22,7 @@ test("production service worker serves the app shell offline", async ({
 
   // Reload once so the now-controlling worker caches the shell and assets.
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Word lists" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Listes de mots" })).toBeVisible();
 
   // An aj-words cache exists and holds the navigation shell.
   await expect
@@ -44,10 +44,16 @@ test("production service worker serves the app shell offline", async ({
   // Go offline: the cached shell still renders and lists still open.
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Word lists" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Listes de mots" })).toBeVisible();
 
-  await page.getByRole("button", { name: /^Mots Darija/ }).click();
+  // The bundled curated list is the one list a fresh install always has (the
+  // deletable demo only seeds when the bundle is empty — lib/vocabulary-storage.ts
+  // `seedLists`). Anchored regex: the card button's accessible name starts with
+  // the title, while the per-list "Modifier ..."/"Supprimer ..." icon buttons do
+  // not.
+  const bundledTitle = "Anglais › français — les bases";
+  await page.getByRole("button", { name: new RegExp(`^${bundledTitle}`) }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: "Mots Darija" })
+    page.getByRole("heading", { level: 1, name: bundledTitle })
   ).toBeVisible();
 });

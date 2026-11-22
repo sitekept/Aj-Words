@@ -36,6 +36,13 @@ import type {
 } from "@/types/vocabulary";
 
 interface ListDetailProps {
+  /**
+   * False in the curated-library build: the words ship in the bundle, so
+   * everything that would change them is hidden. "Réinitialiser la progression"
+   * deliberately stays — that is progress, not content, and starting a list over
+   * is an ordinary study move. See lib/app-mode.ts.
+   */
+  canEdit: boolean;
   direction: QuizDirection;
   list: WordList;
   onAddWord: () => void;
@@ -54,14 +61,16 @@ interface ListDetailProps {
 
 type StatusFilter = "all" | LearningStatus;
 
+// Labels only: `value` is matched against the persisted `status` field.
 const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "new", label: "New" },
-  { value: "learning", label: "Learning" },
-  { value: "mastered", label: "Mastered" }
+  { value: "all", label: "Tous" },
+  { value: "new", label: "Nouveaux" },
+  { value: "learning", label: "En cours" },
+  { value: "mastered", label: "Acquis" }
 ];
 
 export function ListDetail({
+  canEdit,
   direction,
   list,
   onAddWord,
@@ -87,7 +96,7 @@ export function ListDetail({
   const speakButton = (text: string, lang: string | undefined) =>
     speechVersion > 0 && lang && canSpeak(lang) ? (
       <IconButton
-        label={`Listen to "${text}"`}
+        label={`Écouter « ${text} »`}
         onClick={() => speak(text, lang)}
       >
         <Volume2 size={16} />
@@ -135,7 +144,7 @@ export function ListDetail({
   };
 
   const confirmWordDelete = (item: VocabularyItem) => {
-    if (window.confirm(`Delete "${item.word}" from this list?`)) {
+    if (window.confirm(`Supprimer « ${item.word} » de cette liste ?`)) {
       onDeleteWord(item.id);
     }
   };
@@ -144,43 +153,53 @@ export function ListDetail({
     <section className="detail" aria-labelledby="detail-title">
       <div className="mobile-back">
         <Button variant="ghost" size="sm" icon={<ArrowLeft size={17} />} onClick={onBack}>
-          Lists
+          Listes
         </Button>
       </div>
 
       <header className="detail-header">
         <div className="detail-title">
-          <p className="eyebrow">{list.language || "Vocabulary"}</p>
+          <p className="eyebrow">{list.language || "Vocabulaire"}</p>
           <h1 id="detail-title">{list.title}</h1>
         </div>
         <div className="header-actions">
-          <IconButton label="Share list" onClick={onShareList}>
-            <Share2 size={18} />
-          </IconButton>
+          {canEdit ? (
+            <IconButton label="Partager la liste" onClick={onShareList}>
+              <Share2 size={18} />
+            </IconButton>
+          ) : null}
           {hasWords ? (
-            <IconButton label="Reset progress" onClick={onResetProgress}>
+            <IconButton label="Réinitialiser la progression" onClick={onResetProgress}>
               <RotateCcw size={18} />
             </IconButton>
           ) : null}
-          <IconButton label="Edit list" onClick={onEditList}>
-            <Pencil size={18} />
-          </IconButton>
-          <IconButton label="Delete list" variant="danger" onClick={onDeleteList}>
-            <Trash2 size={18} />
-          </IconButton>
+          {canEdit ? (
+            <>
+              <IconButton label="Modifier la liste" onClick={onEditList}>
+                <Pencil size={18} />
+              </IconButton>
+              <IconButton
+                label="Supprimer la liste"
+                variant="danger"
+                onClick={onDeleteList}
+              >
+                <Trash2 size={18} />
+              </IconButton>
+            </>
+          ) : null}
         </div>
       </header>
 
       <ProgressSummary items={list.items} />
 
       {hasWords && dueCount === 0 ? (
-        <p className="muted">Nothing due — all caught up</p>
+        <p className="muted">Rien à revoir pour le moment — vous êtes à jour</p>
       ) : null}
 
       <div
         className="inline-actions quiz-direction-toggle"
         role="group"
-        aria-label="Quiz direction"
+        aria-label="Sens des questions"
       >
         <Button
           size="sm"
@@ -188,7 +207,7 @@ export function ListDetail({
           aria-pressed={direction === "forward"}
           onClick={() => onDirectionChange("forward")}
         >
-          Word → Translation
+          Mot → Traduction
         </Button>
         <Button
           size="sm"
@@ -196,22 +215,24 @@ export function ListDetail({
           aria-pressed={direction === "reverse"}
           onClick={() => onDirectionChange("reverse")}
         >
-          Translation → Word
+          Traduction → Mot
         </Button>
       </div>
 
-      <div className="mode-grid" aria-label="Study modes">
-        {dueCount > 0 ? (
-          <Button icon={<Clock size={18} />} onClick={() => onStartQuiz("test")}>
-            Review ({dueCount})
-          </Button>
-        ) : null}
+      {/* One entry point for the "test" mode, not two. "Review (n)" and
+          "Test me" both dispatched onStartQuiz("test") and were shown side by
+          side whenever anything was due — two buttons, one behaviour. The label
+          now just reflects whether there is anything due. What each mode
+          actually does is explained in the <details> below rather than in a
+          `title`: a title would win the accessible-name computation, so each
+          button would announce its whole description instead of its label. */}
+      <div className="mode-grid" aria-label="Modes d'étude">
         <Button
-          icon={<ClipboardCheck size={18} />}
+          icon={dueCount > 0 ? <Clock size={18} /> : <ClipboardCheck size={18} />}
           onClick={() => onStartQuiz("test")}
           disabled={!hasWords}
         >
-          Test me
+          {dueCount > 0 ? `Réviser (${dueCount})` : "Me tester"}
         </Button>
         <Button
           variant="secondary"
@@ -219,7 +240,7 @@ export function ListDetail({
           onClick={onStartFlashcards}
           disabled={!hasWords}
         >
-          Flashcards
+          Cartes mémo
         </Button>
         <Button
           variant="secondary"
@@ -227,7 +248,7 @@ export function ListDetail({
           onClick={() => onStartQuiz("written")}
           disabled={!hasWords}
         >
-          Written quiz
+          Quiz écrit
         </Button>
         <Button
           variant="secondary"
@@ -235,7 +256,7 @@ export function ListDetail({
           onClick={() => onStartQuiz("choice")}
           disabled={!hasChoiceSet}
         >
-          Multiple choice
+          Choix multiple
         </Button>
         <Button
           variant="secondary"
@@ -243,7 +264,7 @@ export function ListDetail({
           onClick={() => onStartQuiz("mixed")}
           disabled={!hasChoiceSet}
         >
-          Mixed test
+          Test mixte
         </Button>
         <Button
           variant="secondary"
@@ -251,36 +272,88 @@ export function ListDetail({
           onClick={() => onStartQuiz("full-review")}
           disabled={!hasWords}
         >
-          Full review
+          Révision complète
         </Button>
       </div>
+
+      {/* A disabled button with no explanation is just inert, and a tooltip
+          would not help: browsers do not reliably show `title` on disabled
+          elements. */}
+      {hasWords && !hasChoiceSet ? (
+        <p className="muted">
+          Les modes à choix multiple demandent au moins quatre réponses
+          différentes dans la liste, du côté interrogé.
+        </p>
+      ) : null}
+
+      {/* Nothing used to say what these modes do, which is the first thing a
+          newcomer asks. Collapsed by default so it costs no room, and a native
+          <details> needs no JavaScript and is keyboard-accessible. */}
+      <details className="mode-help">
+        <summary>À quoi correspond chaque mode ?</summary>
+        <dl>
+          <dt>{dueCount > 0 ? "Réviser" : "Me tester"}</dt>
+          <dd>
+            Interroge en priorité les mots à revoir aujourd&rsquo;hui, puis ceux
+            que vous n&rsquo;avez pas encore acquis.
+          </dd>
+          <dt>Cartes mémo</dt>
+          <dd>
+            Des cartes à retourner : glissez vers la droite si c&rsquo;est
+            acquis, vers la gauche si c&rsquo;est à revoir.
+          </dd>
+          <dt>Quiz écrit</dt>
+          <dd>
+            Vous tapez la réponse. Les accents et les petites fautes de frappe
+            sont tolérés.
+          </dd>
+          <dt>Choix multiple</dt>
+          <dd>Vous choisissez parmi quatre réponses proposées.</dd>
+          <dt>Test mixte</dt>
+          <dd>
+            Alterne choix multiple et réponse à taper d&rsquo;une question à
+            l&rsquo;autre.
+          </dd>
+          <dt>Révision complète</dt>
+          <dd>
+            Passe toute la liste dans un ordre aléatoire, sans tenir compte des
+            échéances.
+          </dd>
+        </dl>
+        <p className="muted">
+          Le sens des questions ci-dessus (mot → traduction, ou l&rsquo;inverse)
+          est mémorisé pour cette liste.
+        </p>
+      </details>
 
       <TestHistory entries={list.testHistory} items={list.items} onReview={onReviewTest} />
 
       <section className="word-section" aria-labelledby="words-heading">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Terms</p>
-            <h2 id="words-heading">Words</h2>
+            <p className="eyebrow">Termes</p>
+            <h2 id="words-heading">Mots</h2>
           </div>
-          <Button size="sm" icon={<Plus size={17} />} onClick={onAddWord}>
-            Add word
-          </Button>
+          {canEdit ? (
+            <Button size="sm" icon={<Plus size={17} />} onClick={onAddWord}>
+              Ajouter un mot
+            </Button>
+          ) : null}
         </div>
 
         {list.items.length ? (
           <>
             <input
               type="search"
-              aria-label="Search words"
-              placeholder="Search words"
+              aria-label="Rechercher un mot"
+              placeholder="Rechercher un mot"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
             <div
               className="inline-actions"
               role="group"
-              aria-label="Filter words by status"
+              aria-label="Filtrer les mots par statut"
             >
               {STATUS_FILTERS.map((option) => (
                 <Button
@@ -296,7 +369,8 @@ export function ListDetail({
             </div>
             {isFiltering ? (
               <p className="muted">
-                {visibleItems.length} of {list.items.length} words
+                {visibleItems.length} {visibleItems.length <= 1 ? "mot" : "mots"} sur{" "}
+                {list.items.length}
               </p>
             ) : null}
             {visibleItems.length ? (
@@ -337,38 +411,46 @@ export function ListDetail({
                       </div>
                       <div className="word-controls">
                         <StatusBadge status={item.status} />
-                        <div className="inline-actions">
-                          <IconButton
-                            label={`Edit ${item.word}`}
-                            onClick={() => onEditWord(item)}
-                          >
-                            <Pencil size={16} />
-                          </IconButton>
-                          <IconButton
-                            label={`Delete ${item.word}`}
-                            variant="danger"
-                            onClick={() => confirmWordDelete(item)}
-                          >
-                            <Trash2 size={16} />
-                          </IconButton>
-                        </div>
+                        {canEdit ? (
+                          <div className="inline-actions">
+                            <IconButton
+                              label={`Modifier ${item.word}`}
+                              onClick={() => onEditWord(item)}
+                            >
+                              <Pencil size={16} />
+                            </IconButton>
+                            <IconButton
+                              label={`Supprimer ${item.word}`}
+                              variant="danger"
+                              onClick={() => confirmWordDelete(item)}
+                            >
+                              <Trash2 size={16} />
+                            </IconButton>
+                          </div>
+                        ) : null}
                       </div>
                     </article>
                   ))}
                 </div>
-                <div className="word-list-actions">
-                  <Button variant="secondary" icon={<Plus size={18} />} onClick={onAddWord}>
-                    Add word
-                  </Button>
-                </div>
+                {canEdit ? (
+                  <div className="word-list-actions">
+                    <Button
+                      variant="secondary"
+                      icon={<Plus size={18} />}
+                      onClick={onAddWord}
+                    >
+                      Ajouter un mot
+                    </Button>
+                  </div>
+                ) : null}
               </>
             ) : (
               <div className="empty-state">
                 <Search size={28} />
-                <h3>No words match your search</h3>
-                <p className="muted">Try a different search or clear the filters.</p>
+                <h3>Aucun mot ne correspond</h3>
+                <p className="muted">Essayez une autre recherche, ou effacez les filtres.</p>
                 <Button variant="secondary" onClick={clearFilters}>
-                  Clear filters
+                  Effacer les filtres
                 </Button>
               </div>
             )}
@@ -376,11 +458,22 @@ export function ListDetail({
         ) : (
           <div className="empty-state">
             <BookOpen size={28} />
-            <h3>No words in this list</h3>
-            <p className="muted">Add words here to start studying this list.</p>
-            <Button icon={<Plus size={18} />} onClick={onAddWord}>
-              Add word
-            </Button>
+            <h3>Aucun mot dans cette liste</h3>
+            {canEdit ? (
+              <>
+                <p className="muted">
+                  Ajoutez des mots ici pour commencer à l&rsquo;étudier.
+                </p>
+                <Button icon={<Plus size={18} />} onClick={onAddWord}>
+                  Ajouter un mot
+                </Button>
+              </>
+            ) : (
+              <p className="muted">
+                Cette liste est arrivée vide avec l&rsquo;application.
+                Signalez-le avec &laquo;&nbsp;Donner mon avis&nbsp;&raquo;.
+              </p>
+            )}
           </div>
         )}
       </section>

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import packageJson from "./package.json" with { type: "json" };
 
 // A static CSP, deliberately without a nonce. Nonces require per-request
 // generation via middleware, which forces dynamic rendering — this app is
@@ -7,10 +8,11 @@ import type { NextConfig } from "next";
 //
 // 'unsafe-inline' on script-src is unavoidable: Next's hydration payload ships
 // as inline <script> whose content changes every build, so no stable hash
-// exists. That is an acceptable trade here — the app has no eval, no
-// dangerouslySetInnerHTML in production (the only inline script, the local
+// exists. That is an acceptable trade here — the production bundle has no
+// eval, no dangerouslySetInnerHTML (the only inline script, the local
 // service-worker reset in app/layout.tsx, is dev-only) and loads no
-// third-party script. The real hardening is everything else: nothing can be
+// third-party script. ('unsafe-eval' is added in development only, for React
+// Refresh; see `scriptSrc` below.) The real hardening is everything else: nothing can be
 // framed, no plugins, no base-tag injection, no form posting or network call
 // to a foreign origin.
 // When cloud sync is configured, its Supabase origin must be reachable by the
@@ -28,13 +30,28 @@ const supabaseOrigin = (() => {
 
 const connectSrc = ["'self'", supabaseOrigin].filter(Boolean).join(" ");
 
+// `next dev` compiles modules through React Refresh, whose runtime evaluates
+// code as a string — so a CSP without 'unsafe-eval' kills hot reloading AND
+// hydration, leaving the dev server stuck on the loading screen with an
+// EvalError in the console. The production CSP must not carry 'unsafe-eval',
+// so it is added for development only. This value is resolved when the config
+// is loaded: `next dev` sets NODE_ENV to "development", `next build` to
+// "production", so the shipped build can never pick it up.
+const isDev = process.env.NODE_ENV === "development";
+
+const scriptSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  ...(isDev ? ["'unsafe-eval'"] : [])
+].join(" ");
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src ${scriptSrc}`,
   // React style={} props and Next's injected <style> blocks.
   "style-src 'self' 'unsafe-inline'",
   // data: for the pairing QR code (a GIF data URL in components/SyncDeviceModal).
@@ -84,7 +101,18 @@ const securityHeaders = [
   }
 ];
 
+// Surface the build identity to the client. `package.json` holds the version
+// and Vercel exposes the commit SHA, but neither reaches the browser on its
+// own — and a beta tester who reports a bug has to be able to say which build
+// they were on.
+const appVersion = packageJson.version;
+const appCommit = (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 7);
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+    NEXT_PUBLIC_APP_COMMIT: appCommit
+  },
   allowedDevOrigins: [
     "localhost",
     "127.0.0.1",

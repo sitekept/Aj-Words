@@ -11,11 +11,11 @@ export interface WordPair {
  */
 export const gotoHome = async (page: Page) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Word lists" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Listes de mots" })).toBeVisible();
 };
 
 /**
- * Creates a local list through the "New list" modal, seeding words via the
+ * Creates a local list through the "Nouvelle liste" modal, seeding words via the
  * Quizlet-paste textarea (tab-separated pairs) in one shot. Lands on the
  * list detail view.
  */
@@ -24,30 +24,35 @@ export const createListWithTerms = async (
   title: string,
   pairs: WordPair[]
 ) => {
-  await page.getByRole("button", { name: "New list" }).click();
+  await page.getByRole("button", { name: "Nouvelle liste" }).click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByRole("heading", { name: "Create list" })).toBeVisible();
-  await dialog.getByLabel("List name").fill(title);
+  await expect(
+    dialog.getByRole("heading", { name: "Créer une liste" })
+  ).toBeVisible();
+  await dialog.getByLabel("Nom de la liste").fill(title);
   if (pairs.length) {
     await dialog
-      .getByLabel("Imported rows")
+      .getByLabel("Lignes importées")
       .fill(pairs.map((pair) => `${pair.word}\t${pair.translation}`).join("\n"));
   }
-  await dialog.getByRole("button", { name: "Save list" }).click();
+  await dialog.getByRole("button", { name: "Enregistrer" }).click();
   await expect(
     page.getByRole("heading", { level: 1, name: title })
   ).toBeVisible();
 };
 
-/** Adds one word through the "Add word" modal on the current list detail. */
+/** Adds one word through the "Ajouter un mot" modal on the current list. */
 export const addWordViaModal = async (page: Page, pair: WordPair) => {
-  await page.getByRole("button", { name: "Add word" }).first().click();
+  await page.getByRole("button", { name: "Ajouter un mot" }).first().click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog.getByRole("heading", { name: "Add word" })).toBeVisible();
+  await expect(
+    dialog.getByRole("heading", { name: "Ajouter un mot" })
+  ).toBeVisible();
   // Substring label match: the visible label text ends with the required "*".
-  await dialog.getByLabel("Word").fill(pair.word);
-  await dialog.getByLabel("Translation").fill(pair.translation);
-  await dialog.getByRole("button", { name: "Save word" }).click();
+  // Scoped to the dialog, "Mot" and "Traduction" are each unambiguous.
+  await dialog.getByLabel("Mot").fill(pair.word);
+  await dialog.getByLabel("Traduction").fill(pair.translation);
+  await dialog.getByRole("button", { name: "Enregistrer" }).click();
   await expect(dialog).toBeHidden();
 };
 
@@ -105,13 +110,15 @@ export const readPrompt = async (page: Page) => {
 
 /** Types the given answer into the written input and submits it. */
 export const submitWrittenAnswer = async (page: Page, answer: string) => {
-  await page.getByLabel("Answer", { exact: true }).fill(answer);
-  await page.getByRole("button", { name: "Check" }).click();
+  await page.getByLabel("Réponse", { exact: true }).fill(answer);
+  await page.getByRole("button", { name: "Valider" }).click();
 };
 
-/** Advances past the feedback panel ("Next", or "Finish" on the last card). */
+/** Advances past the feedback panel ("Suivant", or "Terminer" on the last). */
 export const nextQuestion = async (page: Page, last = false) => {
-  await page.getByRole("button", { name: last ? "Finish" : "Next" }).click();
+  await page
+    .getByRole("button", { name: last ? "Terminer" : "Suivant" })
+    .click();
   if (!last) {
     // The same commit that shows the next question clears the feedback panel,
     // so waiting here prevents reading the previous question's prompt.

@@ -76,11 +76,41 @@ const localServiceWorkerResetScript = `
 `;
 const shouldResetLocalServiceWorker = process.env.NODE_ENV !== "production";
 
+const APP_DESCRIPTION =
+  "Créez vos listes de vocabulaire, révisez-les en cartes mémo et testez votre mémoire. Tout reste sur votre appareil.";
+
+// Where the app is served from. Needed for absolute Open Graph URLs: without a
+// metadataBase, the share card's image resolves relative to nothing and the
+// link previews as a bare URL. Vercel exposes the deployment host at build
+// time; the localhost fallback keeps local builds working.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  ? process.env.NEXT_PUBLIC_SITE_URL
+  : process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "AJ Words",
-  description: "A premium vocabulary learning app",
+  description: APP_DESCRIPTION,
   applicationName: "AJ Words",
   manifest: "/manifest.webmanifest",
+  // This is a PRIVATE beta: the link is handed to testers, not published.
+  // Remove this block when the app goes public.
+  robots: { index: false, follow: false },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "AJ Words",
+    title: "AJ Words — apprenez votre vocabulaire",
+    description: APP_DESCRIPTION,
+    url: "/"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AJ Words — apprenez votre vocabulaire",
+    description: APP_DESCRIPTION
+  },
   appleWebApp: {
     capable: true,
     title: "AJ Words",
@@ -111,7 +141,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body>
         {shouldResetLocalServiceWorker ? (
           <script

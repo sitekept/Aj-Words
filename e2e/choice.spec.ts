@@ -21,7 +21,7 @@ test("multiple choice shows a 4-option grid with correct/wrong highlighting", as
 }) => {
   await gotoHome(page);
   await createListWithTerms(page, "E2E Choice", WORDS);
-  await startMode(page, "Multiple choice");
+  await startMode(page, "Choix multiple");
 
   const answers = answerMapFor(WORDS);
   const options = page.locator(".choice-option");
@@ -31,7 +31,7 @@ test("multiple choice shows a 4-option grid with correct/wrong highlighting", as
   let prompt = await readPrompt(page);
   let correct = answers.get(prompt) ?? "";
   await options.getByText(correct, { exact: true }).click();
-  await page.getByRole("button", { name: "Check" }).click();
+  await page.getByRole("button", { name: "Valider" }).click();
   await expect(page.locator(".choice-option-correct")).toHaveText(correct);
   await expect(page.locator(".choice-option-wrong")).toHaveCount(0);
   await nextQuestion(page);
@@ -42,7 +42,7 @@ test("multiple choice shows a 4-option grid with correct/wrong highlighting", as
   const texts = (await options.allInnerTexts()).map((text) => text.trim());
   const wrong = texts.find((text) => text !== correct) ?? "";
   await options.getByText(wrong, { exact: true }).click();
-  await page.getByRole("button", { name: "Check" }).click();
+  await page.getByRole("button", { name: "Valider" }).click();
   await expect(page.locator(".choice-option-wrong")).toHaveText(wrong);
   await expect(page.locator(".choice-option-correct")).toHaveText(correct);
 });
@@ -55,12 +55,15 @@ test("a 3-word list cannot use choice mode and falls back to written questions",
 
   // Fewer than 4 words: the choice-based modes are disabled outright.
   await expect(
-    page.getByRole("button", { name: "Multiple choice" })
+    page.getByRole("button", { name: "Choix multiple" })
   ).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Mixed test" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Test mixte" })).toBeDisabled();
 
-  // "Test me" alternates choice/written but falls back to all-written here.
-  await startMode(page, "Test me");
-  await expect(page.getByLabel("Answer", { exact: true })).toBeVisible();
+  // The "test" mode alternates choice/written but falls back to all-written
+  // here. Its button is a single entry point whose label depends on whether
+  // anything is due — a freshly created list has every card due at once, so it
+  // reads "Réviser (n)" rather than "Me tester".
+  await startMode(page, /^(Réviser|Me tester)/);
+  await expect(page.getByLabel("Réponse", { exact: true })).toBeVisible();
   await expect(page.locator(".choice-grid")).toHaveCount(0);
 });

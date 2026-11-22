@@ -5,7 +5,7 @@ const EXPORT_APP_ID = "aj-words";
 const EXPORT_VERSION = 1;
 
 const importInput = (page: Parameters<typeof gotoHome>[0]) =>
-  page.getByLabel("Import AJ Words JSON file");
+  page.getByLabel("Importer un fichier JSON AJ Words");
 
 const exportFile = (lists: unknown[]) =>
   Buffer.from(
@@ -33,7 +33,7 @@ test("a file over the size limit is rejected before it is parsed", async ({
     ])
   });
 
-  await expect(page.getByText(/over the .* import limit/)).toBeVisible();
+  await expect(page.getByText(/au-delà de la limite d'import/)).toBeVisible();
 });
 
 test("an export carrying no lists is rejected", async ({ page }) => {
@@ -46,7 +46,7 @@ test("an export carrying no lists is rejected", async ({ page }) => {
   });
 
   await expect(
-    page.getByText("This export does not contain any lists.")
+    page.getByText("Cet export ne contient aucune liste.")
   ).toBeVisible();
 });
 
@@ -95,20 +95,20 @@ test("a card with an absurd FSRS stability imports and stays answerable", async 
     ])
   });
 
-  await expect(page.getByText(/Imported 1 list/)).toBeVisible();
+  await expect(page.getByText(/1 liste importée/)).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 1, name: "Hostile SRS" })
   ).toBeVisible();
 
   // Grading the card is what used to throw; the quiz must survive it.
-  await page.getByRole("button", { name: "Written quiz" }).click();
-  await page.getByLabel("Answer", { exact: true }).fill("chat");
-  await page.getByRole("button", { name: "Check" }).click();
+  await page.getByRole("button", { name: "Quiz écrit" }).click();
+  await page.getByLabel("Réponse", { exact: true }).fill("chat");
+  await page.getByRole("button", { name: "Valider" }).click();
   await expect(page.locator(".answer-feedback")).toBeVisible();
 
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.getByRole("button", { name: /Next|Finish/ }).click();
+  await page.getByRole("button", { name: /Suivant|Terminer/ }).click();
   expect(errors).toEqual([]);
 });
 
@@ -150,13 +150,13 @@ test("replacing existing lists asks for confirmation and names them", async ({
   // The destructive step is a real dialog naming the list, not a bare count.
   const dialog = page.getByRole("dialog");
   await expect(
-    dialog.getByRole("heading", { name: "Replace existing lists?" })
+    dialog.getByRole("heading", { name: "Remplacer des listes existantes ?" })
   ).toBeVisible();
   await expect(dialog.getByText("Overwrite me")).toBeVisible();
-  await expect(dialog.getByText(/2 words now/)).toBeVisible();
+  await expect(dialog.getByText(/2 mots actuellement/)).toBeVisible();
 
   // Cancelling leaves the original untouched.
-  await dialog.getByRole("button", { name: "Cancel" }).click();
-  await expect(page.getByText("Import cancelled.")).toBeVisible();
+  await dialog.getByRole("button", { name: "Annuler" }).click();
+  await expect(page.getByText("Import annulé.")).toBeVisible();
   await expect(page.getByText("alpha")).toBeVisible();
 });

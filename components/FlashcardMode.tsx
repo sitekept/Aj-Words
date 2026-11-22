@@ -292,10 +292,13 @@ export function FlashcardMode({
     return (
       <section className="study-view">
         <Button variant="ghost" size="sm" icon={<ArrowLeft size={17} />} onClick={onBack}>
-          Back
+          Retour
         </Button>
         <div className="empty-state">
-          <h2>No cards yet</h2>
+          <h2>Aucune carte</h2>
+          <p className="muted">
+            Ajoutez des mots à cette liste pour réviser en cartes mémo.
+          </p>
         </div>
       </section>
     );
@@ -308,11 +311,11 @@ export function FlashcardMode({
       <section className="study-view" aria-labelledby="flashcard-title">
         <header className="study-header">
           <Button variant="ghost" size="sm" icon={<ArrowLeft size={17} />} onClick={onBack}>
-            Back
+            Retour
           </Button>
           <div>
             <p className="eyebrow">{list.title}</p>
-            <h1 id="flashcard-title">Flashcards</h1>
+            <h1 id="flashcard-title">Cartes mémo</h1>
           </div>
           <span className="study-count">
             {cards.length} / {cards.length}
@@ -320,15 +323,17 @@ export function FlashcardMode({
         </header>
 
         <section className="flashcard-summary" aria-labelledby="flashcard-summary-title">
-          <p className="eyebrow">Session complete</p>
-          <h2 id="flashcard-summary-title">{total} cards reviewed</h2>
+          <p className="eyebrow">Session terminée</p>
+          <h2 id="flashcard-summary-title">
+            {total} {total <= 1 ? "carte revue" : "cartes revues"}
+          </h2>
           <div className="flashcard-summary-grid">
             <article className="flashcard-summary-card learning">
-              <span>Learning</span>
+              <span>En cours</span>
               <strong>{summary.learning}</strong>
             </article>
             <article className="flashcard-summary-card mastered">
-              <span>Mastered</span>
+              <span>Acquis</span>
               <strong>{summary.mastered}</strong>
             </article>
           </div>
@@ -339,13 +344,13 @@ export function FlashcardMode({
               onClick={undoLastAssessment}
               disabled={!lastAction}
             >
-              Undo
+              Annuler
             </Button>
             <Button variant="secondary" icon={<ArrowLeft size={18} />} onClick={onBack}>
-              Back to list
+              Retour à la liste
             </Button>
             <Button icon={<RotateCcw size={18} />} onClick={restart}>
-              Restart flashcards
+              Recommencer
             </Button>
           </div>
         </section>
@@ -370,15 +375,15 @@ export function FlashcardMode({
     <section className="study-view" aria-labelledby="flashcard-title">
       <header className="study-header">
         <Button variant="ghost" size="sm" icon={<ArrowLeft size={17} />} onClick={onBack}>
-          Back
+          Retour
         </Button>
         <div>
           <p className="eyebrow">{list.title}</p>
-          <h1 id="flashcard-title">Flashcards</h1>
+          <h1 id="flashcard-title">Cartes mémo</h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <IconButton
-            label={orderedIds ? "Turn off shuffle" : "Shuffle cards"}
+            label={orderedIds ? "Désactiver le mélange" : "Mélanger les cartes"}
             aria-pressed={Boolean(orderedIds)}
             onClick={toggleShuffle}
             style={orderedIds ? { color: "var(--primary)" } : undefined}
@@ -395,15 +400,15 @@ export function FlashcardMode({
           otherwise tell a screen-reader user the card changed. Mounted for the
           whole session so each update registers as a change. */}
       <p className="sr-only" role="status" aria-live="polite">
-        {`Card ${index + 1} of ${cards.length}. ${
-          flipped ? `Translation: ${current.translation}` : `Word: ${current.word}`
+        {`Carte ${index + 1} sur ${cards.length}. ${
+          flipped ? `Traduction : ${current.translation}` : `Mot : ${current.word}`
         }`}
       </p>
 
       <div
         className="flashcard-progress"
         role="progressbar"
-        aria-label="Deck progress"
+        aria-label="Progression du paquet"
         aria-valuemin={0}
         aria-valuemax={cards.length}
         aria-valuenow={index}
@@ -419,8 +424,8 @@ export function FlashcardMode({
 
       <div className="flashcard-shell">
         <div className="flashcard-swipe-rail" aria-hidden="true">
-          <span className="learning">Learning</span>
-          <span className="mastered">Mastered</span>
+          <span className="learning">À revoir</span>
+          <span className="mastered">Acquis</span>
         </div>
 
         <div
@@ -439,15 +444,15 @@ export function FlashcardMode({
           onPointerCancel={resetDrag}
         >
           <span className="flashcard-decision flashcard-decision-learning">
-            Learning
+            À revoir
           </span>
           <span className="flashcard-decision flashcard-decision-mastered">
-            Mastered
+            Acquis
           </span>
           <button
             type="button"
             className={`flashcard ${flipped ? "is-flipped" : ""}`}
-            aria-label={flipped ? "Show word" : "Show translation"}
+            aria-label={flipped ? "Afficher le mot" : "Afficher la traduction"}
             aria-pressed={flipped}
             onClick={(event) => {
               if (suppressClickRef.current) {
@@ -460,12 +465,12 @@ export function FlashcardMode({
             }}
           >
             <span className="flashcard-side flashcard-front">
-              <small>Word</small>
+              <small>Mot</small>
               <strong>{current.word}</strong>
               <StatusBadge status={current.status} />
             </span>
             <span className="flashcard-side flashcard-back">
-              <small>Translation</small>
+              <small>Traduction</small>
               <strong>{current.translation}</strong>
             </span>
           </button>
@@ -479,7 +484,7 @@ export function FlashcardMode({
           onClick={undoLastAssessment}
           disabled={Boolean(exitDirection) || !lastAction}
         >
-          Undo
+          Annuler
         </Button>
         <Button
           variant="secondary"
@@ -487,18 +492,18 @@ export function FlashcardMode({
           onClick={() => assessCard("learning")}
           disabled={Boolean(exitDirection)}
         >
-          Learning
+          À revoir
         </Button>
         <Button
           variant="secondary"
           icon={<RotateCcw size={18} />}
           onClick={() => setFlipped((value) => !value)}
         >
-          Flip
+          Retourner
         </Button>
         {speechVersion > 0 && faceLang && canSpeak(faceLang) ? (
           <IconButton
-            label={`Listen to "${faceText}"`}
+            label={`Écouter « ${faceText} »`}
             onClick={() => speak(faceText, faceLang)}
           >
             <Volume2 size={18} />
@@ -509,7 +514,7 @@ export function FlashcardMode({
           onClick={() => assessCard("mastered")}
           disabled={Boolean(exitDirection)}
         >
-          Mastered
+          Acquis
         </Button>
       </div>
     </section>

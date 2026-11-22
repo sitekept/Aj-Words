@@ -1,5 +1,6 @@
 import type { ActivityLog } from "@/lib/activity-log";
 import type { TestHistoryEntry, VocabularyItem } from "@/types/vocabulary";
+import { UI_LOCALE } from "./formatting.ts";
 
 // Progress-statistics helpers (pure, framework-free).
 //
@@ -77,21 +78,22 @@ export const toDateKey = (dayStart: Date) => {
 
 const bucketLabel = (dayStart: Date, index: number) => {
   if (index === 0) {
-    return "Today";
+    return "aujourd'hui";
   }
 
   if (index === 1) {
-    return "Tomorrow";
+    return "demain";
   }
 
-  // Within a week the weekday is unambiguous; beyond that fall back to M/D.
+  // Within a week the weekday is unambiguous; beyond that fall back to a
+  // numeric date — day-first, as French convention has it.
   if (index < 7) {
-    return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(
+    return new Intl.DateTimeFormat(UI_LOCALE, { weekday: "short" }).format(
       dayStart
     );
   }
 
-  return `${dayStart.getMonth() + 1}/${dayStart.getDate()}`;
+  return `${dayStart.getDate()}/${dayStart.getMonth() + 1}`;
 };
 
 // Count how many cards come due on each of the next `days` calendar days.

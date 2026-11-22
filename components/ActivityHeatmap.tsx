@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Flame, Target } from "lucide-react";
 
 import { Button, IconButton, Modal, cx } from "@/components/ui";
+import { UI_LOCALE } from "@/lib/formatting";
 import {
   readActivityLog,
   readTodayCount,
@@ -29,7 +30,7 @@ const formatDay = (date: string): string => {
   if (!Number.isFinite(parsed.getTime())) {
     return date;
   }
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(UI_LOCALE, {
     weekday: "short",
     month: "short",
     day: "numeric"
@@ -72,25 +73,29 @@ export function ActivityHeatmap({ refreshToken }: ActivityHeatmapProps) {
     <section className="heatmap" aria-labelledby="heatmap-title">
       <header className="heatmap-header">
         <div className="heatmap-heading">
-          <h2 id="heatmap-title">Activity</h2>
+          <h2 id="heatmap-title">Activité</h2>
           <p className="heatmap-subtitle">
             {heat.totalReviews > 0
-              ? `${heat.totalReviews} reviews over the last ${WEEKS} weeks`
-              : "Your review activity will show up here."}
+              ? `${heat.totalReviews} ${
+                  heat.totalReviews <= 1 ? "révision" : "révisions"
+                } sur les ${WEEKS} dernières semaines`
+              : "Votre activité de révision apparaîtra ici."}
           </p>
         </div>
         <div className="heatmap-stats">
           {streak > 0 ? (
-            <span className="heatmap-streak" title={`${streak}-day streak`}>
+            <span className="heatmap-streak" title={`Série de ${streak} jours`}>
               <Flame size={16} aria-hidden="true" />
               {streak}
               {/* The number alone reads as a bare digit; title is not
                   announced on a non-interactive element. */}
-              <span className="sr-only"> day streak</span>
+              <span className="sr-only">
+                {streak <= 1 ? " jour de suite" : " jours de suite"}
+              </span>
             </span>
           ) : null}
           <IconButton
-            label={goal.enabled ? "Edit daily goal" : "Set a daily goal"}
+            label={goal.enabled ? "Modifier l'objectif quotidien" : "Définir un objectif quotidien"}
             variant={goal.enabled ? "secondary" : "ghost"}
             onClick={() => setGoalOpen(true)}
           >
@@ -105,8 +110,8 @@ export function ActivityHeatmap({ refreshToken }: ActivityHeatmapProps) {
           aria-live="polite"
         >
           {goalMet
-            ? `Daily goal reached — ${todayCount}/${goal.target} today. Nice.`
-            : `${todayCount}/${goal.target} reviews today`}
+            ? `Objectif atteint — ${todayCount}/${goal.target} aujourd'hui. Bravo.`
+            : `${todayCount}/${goal.target} révisions aujourd'hui`}
         </p>
       ) : null}
 
@@ -114,8 +119,8 @@ export function ActivityHeatmap({ refreshToken }: ActivityHeatmapProps) {
       <div className="heatmap-grid" dir="ltr" role="img"
         aria-label={
           heat.totalReviews > 0
-            ? `Activity heatmap, ${heat.totalReviews} reviews total`
-            : "Activity heatmap, no reviews yet"
+            ? `Carte d'activité, ${heat.totalReviews} révisions au total`
+            : "Carte d'activité, aucune révision pour l'instant"
         }
       >
         {heat.weeks.map((week, weekIndex) => (
@@ -126,8 +131,8 @@ export function ActivityHeatmap({ refreshToken }: ActivityHeatmapProps) {
                   key={day.date || dayIndex}
                   className="heatmap-cell"
                   data-intensity={day.intensity}
-                  title={`${formatDay(day.date)}: ${day.count} ${
-                    day.count === 1 ? "review" : "reviews"
+                  title={`${formatDay(day.date)} : ${day.count} ${
+                    day.count <= 1 ? "révision" : "révisions"
                   }`}
                 />
               ) : (
@@ -143,7 +148,7 @@ export function ActivityHeatmap({ refreshToken }: ActivityHeatmapProps) {
       </div>
 
       <div className="heatmap-legend" dir="ltr" aria-hidden="true">
-        <span>Less</span>
+        <span>Moins</span>
         {[0, 1, 2, 3, 4].map((level) => (
           <span
             key={level}
@@ -151,7 +156,7 @@ export function ActivityHeatmap({ refreshToken }: ActivityHeatmapProps) {
             data-intensity={level}
           />
         ))}
-        <span>More</span>
+        <span>Plus</span>
       </div>
 
       <DailyGoalModal
@@ -190,22 +195,22 @@ function DailyGoalModal({ open, goal, onClose, onSave }: DailyGoalModalProps) {
   return (
     <Modal
       open={open}
-      title="Daily goal"
+      title="Objectif quotidien"
       onClose={onClose}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            Annuler
           </Button>
           <Button onClick={() => onSave({ enabled, target: validTarget })}>
-            Save
+            Enregistrer
           </Button>
         </>
       }
     >
       <p className="modal-lead">
-        A gentle target, not a chore. Missing a day never breaks anything — there
-        is no streak debt to repay.
+        Un repère bienveillant, pas une corvée. Un jour manqué ne casse jamais
+        rien — il n&rsquo;y a aucune série à rattraper.
       </p>
       <label className="field field-checkbox">
         <input
@@ -213,10 +218,10 @@ function DailyGoalModal({ open, goal, onClose, onSave }: DailyGoalModalProps) {
           checked={enabled}
           onChange={(event) => setEnabled(event.target.checked)}
         />
-        <span>Show a daily review goal</span>
+        <span>Afficher un objectif de révision quotidien</span>
       </label>
       <label className="field" htmlFor="daily-goal-target">
-        <span>Reviews per day</span>
+        <span>Révisions par jour</span>
         <input
           id="daily-goal-target"
           type="number"
@@ -228,7 +233,7 @@ function DailyGoalModal({ open, goal, onClose, onSave }: DailyGoalModalProps) {
           onChange={(event) => setTarget(event.target.value)}
         />
         <small className="field-hint">
-          Between {DAILY_GOAL_BOUNDS.min} and {DAILY_GOAL_BOUNDS.max}.
+          Entre {DAILY_GOAL_BOUNDS.min} et {DAILY_GOAL_BOUNDS.max}.
         </small>
       </label>
     </Modal>

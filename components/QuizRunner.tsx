@@ -47,12 +47,14 @@ interface QuizRunnerProps {
   onSessionChange: (session: QuizSessionState) => void;
 }
 
+// Labels only — the keys are persisted (testHistory[].mode, and the
+// "<listId>:<mode>" quiz-session storage keys).
 const modeTitles: Record<QuizMode, string> = {
-  written: "Written quiz",
-  choice: "Multiple choice",
-  mixed: "Mixed test",
-  test: "Test me",
-  "full-review": "Full review"
+  written: "Quiz écrit",
+  choice: "Choix multiple",
+  mixed: "Test mixte",
+  test: "Me tester",
+  "full-review": "Révision complète"
 };
 
 // Cloze items store a sentence with a blank in `translation` and the missing
@@ -468,10 +470,13 @@ export function QuizRunner({
     return (
       <section className="study-view">
         <Button variant="ghost" size="sm" icon={<ArrowLeft size={17} />} onClick={onBack}>
-          Back
+          Retour
         </Button>
         <div className="empty-state">
-          <h2>No questions</h2>
+          <h2>Aucune question</h2>
+          <p className="muted">
+            Ajoutez des mots à cette liste pour pouvoir vous tester dessus.
+          </p>
         </div>
       </section>
     );
@@ -494,7 +499,7 @@ export function QuizRunner({
       : null;
   const typoMessage =
     feedback?.isCorrect && feedbackCheck?.verdict === "correct-typo"
-      ? `Correct — small typo. Watch the spelling: ${feedbackCheck.matchedAnswer}`
+      ? `Correct — petite faute de frappe. Orthographe exacte : ${feedbackCheck.matchedAnswer}`
       : null;
   const diffSegments =
     feedback && !feedback.isCorrect && feedbackCheck
@@ -509,8 +514,8 @@ export function QuizRunner({
         typoMessage ??
           (feedback.isCorrect
             ? "Correct."
-            : `Incorrect. The answer is ${feedback.correctAnswer}.`),
-        `Question ${index + 1} of ${questions.length}.`
+            : `Incorrect. La réponse est ${feedback.correctAnswer}.`),
+        `Question ${index + 1} sur ${questions.length}.`
       ].join(" ")
     : "";
 
@@ -518,7 +523,7 @@ export function QuizRunner({
     <section className="study-view quiz-view" aria-labelledby="quiz-title">
       <header className="study-header">
         <Button variant="ghost" size="sm" icon={<ArrowLeft size={17} />} onClick={onBack}>
-          Back
+          Retour
         </Button>
         <div>
           <p className="eyebrow">{list.title}</p>
@@ -540,14 +545,14 @@ export function QuizRunner({
       <form className="question-card" onSubmit={handleSubmit}>
         <p className="eyebrow">
           {current.isCloze
-            ? "Complete the sentence"
+            ? "Complétez la phrase"
             : current.type === "choice"
               ? sessionDirection === "reverse"
-                ? "Choose the word"
-                : "Choose the translation"
+                ? "Choisissez le mot"
+                : "Choisissez la traduction"
               : sessionDirection === "reverse"
-                ? "Type the word"
-                : "Type the translation"}
+                ? "Tapez le mot"
+                : "Tapez la traduction"}
         </p>
         <div className="quiz-prompt">
           <h2 className={cx(current.isCloze && "cloze-prompt")} dir="auto">
@@ -555,7 +560,7 @@ export function QuizRunner({
           </h2>
           {speechVersion > 0 && promptLang && canSpeak(promptLang) ? (
             <IconButton
-              label={`Listen to "${current.prompt}"`}
+              label={`Écouter « ${current.prompt} »`}
               onClick={() => speak(current.prompt, promptLang)}
             >
               <Volume2 size={17} />
@@ -570,7 +575,7 @@ export function QuizRunner({
           <div
             className="choice-grid"
             role="radiogroup"
-            aria-label="Answer options"
+            aria-label="Réponses proposées"
           >
             {current.options?.map((option, optionIndex) => {
               const selected = selectedAnswer === option;
@@ -611,7 +616,7 @@ export function QuizRunner({
           </div>
         ) : (
           <label className="field quiz-answer" htmlFor="written-answer">
-            <span>Answer</span>
+            <span>Réponse</span>
             <input
               id="written-answer"
               value={typedAnswer}
@@ -644,7 +649,7 @@ export function QuizRunner({
               {typoMessage ??
                 (feedback.isCorrect
                   ? "Correct"
-                  : `Answer: ${feedback.correctAnswer}`)}
+                  : `Réponse : ${feedback.correctAnswer}`)}
             </span>
           </div>
         ) : null}
@@ -662,7 +667,7 @@ export function QuizRunner({
         <div className="quiz-actions">
           {!answered ? (
             <Button type="submit" disabled={!canSubmit}>
-              Check
+              Valider
             </Button>
           ) : (
             <>
@@ -676,7 +681,7 @@ export function QuizRunner({
                 </Button>
               ) : null}
               <Button type="button" onClick={handleNext}>
-                {index === questions.length - 1 ? "Finish" : "Next"}
+                {index === questions.length - 1 ? "Terminer" : "Suivant"}
               </Button>
             </>
           )}

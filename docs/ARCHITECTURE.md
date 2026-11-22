@@ -12,6 +12,7 @@ and the PWA layer. For a quick start and feature overview see the
 3. [Data model](#3-data-model)
 4. [State and persistence](#4-state-and-persistence)
 5. [Builtin lists and copy-on-write](#5-builtin-lists-and-copy-on-write)
+   - [5.1 Retired builtin lists](#51-retired-builtin-lists)
 6. [List load and progress merge](#6-list-load-and-progress-merge)
 7. [Progress and mastery](#7-progress-and-mastery)
 8. [Quiz engine](#8-quiz-engine)
@@ -116,11 +117,19 @@ through small helpers (`readPreferredListId`/`writePreferredListId`,
 
 ## 5. Builtin lists and copy-on-write
 
-This is the central non-obvious concept. The app ships 19 pre-seeded lists (Darija +
-Hebrew Quizlet units) in
+> **Current state:** the bundled seed file ships **empty** (`[]`), so there are no
+> builtin lists today. Everything in this section is intact and tested but dormant —
+> `isPublicListId` is always false and `initialLists` is `[]`. A fresh install is
+> seeded instead with one ordinary, deletable local list
+> ([`lib/demo-list.ts`](../lib/demo-list.ts)); a builtin could not serve as the demo,
+> because builtins cannot be deleted. Removing the old lists required a migration,
+> described in [§5.1](#51-retired-builtin-lists).
+
+This is the central non-obvious concept. The app used to ship 19 pre-seeded lists
+(Darija + Hebrew Quizlet units) in
 [`lib/builtin-vocabulary-data.json`](../lib/builtin-vocabulary-data.json), compiled into
-typed `WordList`s by [`lib/builtin-vocabulary.ts`](../lib/builtin-vocabulary.ts). These
-are treated as **shared / read-only**:
+typed `WordList`s by [`lib/builtin-vocabulary.ts`](../lib/builtin-vocabulary.ts). Builtin
+lists are treated as **shared / read-only**:
 
 - `isPublicListId` (= `isBuiltinListId`) gates every place a list could be mutated.
 - A builtin list **cannot be deleted**, and any edit to it (rename, add/edit/delete a
@@ -143,6 +152,44 @@ flowchart TD
 The same rule applies on **import**: an incoming list whose `id` matches a builtin id is
 turned into a local copy rather than overwriting the shared definition (see
 [§10](#10-import-and-export)).
+
+### 5.1 Retired builtin lists
+
+Emptying the seed file is **not** a safe operation on its own, and this is the trap it
+hides.
+
+A builtin list is never stored whole. `createPublicListOverlay`
+([`lib/vocabulary-persistence.ts`](../lib/vocabulary-persistence.ts)) writes a compact
+**progress overlay**: only the items whose progress changed, and only their `id` plus
+progress fields — no `word`, no `translation`. Re-inflating that overlay depends on the
+canonical builtin definition still existing. Remove the builtins and `isPublicListId`
+becomes permanently false, so those overlays fall through the "local lists" filter in
+`mergeStoredLists` and surface as **real, editable lists of blank cards** — which
+`saveLists` then rewrites in full, making the damage permanent, and which `cloud-sync`
+would happily upload.
+
+[`lib/retired-lists.ts`](../lib/retired-lists.ts) drops them on the way in, from inside
+`mergeStoredLists` — the single funnel shared by `loadLists` and `loadListsFromBackup`.
+The backup path matters: the rotating local backups store the lists in **full**, so they
+are a second, nastier resurrection route.
+
+`isRetiredBuiltinList` matches on two things, and needs both:
+
+| Check | Catches | Why the other one is not enough |
+| --- | --- | --- |
+| `RETIRED_BUILTIN_IDS` (22 ids) | Any stored state for a list that was once bundled, including a full-content copy restored from a backup | The shape check waves a full-content restore straight through |
+| Shape: every card has neither word nor translation | Orphaned overlays whose ids were never enumerated | Enumeration missed 3 ids once already (`d207199` → `77298ec`) |
+
+The id set is a **permanent tombstone list**: never remove an entry, and append to it
+before removing any list from the bundle. The shape check requires `items.length > 0`,
+or it would also delete a list the user just created and has not filled in yet.
+
+One consequence worth remembering: a list imported from an export taken *before* the
+removal carries a retired id together with real content. `importLists`
+([`lib/useVocabularyStore.ts`](../lib/useVocabularyStore.ts)) therefore assigns those a
+fresh id on the way in — keeping the title, since unlike a copy-on-write fork there is no
+original left to distinguish it from. Without that, the tombstone filter would delete the
+re-imported list on the next reload.
 
 ## 6. List load and progress merge
 
@@ -377,14 +424,27 @@ There are **three distinct** data paths — don't conflate them:
 - [`next.config.ts`](../next.config.ts) — `allowedDevOrigins` (private-network ranges so
   the dev server works when tested from a phone), security headers, and explicit
   no-cache headers for `/sw.js`.
+- **`'unsafe-eval'` is in the CSP for development only.** React Refresh (the dev-time
+  hot-reload runtime) evaluates code as a string, so a CSP without it breaks far more
+  than hot reloading: the module throws an `EvalError` during bootstrap, React never
+  hydrates, and `npm run dev` sits on the loading screen forever. `next.config.ts`
+  therefore builds `script-src` conditionally on `NODE_ENV === "development"` — `next
+  dev` sets it to `"development"`, `next build` to `"production"`, so a shipped build
+  cannot pick it up. After touching that config, confirm the production header with:
+
+  ```bash
+  npm run build && npm run start
+  curl -sI http://localhost:3000/ | grep -i content-security
+  ```
 
 ### ADR: `ListDetail` renders every row, and that is fine
 
 `ListDetail` renders all of a list's items at once. The obvious optimisations —
 `content-visibility: auto` or row virtualisation — were **measured and rejected**.
 
-Measured in a production build against a synthetic 2000-item list (12× the largest
-list the app ships, which is 159 items; 1080 items across all 19 builtin lists):
+Measured in a production build against a synthetic 2000-item list. (For scale: the
+app shipped 19 builtin lists totalling 1080 items at the time, the largest being 159;
+it now ships none.)
 
 | Metric | Plain | With `content-visibility: auto` |
 | --- | ---: | ---: |
@@ -427,7 +487,8 @@ Two independent layers:
   production** ([§11](#11-pwa-and-service-worker)). Two Chromium projects run
   every spec: `desktop` (1440x1000) and `mobile` (390x844 with touch/mobile
   emulation). Each test gets a fresh browser context, so it starts from a
-  clean localStorage with only the 19 bundled lists.
+  clean localStorage holding only the seeded demo list. Specs build their own
+  fixtures rather than relying on bundled content.
 
   Spec files: `creation` (list + word CRUD, reload persistence), `written-quiz`
   (verdicts, typo tolerance, diff, manual override, score), `choice` (option

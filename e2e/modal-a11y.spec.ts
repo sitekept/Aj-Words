@@ -74,13 +74,13 @@ test("list form modal is keyboard-isolated and restores focus", async ({
   page
 }) => {
   await gotoHome(page);
-  await page.getByRole("button", { name: "New list" }).click();
+  await page.getByRole("button", { name: "Nouvelle liste" }).click();
 
   await expectIsolated(page);
   // Opens on the first field, not on the close button.
   expect(await page.evaluate(() => document.activeElement?.id)).toBe("list-title");
   await expectTabTrapped(page);
-  await expectEscapeRestores(page, "New list");
+  await expectEscapeRestores(page, "Nouvelle liste");
 });
 
 test("word form modal is keyboard-isolated and restores focus", async ({
@@ -89,12 +89,12 @@ test("word form modal is keyboard-isolated and restores focus", async ({
   await gotoHome(page);
   await createListWithTerms(page, "Modal deck", WORDS);
 
-  await page.getByRole("button", { name: "Add word" }).first().click();
+  await page.getByRole("button", { name: "Ajouter un mot" }).first().click();
   await expectIsolated(page);
   expect(await page.evaluate(() => document.activeElement?.id)).toBe("word");
   // This modal holds a file-upload control, which must not break the cycle.
   await expectTabTrapped(page);
-  await expectEscapeRestores(page, "Add word");
+  await expectEscapeRestores(page, "Ajouter un mot");
 });
 
 test("daily goal modal is keyboard-isolated and restores focus", async ({
@@ -102,7 +102,7 @@ test("daily goal modal is keyboard-isolated and restores focus", async ({
 }) => {
   await gotoHome(page);
 
-  const trigger = page.getByRole("button", { name: /daily goal/ });
+  const trigger = page.getByRole("button", { name: /objectif quotidien/ });
   const triggerName = (await trigger.getAttribute("aria-label")) ?? "";
   await trigger.click();
 
@@ -124,8 +124,8 @@ test("shared-list import modal is keyboard-isolated", async ({ page }) => {
 
   await gotoHome(page);
   await createListWithTerms(page, "Shared deck", WORDS);
-  await page.getByRole("button", { name: "Share list" }).click();
-  await expect(page.getByText(/Share link copied/)).toBeVisible();
+  await page.getByRole("button", { name: "Partager la liste" }).click();
+  await expect(page.getByText(/Lien de partage copié/)).toBeVisible();
 
   const url = await page.evaluate(
     () => (window as unknown as { __copied: string[] }).__copied.at(-1) ?? ""
@@ -134,7 +134,9 @@ test("shared-list import modal is keyboard-isolated", async ({ page }) => {
   await page.goto(url);
 
   await expect(
-    page.getByRole("dialog").getByRole("heading", { name: "Import shared list" })
+    page
+      .getByRole("dialog")
+      .getByRole("heading", { name: "Importer une liste partagée" })
   ).toBeVisible();
 
   // This one is opened by a URL fragment rather than a button, so there is no

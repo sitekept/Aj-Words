@@ -23,7 +23,7 @@ test("written quiz: verdicts, diff, manual override, and final score", async ({
 }) => {
   await gotoHome(page);
   await createListWithTerms(page, "E2E Written", WORDS);
-  await startMode(page, "Written quiz");
+  await startMode(page, "Quiz écrit");
 
   await expect(page.locator(".study-count")).toHaveText("1 / 4");
   const answers = answerMapFor(WORDS);
@@ -39,11 +39,11 @@ test("written quiz: verdicts, diff, manual override, and final score", async ({
     } else if (prompt === "bonjour") {
       // One-character typo lands in the "small typo" verdict.
       await submitWrittenAnswer(page, "helo");
-      await expect(feedback(page)).toContainText("small typo");
+      await expect(feedback(page)).toContainText("faute de frappe");
     } else if (prompt === "chien") {
       // Wrong answer: correction line + character diff, then manual override.
       await submitWrittenAnswer(page, "completely wrong");
-      await expect(feedback(page)).toContainText("Answer: dog");
+      await expect(feedback(page)).toContainText("Réponse : dog");
       await expect(page.locator(".answer-diff")).toBeVisible();
 
       await page.getByRole("button", { name: "J'avais raison" }).click();
@@ -62,7 +62,7 @@ test("written quiz: verdicts, diff, manual override, and final score", async ({
   }
 
   // Score screen totals: the override flipped the miss, so 4 of 4.
-  await expect(page.getByRole("heading", { name: "Score" })).toBeVisible();
-  await expect(page.getByText("4 of 4 correct")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Résultat" })).toBeVisible();
+  await expect(page.getByText("4 bonnes réponses sur 4")).toBeVisible();
   await expect(page.locator(".study-count")).toHaveText("100%");
 });
