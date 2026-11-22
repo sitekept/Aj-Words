@@ -38,17 +38,11 @@ test("the rescue export format round-trips through Import", async ({ page }) => 
       buffer: Buffer.from(rescueFile)
     });
 
-  // The rescue file holds the whole library, demo list included, and the demo
-  // is re-seeded on the now-empty browser — so this lands on the replace
-  // confirmation rather than importing straight away.
-  const replaceDialog = page.getByRole("dialog");
-  await expect(
-    replaceDialog.getByRole("heading", {
-      name: "Remplacer des listes existantes ?"
-    })
-  ).toBeVisible();
-  await replaceDialog.getByRole("button", { name: "Remplacer" }).click();
-
+  // No confirmation here, and that is the point: the wiped browser holds only
+  // the bundled list, whose id forks a local copy rather than being replaced,
+  // and "Rescue deck" collides with nothing. A rescue onto a clean browser
+  // restores straight away — the replace path is covered in
+  // import-hardening.spec.ts.
   await expect(page.getByText(/listes? importées?/)).toBeVisible();
   await expect(
     page.getByRole("heading", { level: 1, name: "Rescue deck" })

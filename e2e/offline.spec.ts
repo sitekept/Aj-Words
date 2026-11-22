@@ -46,12 +46,14 @@ test("production service worker serves the app shell offline", async ({
   await page.reload();
   await expect(page.getByRole("heading", { name: "Listes de mots" })).toBeVisible();
 
-  // The seeded demo list is the one list a fresh install always has. Anchored
-  // regex: the card button's accessible name starts with the title, while the
-  // per-list "Modifier ..."/"Supprimer ..." icon buttons do not.
-  const demoTitle = "Démo — anglais › français";
-  await page.getByRole("button", { name: new RegExp(`^${demoTitle}`) }).click();
+  // The bundled curated list is the one list a fresh install always has (the
+  // deletable demo only seeds when the bundle is empty — lib/vocabulary-storage.ts
+  // `seedLists`). Anchored regex: the card button's accessible name starts with
+  // the title, while the per-list "Modifier ..."/"Supprimer ..." icon buttons do
+  // not.
+  const bundledTitle = "Anglais › français — les bases";
+  await page.getByRole("button", { name: new RegExp(`^${bundledTitle}`) }).click();
   await expect(
-    page.getByRole("heading", { level: 1, name: demoTitle })
+    page.getByRole("heading", { level: 1, name: bundledTitle })
   ).toBeVisible();
 });

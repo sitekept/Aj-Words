@@ -21,6 +21,7 @@ import { ScoreScreen } from "@/components/ScoreScreen";
 import { SyncDeviceModal } from "@/components/SyncDeviceModal";
 import { WordFormModal } from "@/components/WordFormModal";
 import { Button, Modal } from "@/components/ui";
+import { canEditLibrary } from "@/lib/app-mode";
 import { useCloudSync, type CloudSyncStatus } from "@/lib/useCloudSync";
 import { APP_BUILD_LABEL, buildFeedbackUrl } from "@/lib/app-version";
 import { importedListId } from "@/lib/retired-lists";
@@ -261,8 +262,12 @@ export function VocabularyApp() {
 
   // A "#share=..." fragment offers an incoming list. Decode it once hydrated,
   // then open a confirmation modal (never a silent import) and clean the URL.
+  //
+  // Gated on `canEditLibrary`: this is the ONE import path that is not a button,
+  // so hiding buttons alone would leave it wide open — any share link would keep
+  // adding lists to a build that is supposed to ship a fixed library.
   useEffect(() => {
-    if (!store.hydrated) {
+    if (!canEditLibrary || !store.hydrated) {
       return;
     }
 
@@ -712,25 +717,29 @@ export function VocabularyApp() {
           <Button variant="ghost" size="sm" icon={<Home size={17} />} onClick={goHome}>
             Accueil
           </Button>
-          <Button
-            className="topbar-transfer"
-            variant="secondary"
-            size="sm"
-            icon={<Download size={17} />}
-            onClick={exportLists}
-            disabled={!store.lists.length}
-          >
-            <span className="topbar-action-label">Exporter</span>
-          </Button>
-          <Button
-            className="topbar-transfer"
-            variant="secondary"
-            size="sm"
-            icon={<Upload size={17} />}
-            onClick={() => importInputRef.current?.click()}
-          >
-            <span className="topbar-action-label">Importer</span>
-          </Button>
+          {canEditLibrary ? (
+            <>
+              <Button
+                className="topbar-transfer"
+                variant="secondary"
+                size="sm"
+                icon={<Download size={17} />}
+                onClick={exportLists}
+                disabled={!store.lists.length}
+              >
+                <span className="topbar-action-label">Exporter</span>
+              </Button>
+              <Button
+                className="topbar-transfer"
+                variant="secondary"
+                size="sm"
+                icon={<Upload size={17} />}
+                onClick={() => importInputRef.current?.click()}
+              >
+                <span className="topbar-action-label">Importer</span>
+              </Button>
+            </>
+          ) : null}
           {cloudSync.cloudEnabled ? (
             <Button
               className="topbar-transfer"
@@ -743,37 +752,43 @@ export function VocabularyApp() {
               <span className="topbar-action-label">Synchroniser</span>
             </Button>
           ) : null}
-          <Button
-            className="topbar-new-list"
-            size="sm"
-            icon={<Plus size={17} />}
-            onClick={() => setListFormState({ mode: "create" })}
-          >
-            <span className="topbar-new-label">Nouvelle liste</span>
-          </Button>
-          <input
-            ref={importInputRef}
-            className="sr-only"
-            type="file"
-            accept="application/json,.json"
-            onChange={importListsFromFile}
-            aria-label="Importer un fichier JSON AJ Words"
-          />
+          {canEditLibrary ? (
+            <>
+              <Button
+                className="topbar-new-list"
+                size="sm"
+                icon={<Plus size={17} />}
+                onClick={() => setListFormState({ mode: "create" })}
+              >
+                <span className="topbar-new-label">Nouvelle liste</span>
+              </Button>
+              <input
+                ref={importInputRef}
+                className="sr-only"
+                type="file"
+                accept="application/json,.json"
+                onChange={importListsFromFile}
+                aria-label="Importer un fichier JSON AJ Words"
+              />
+            </>
+          ) : null}
         </div>
       </header>
 
       {store.storageError ? (
         <div className="transfer-notice transfer-notice-error" role="alert">
           {store.storageError}{" "}
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<Download size={17} />}
-            onClick={exportLists}
-            disabled={!store.lists.length}
-          >
-            Exporter mes listes
-          </Button>
+          {canEditLibrary ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Download size={17} />}
+              onClick={exportLists}
+              disabled={!store.lists.length}
+            >
+              Exporter mes listes
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
@@ -800,6 +815,7 @@ export function VocabularyApp() {
         <aside className="library-panel">
           <ActivityHeatmap refreshToken={activityVersion} />
           <ListLibrary
+            canEdit={canEditLibrary}
             lists={store.lists}
             selectedListId={selectedListId}
             onCreate={() => setListFormState({ mode: "create" })}
@@ -861,6 +877,7 @@ export function VocabularyApp() {
 
           {selectedList && view === "list" ? (
             <ListDetail
+              canEdit={canEditLibrary}
               direction={quizDirection}
               list={selectedList}
               onAddWord={() => openAddWord(selectedList.id)}

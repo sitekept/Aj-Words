@@ -13,7 +13,8 @@ A premium, offline-first vocabulary learning PWA. Build word lists, drill them w
 - **Activity heatmap & gentle daily goal** — an Anki-style calendar of your review activity, with an opt-in daily goal that has *no* streak debt: a missed day never breaks anything.
 - **Progress & mastery tracking** — per-word attempts, streaks, and a derived `new → learning → mastered` status, plus per-list test history.
 - **Import / export & share by link** — move your data between devices as JSON, paste tab-separated terms from Quizlet, or share a whole list through a single compressed link (100 % client-side, no server).
-- **Installable PWA** — works offline once installed. No vocabulary ships with the app: a fresh install seeds one small, deletable demo list and nothing else.
+- **Installable PWA** — works offline once installed.
+- **Curated library mode** — an optional build (`NEXT_PUBLIC_CURATED_LIBRARY=1`) where the bundled lists are the only lists: every path that adds, edits, shares or imports content is hidden. Used for the beta, so testers study a library the maintainer controls.
 
 ## Tech stack
 
@@ -40,7 +41,9 @@ The dev script intentionally pins the dev server to Webpack with `--webpack` (Ne
 | `npm run start` | Serve the production build. |
 | `npm run lint` | Run ESLint (`next` core-web-vitals + typescript configs). |
 | `npm test` | Run pure logic tests with Node's built-in test runner. |
-| `npm run import:phone -- <export.json>` | Regenerate the bundled starter lists from an in-app JSON export. |
+| `npm run e2e` | Playwright suite — two sequential passes (authoring build, then curated). Builds and serves production itself on port 3000, so nothing may be listening there. |
+| `npm run build:curated` | Production build with the curated library locked (`NEXT_PUBLIC_CURATED_LIBRARY=1`). |
+| `npm run import:phone -- <export.json>` | Regenerate the bundled lists from an in-app JSON export. |
 
 Pure logic tests use Node's built-in runner. Validate changes with `npm test`, `npm run lint`, `npm run build`, and manual testing in the browser.
 
@@ -50,7 +53,38 @@ Pure logic tests use Node's built-in runner. Validate changes with `npm test`, `
 
 Everything you create stays on your device in `localStorage`. There are no accounts, servers, or telemetry. Use **Export** to download a JSON snapshot and **Import** to restore it on another device or browser.
 
-The interface is in French. The app ships **no** vocabulary of its own; a brand-new install seeds a single 12-word demo list (`lib/demo-list.ts`) that can be deleted like any other and never comes back.
+The interface is in French.
+
+The app ships a bundled starter list (`lib/builtin-vocabulary-data.json`), which every
+install receives. Bundled lists are **content only** — no study progress travels with
+them; your own progress on them lives on your device and survives app updates. When the
+bundle is empty, a fresh install seeds a single deletable demo list instead
+(`lib/demo-list.ts`).
+
+### Curating the bundled lists
+
+The bundle is the whole library in a `NEXT_PUBLIC_CURATED_LIBRARY=1` build, so this is
+how lists get added or changed:
+
+1. Run the app normally (`npm run dev`) — that is the full editing UI.
+2. Build the lists there: **Nouvelle liste**, or paste tab-separated terms from Quizlet.
+3. **Exporter** to a JSON file.
+4. `npm run import:phone -- <export.json>` rewrites `lib/builtin-vocabulary-data.json`.
+   It emits the `terms` shape, so progress and test history are dropped on the way in —
+   `lib/builtin-vocabulary.ts` compiles `terms` into permanently fresh cards, while the
+   `items` shape would preserve whatever the export carried. The script says so when it
+   drops something.
+5. `npm test`, then commit. Testers get the new lists on their next load, with their
+   existing progress intact.
+
+Two standing rules, both guarded by tests:
+
+- A **new** list needs a **new** id. Retired ids are tombstoned on load
+  (`lib/retired-lists.ts`) and the list would vanish everywhere, silently.
+- Before **removing** a list from the bundle, append its id to `RETIRED_BUILTIN_IDS`, or
+  its stored progress overlays resurface as lists of blank cards.
+
+Whatever is in the bundle is in this public repository, and readable by anyone.
 
 ## Cloud sync (optional)
 
@@ -95,6 +129,13 @@ Beta notes:
 - `app/layout.tsx` sets `robots: { index: false, follow: false }`. The link is
   meant to be handed to testers, not indexed — **remove that line** when the app
   goes public.
+- Set **`NEXT_PUBLIC_CURATED_LIBRARY=1`** for the tester-facing deployment. The lists
+  then come from the bundle only: no create, edit, delete, add-word, import, export or
+  share, and the `#share=` fragment is ignored. Drop the variable to unlock the app at
+  public launch. It closes the path, not the door — the app is client-side with no
+  server and no accounts, so it is housekeeping rather than a permission.
+  It also disables cloud sync outright, whatever the env vars say: a pull adds
+  lists, so sync is an inbound content path like any other.
 - The build identity (version + short commit SHA) is shown at the foot of the
   library panel, so a tester can say which build a report refers to.
 - Feedback goes to the address in `FEEDBACK_EMAIL` (`lib/app-version.ts`)

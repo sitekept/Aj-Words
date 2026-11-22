@@ -18,6 +18,7 @@ import {
   redeemPairing,
   type PairingLink
 } from "@/lib/device-pairing";
+import { canEditLibrary } from "@/lib/app-mode";
 import { getSupabase, isCloudEnabled } from "@/lib/supabase-client";
 import type { WordList } from "@/types/vocabulary";
 
@@ -40,7 +41,15 @@ const isNewer = (a: string, b: string): boolean =>
   new Date(a).getTime() > new Date(b).getTime();
 
 export const useCloudSync = (store: CloudStore) => {
-  const cloudEnabled = isCloudEnabled();
+  // Two independent switches, both of which must be on.
+  //
+  // `canEditLibrary` is the one that matters structurally: a pull ADDS lists, so
+  // sync is an inbound content path like any other, and a curated-library build
+  // exists precisely to have none. Leaving it to the deployment's env vars is
+  // not enough — this project shipped a beta with those vars set by accident,
+  // which silently gave every tester an anonymous identity and uploaded their
+  // lists. One line here means that mistake can no longer have that effect.
+  const cloudEnabled = isCloudEnabled() && canEditLibrary;
   const [status, setStatus] = useState<CloudSyncStatus>(
     cloudEnabled ? "connecting" : "disabled"
   );

@@ -6,6 +6,12 @@ import { UI_LOCALE } from "@/lib/formatting";
 import type { WordList } from "@/types/vocabulary";
 
 interface ListLibraryProps {
+  /**
+   * False in the curated-library build: the lists are shipped in the bundle and
+   * testers only study them, so every path that would add, rename or remove one
+   * is hidden. See lib/app-mode.ts.
+   */
+  canEdit: boolean;
   lists: WordList[];
   selectedListId: string | null;
   onCreate: () => void;
@@ -21,6 +27,7 @@ const formatDate = (value: string) =>
   }).format(new Date(value));
 
 export function ListLibrary({
+  canEdit,
   lists,
   selectedListId,
   onCreate,
@@ -37,9 +44,11 @@ export function ListLibrary({
           <p className="eyebrow">Bibliothèque</p>
           <h2 id="library-title">Listes de mots</h2>
         </div>
-        <Button size="sm" icon={<Plus size={17} />} onClick={onCreate}>
-          Nouvelle
-        </Button>
+        {canEdit ? (
+          <Button size="sm" icon={<Plus size={17} />} onClick={onCreate}>
+            Nouvelle
+          </Button>
+        ) : null}
       </div>
 
       {lists.length ? (
@@ -81,18 +90,23 @@ export function ListLibrary({
                     </>
                   ) : null}
                 </span>
-                <div className="inline-actions">
-                  <IconButton label={`Modifier ${list.title}`} onClick={() => onEdit(list)}>
-                    <Pencil size={16} />
-                  </IconButton>
-                  <IconButton
-                    label={`Supprimer ${list.title}`}
-                    variant="danger"
-                    onClick={() => onDelete(list.id)}
-                  >
-                    <Trash2 size={16} />
-                  </IconButton>
-                </div>
+                {canEdit ? (
+                  <div className="inline-actions">
+                    <IconButton
+                      label={`Modifier ${list.title}`}
+                      onClick={() => onEdit(list)}
+                    >
+                      <Pencil size={16} />
+                    </IconButton>
+                    <IconButton
+                      label={`Supprimer ${list.title}`}
+                      variant="danger"
+                      onClick={() => onDelete(list.id)}
+                    >
+                      <Trash2 size={16} />
+                    </IconButton>
+                  </div>
+                ) : null}
               </div>
             </article>
           ))}
@@ -101,14 +115,29 @@ export function ListLibrary({
         <div className="empty-state">
           <BookOpen size={28} />
           <h3>Aucune liste pour l&rsquo;instant</h3>
-          <p>
-            Créez une liste de mots, ou collez directement vos termes exportés
-            depuis Quizlet. Vous pourrez ensuite la réviser en cartes mémo ou
-            vous tester dessus.
-          </p>
-          <Button icon={<Plus size={18} />} onClick={onCreate}>
-            Créer une liste
-          </Button>
+          {canEdit ? (
+            <>
+              <p>
+                Créez une liste de mots, ou collez directement vos termes
+                exportés depuis Quizlet. Vous pourrez ensuite la réviser en
+                cartes mémo ou vous tester dessus.
+              </p>
+              <Button icon={<Plus size={18} />} onClick={onCreate}>
+                Créer une liste
+              </Button>
+            </>
+          ) : (
+            // Nothing a tester can do about this: in a curated build the lists
+            // come from the bundle, so an empty library means the deployment
+            // shipped without them. Say so plainly instead of offering an
+            // action that is not there.
+            <p>
+              Les listes sont fournies avec l&rsquo;application et aucune
+              n&rsquo;est arrivée avec cette version. Signalez-le avec
+              &laquo;&nbsp;Donner mon avis&nbsp;&raquo; : il n&rsquo;y a rien à
+              faire de votre côté.
+            </p>
+          )}
         </div>
       )}
     </section>

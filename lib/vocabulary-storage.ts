@@ -21,6 +21,7 @@ import {
 } from "@/lib/demo-list";
 import { EXPORT_APP_ID, EXPORT_VERSION } from "@/lib/export-format";
 import { normalizeContentFields } from "./item-content";
+import { canEditLibrary } from "@/lib/app-mode";
 import { isRetiredBuiltinList } from "@/lib/retired-lists";
 import { isQuizMode } from "@/lib/quiz-modes";
 import { readLatestBackup, writeRotatingBackup } from "@/lib/local-backup";
@@ -422,7 +423,12 @@ export const parseExportPayload = (payload: unknown): ImportedListsResult => {
 };
 
 const mergeStoredLists = (storedLists: WordList[]): WordList[] => {
-  const liveLists = storedLists.filter((list) => !isRetiredBuiltinList(list));
+  // `isPublicListId` is passed so the shape-based backstop skips builtins that
+  // still ship: their stored progress overlay is textless by design, which is
+  // the very shape the backstop hunts for.
+  const liveLists = storedLists.filter(
+    (list) => !isRetiredBuiltinList(list, isPublicListId)
+  );
   const storedById = new Map(liveLists.map((list) => [list.id, list]));
   const publicLists = initialLists.map((list) => {
     const storedList = storedById.get(list.id);
@@ -462,6 +468,18 @@ const createDemoList = (): WordList => ({
   id: DEMO_LIST_ID
 });
 
+/**
+ * What a fresh install starts with.
+ *
+ * The demo exists only to stop a brand-new install from being an empty screen,
+ * so a non-empty bundle makes it redundant — and worse than redundant in the
+ * curated-library build, where "Supprimer" is hidden and the tester could not
+ * get rid of it. A bundled list needs no seeding: `initialLists` is already in
+ * every merge.
+ */
+const seedLists = (): WordList[] =>
+  initialLists.length ? initialLists : [...initialLists, createDemoList()];
+
 export const loadLists = (): WordList[] => {
   if (typeof window === "undefined") {
     return initialLists;
@@ -476,7 +494,7 @@ export const loadLists = (): WordList[] => {
   try {
     raw = window.localStorage.getItem(STORAGE_KEY);
   } catch {
-    return [...initialLists, createDemoList()];
+    return seedLists();
   }
 
   if (!raw) {
@@ -485,7 +503,7 @@ export const loadLists = (): WordList[] => {
     // this is the ONLY branch that seeds — once anything is persisted (even an
     // empty `[]` after the tester deletes the demo) `raw` is truthy and we
     // never seed again.
-    return [...initialLists, createDemoList()];
+    return seedLists();
   }
 
   try {
@@ -521,9 +539,15 @@ export const saveLists = (lists: WordList[]): SaveResult => {
   } catch (error) {
     return {
       ok: false,
+      // Telling someone to export in a curated-library build would be pointing
+      // at a button that is not there, and at a file they could not import back.
       message: looksLikeQuotaError(error)
-        ? "Le stockage de votre navigateur est plein : les dernières modifications n'ont pas pu être enregistrées. Exportez vos listes pour les mettre à l'abri, puis libérez de l'espace."
-        : "Les dernières modifications n'ont pas pu être enregistrées dans le navigateur. Exportez vos listes pour les mettre à l'abri."
+        ? canEditLibrary
+          ? "Le stockage de votre navigateur est plein : les dernières modifications n'ont pas pu être enregistrées. Exportez vos listes pour les mettre à l'abri, puis libérez de l'espace."
+          : "Le stockage de votre navigateur est plein : les dernières modifications n'ont pas pu être enregistrées. Libérez de l'espace, puis rechargez la page."
+        : canEditLibrary
+          ? "Les dernières modifications n'ont pas pu être enregistrées dans le navigateur. Exportez vos listes pour les mettre à l'abri."
+          : "Les dernières modifications n'ont pas pu être enregistrées dans le navigateur."
     };
   }
 

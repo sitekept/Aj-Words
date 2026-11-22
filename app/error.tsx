@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, Download, RotateCcw } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui";
+import { canEditLibrary } from "@/lib/app-mode";
 import { APP_BUILD_LABEL, buildFeedbackUrl } from "@/lib/app-version";
 import { wrapExportPayload } from "@/lib/export-format";
 
@@ -45,6 +46,11 @@ export default function AppError({
       // point of offering the download at all. Re-parsed rather than
       // string-spliced so corrupt storage yields an empty-but-valid export
       // instead of a broken JSON file.
+      //
+      // In a curated-library build there is no Import action to restore it with,
+      // so the same file is offered as a diagnostic to attach to a report —
+      // same payload, honest label. Promising a restore the build cannot perform
+      // is the hollow offer this whole function was written to fix.
       let lists: unknown[] = [];
       try {
         const parsed: unknown = raw ? JSON.parse(raw) : [];
@@ -59,9 +65,10 @@ export default function AppError({
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `aj-words-secours-${new Date()
-        .toISOString()
-        .slice(0, 10)}.json`;
+      const stamp = new Date().toISOString().slice(0, 10);
+      link.download = canEditLibrary
+        ? `aj-words-secours-${stamp}.json`
+        : `aj-words-diagnostic-${stamp}.json`;
       document.body.append(link);
       link.click();
       link.remove();
@@ -81,8 +88,19 @@ export default function AppError({
         </p>
         <h1>AJ Words s&rsquo;est arrêté net</h1>
         <p>
-          <strong>Vos listes sont intactes.</strong> Elles sont enregistrées
-          dans ce navigateur, pas dans cette page — réessayer ne les efface pas.
+          {canEditLibrary ? (
+            <>
+              <strong>Vos listes sont intactes.</strong> Elles sont enregistrées
+              dans ce navigateur, pas dans cette page — réessayer ne les efface
+              pas.
+            </>
+          ) : (
+            <>
+              <strong>Votre progression est intacte.</strong> Elle est
+              enregistrée dans ce navigateur, pas dans cette page — réessayer ne
+              l&rsquo;efface pas.
+            </>
+          )}
         </p>
         <div className="error-actions">
           <Button icon={<RotateCcw size={18} />} onClick={reset}>
@@ -93,12 +111,16 @@ export default function AppError({
             icon={<Download size={18} />}
             onClick={exportRawLists}
           >
-            Exporter mes listes
+            {canEditLibrary ? "Exporter mes listes" : "Enregistrer un diagnostic"}
           </Button>
         </div>
         <p className="field-hint">
           Si cela se reproduit, signalez-le en précisant ce que vous faisiez
-          juste avant. Version {APP_BUILD_LABEL}
+          juste avant
+          {canEditLibrary
+            ? ""
+            : ", et joignez le diagnostic ci-dessus si vous l'avez enregistré"}
+          . Version {APP_BUILD_LABEL}
           {error.digest ? ` · ${error.digest}` : ""}.
         </p>
         {feedbackUrl ? (

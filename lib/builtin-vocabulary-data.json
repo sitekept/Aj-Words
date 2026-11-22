@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "starter-en-fr-v1",
+    "title": "Anglais › français — les bases",
+    "language": "Anglais / Français",
+    "terms": [
+      { "word": "the word", "translation": "le mot" },
+      { "word": "to learn", "translation": "apprendre" },
+      { "word": "to remember", "translation": "se souvenir" },
+      { "word": "to forget", "translation": "oublier" },
+      { "word": "the mistake", "translation": "l'erreur" },
+      { "word": "the answer", "translation": "la réponse" },
+      { "word": "the question", "translation": "la question" },
+      { "word": "easy", "translation": "facile" },
+      { "word": "difficult", "translation": "difficile" },
+      { "word": "quickly", "translation": "rapidement" },
+      { "word": "slowly", "translation": "lentement" },
+      { "word": "yesterday", "translation": "hier" },
+      { "word": "today", "translation": "aujourd'hui" },
+      { "word": "tomorrow", "translation": "demain" },
+      { "word": "together", "translation": "ensemble" },
+      { "word": "again", "translation": "encore" },
+      { "word": "to try again", "translation": "réessayer" },
+      { "word": "to understand", "translation": "comprendre" },
+      { "word": "enough", "translation": "assez" },
+      { "word": "well done", "translation": "bravo" }
+    ]
+  }
+]

@@ -1,8 +1,15 @@
 import { expect, test } from "@playwright/test";
-import { gotoHome } from "./helpers";
+import { createListWithTerms, gotoHome } from "./helpers";
 
 test("export downloads a JSON file that can be re-imported", async ({ page }) => {
   await gotoHome(page);
+  // A local list of our own, so the exported file holds both kinds: the bundled
+  // (public) list a fresh install always has, and a local one. Re-importing it
+  // then exercises both import rules at once.
+  await createListWithTerms(page, "Round trip", [
+    { word: "alpha", translation: "un" },
+    { word: "beta", translation: "deux" }
+  ]);
 
   // Export triggers a download of the tagged JSON payload.
   const downloadPromise = page.waitForEvent("download");
@@ -13,7 +20,7 @@ test("export downloads a JSON file that can be re-imported", async ({ page }) =>
 
   const filePath = await download.path();
 
-  // Re-import the very file we just exported. Every list in it already exists
+  // Re-import the very file we just exported. The local list already exists
   // under the same id, so this goes through the replace confirmation rather
   // than importing straight away.
   await page
@@ -23,8 +30,22 @@ test("export downloads a JSON file that can be re-imported", async ({ page }) =>
   await expect(
     replaceDialog.getByRole("heading", { name: "Remplacer des listes existantes ?" })
   ).toBeVisible();
+  // Named, and only the local one: a bundled list is never replaced.
+  await expect(replaceDialog.getByText("Round trip")).toBeVisible();
   await replaceDialog.getByRole("button", { name: "Remplacer" }).click();
   await expect(page.getByText(/\d+ listes? importées?/)).toBeVisible();
+
+  // The bundled list in that same file took the other path: importing a public
+  // id forks a local copy (`createLocalCopy`) instead of overwriting the shared
+  // definition. Read from storage rather than the screen, so the assertion holds
+  // at both viewports.
+  const titles = await page.evaluate(() => {
+    const raw = window.localStorage.getItem("worddeck.v1.lists");
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    const lists = Array.isArray(parsed) ? parsed : [];
+    return (lists as Array<{ title?: string }>).map((list) => list.title ?? "");
+  });
+  expect(titles.filter((title) => title.includes("copie locale"))).toHaveLength(1);
 });
 
 test("importing a file that is not an AJ Words export shows an error", async ({

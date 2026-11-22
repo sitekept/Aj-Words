@@ -36,6 +36,13 @@ import type {
 } from "@/types/vocabulary";
 
 interface ListDetailProps {
+  /**
+   * False in the curated-library build: the words ship in the bundle, so
+   * everything that would change them is hidden. "Réinitialiser la progression"
+   * deliberately stays — that is progress, not content, and starting a list over
+   * is an ordinary study move. See lib/app-mode.ts.
+   */
+  canEdit: boolean;
   direction: QuizDirection;
   list: WordList;
   onAddWord: () => void;
@@ -63,6 +70,7 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
 ];
 
 export function ListDetail({
+  canEdit,
   direction,
   list,
   onAddWord,
@@ -155,20 +163,30 @@ export function ListDetail({
           <h1 id="detail-title">{list.title}</h1>
         </div>
         <div className="header-actions">
-          <IconButton label="Partager la liste" onClick={onShareList}>
-            <Share2 size={18} />
-          </IconButton>
+          {canEdit ? (
+            <IconButton label="Partager la liste" onClick={onShareList}>
+              <Share2 size={18} />
+            </IconButton>
+          ) : null}
           {hasWords ? (
             <IconButton label="Réinitialiser la progression" onClick={onResetProgress}>
               <RotateCcw size={18} />
             </IconButton>
           ) : null}
-          <IconButton label="Modifier la liste" onClick={onEditList}>
-            <Pencil size={18} />
-          </IconButton>
-          <IconButton label="Supprimer la liste" variant="danger" onClick={onDeleteList}>
-            <Trash2 size={18} />
-          </IconButton>
+          {canEdit ? (
+            <>
+              <IconButton label="Modifier la liste" onClick={onEditList}>
+                <Pencil size={18} />
+              </IconButton>
+              <IconButton
+                label="Supprimer la liste"
+                variant="danger"
+                onClick={onDeleteList}
+              >
+                <Trash2 size={18} />
+              </IconButton>
+            </>
+          ) : null}
         </div>
       </header>
 
@@ -316,9 +334,11 @@ export function ListDetail({
             <p className="eyebrow">Termes</p>
             <h2 id="words-heading">Mots</h2>
           </div>
-          <Button size="sm" icon={<Plus size={17} />} onClick={onAddWord}>
-            Ajouter un mot
-          </Button>
+          {canEdit ? (
+            <Button size="sm" icon={<Plus size={17} />} onClick={onAddWord}>
+              Ajouter un mot
+            </Button>
+          ) : null}
         </div>
 
         {list.items.length ? (
@@ -391,30 +411,38 @@ export function ListDetail({
                       </div>
                       <div className="word-controls">
                         <StatusBadge status={item.status} />
-                        <div className="inline-actions">
-                          <IconButton
-                            label={`Modifier ${item.word}`}
-                            onClick={() => onEditWord(item)}
-                          >
-                            <Pencil size={16} />
-                          </IconButton>
-                          <IconButton
-                            label={`Supprimer ${item.word}`}
-                            variant="danger"
-                            onClick={() => confirmWordDelete(item)}
-                          >
-                            <Trash2 size={16} />
-                          </IconButton>
-                        </div>
+                        {canEdit ? (
+                          <div className="inline-actions">
+                            <IconButton
+                              label={`Modifier ${item.word}`}
+                              onClick={() => onEditWord(item)}
+                            >
+                              <Pencil size={16} />
+                            </IconButton>
+                            <IconButton
+                              label={`Supprimer ${item.word}`}
+                              variant="danger"
+                              onClick={() => confirmWordDelete(item)}
+                            >
+                              <Trash2 size={16} />
+                            </IconButton>
+                          </div>
+                        ) : null}
                       </div>
                     </article>
                   ))}
                 </div>
-                <div className="word-list-actions">
-                  <Button variant="secondary" icon={<Plus size={18} />} onClick={onAddWord}>
-                    Ajouter un mot
-                  </Button>
-                </div>
+                {canEdit ? (
+                  <div className="word-list-actions">
+                    <Button
+                      variant="secondary"
+                      icon={<Plus size={18} />}
+                      onClick={onAddWord}
+                    >
+                      Ajouter un mot
+                    </Button>
+                  </div>
+                ) : null}
               </>
             ) : (
               <div className="empty-state">
@@ -431,10 +459,21 @@ export function ListDetail({
           <div className="empty-state">
             <BookOpen size={28} />
             <h3>Aucun mot dans cette liste</h3>
-            <p className="muted">Ajoutez des mots ici pour commencer à l&rsquo;étudier.</p>
-            <Button icon={<Plus size={18} />} onClick={onAddWord}>
-              Ajouter un mot
-            </Button>
+            {canEdit ? (
+              <>
+                <p className="muted">
+                  Ajoutez des mots ici pour commencer à l&rsquo;étudier.
+                </p>
+                <Button icon={<Plus size={18} />} onClick={onAddWord}>
+                  Ajouter un mot
+                </Button>
+              </>
+            ) : (
+              <p className="muted">
+                Cette liste est arrivée vide avec l&rsquo;application.
+                Signalez-le avec &laquo;&nbsp;Donner mon avis&nbsp;&raquo;.
+              </p>
+            )}
           </div>
         )}
       </section>

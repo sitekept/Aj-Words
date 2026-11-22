@@ -84,9 +84,25 @@ const isOrphanedProgressOverlay = (list: RetirableList): boolean =>
  * The id set covers the 19 we shipped; the shape check is the safety net for
  * any other orphaned overlay — a different builtin set, or an intermediate
  * build whose ids we never enumerated.
+ *
+ * `isLiveBuiltin` is what keeps the shape check honest, and it is not optional.
+ * An overlay belonging to a builtin that STILL SHIPS has exactly the same shape
+ * as an orphaned one — all progress, no text — because that is what
+ * `createPublicListOverlay` writes. Without this predicate the backstop would
+ * delete every tester's progress on every bundled list, on every single load,
+ * the moment the bundle stopped being empty. The tombstone still wins, so an id
+ * that was retired stays retired even if it reappeared in the bundle.
+ *
+ * Passed in rather than imported, like `createPersistedLists` takes
+ * `isPublicListId`, so this module keeps its zero imports and stays unit-testable
+ * under plain Node.
  */
-export const isRetiredBuiltinList = (list: RetirableList): boolean =>
-  RETIRED_BUILTIN_IDS.has(list.id) || isOrphanedProgressOverlay(list);
+export const isRetiredBuiltinList = (
+  list: RetirableList,
+  isLiveBuiltin: (id: string) => boolean
+): boolean =>
+  RETIRED_BUILTIN_IDS.has(list.id) ||
+  (!isLiveBuiltin(list.id) && isOrphanedProgressOverlay(list));
 
 /**
  * The id a retired builtin list takes when it is imported back from an export
