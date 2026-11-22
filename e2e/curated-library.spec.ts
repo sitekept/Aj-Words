@@ -60,9 +60,24 @@ test("the library ships its lists and nothing can change them", async ({
   // lib/useCloudSync.ts gates it on the mode rather than trusting the
   // deployment's env vars. (With no Supabase vars set, as in CI, that button is
   // absent anyway; this assertion bites on a machine that has them.)
-  for (const name of ["Nouvelle liste", "Importer", "Exporter", "Synchroniser"]) {
+  //
+  // "Créer une liste" is in this list because leaving it out is how the leak
+  // happened: the welcome panel has its own creation button under a DIFFERENT
+  // label from the topbar's "Nouvelle liste", it shipped live to production,
+  // and asserting only on the topbar label never saw it. It is display:none
+  // below 760px, so only the `curated` project's assertion bites — the
+  // `curated-mobile` one passes on an element the a11y tree omits.
+  for (const name of [
+    "Nouvelle liste",
+    "Créer une liste",
+    "Importer",
+    "Exporter",
+    "Synchroniser"
+  ]) {
     await expect(page.getByRole("button", { name, exact: true })).toHaveCount(0);
   }
+  // And the copy beside it does not promise what the build cannot do.
+  await expect(page.getByText(/Créez vos listes de vocabulaire/)).toHaveCount(0);
   // The file input is not merely hidden behind a button — it is not rendered.
   await expect(page.getByLabel("Importer un fichier JSON AJ Words")).toHaveCount(
     0

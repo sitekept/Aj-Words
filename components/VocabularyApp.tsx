@@ -844,22 +844,35 @@ export function VocabularyApp() {
                 <h1 id="welcome-title">
                   Apprenez vos mots avec rythme et concentration
                 </h1>
+                {/* The welcome panel is the one place a creation path survived
+                    the curated-library lockdown: the topbar button was gated,
+                    this one was not, and it shipped live to production. It is
+                    display:none below 760px, so it hid from the mobile specs
+                    too. Gate the copy with it — promising "créez vos listes"
+                    to a tester who cannot is the same hollow offer. */}
                 <p>
-                  Créez vos listes de vocabulaire, révisez-les en cartes mémo et
-                  testez votre mémoire. Tout reste sur votre appareil.
+                  {canEditLibrary
+                    ? "Créez vos listes de vocabulaire, révisez-les en cartes mémo et testez votre mémoire. Tout reste sur votre appareil."
+                    : "Choisissez une liste, révisez-la en cartes mémo et testez votre mémoire. Tout reste sur votre appareil."}
                 </p>
                 <div className="welcome-actions">
-                  <Button
-                    icon={<Plus size={18} />}
-                    onClick={() => setListFormState({ mode: "create" })}
-                  >
-                    Créer une liste
-                  </Button>
+                  {canEditLibrary ? (
+                    <Button
+                      icon={<Plus size={18} />}
+                      onClick={() => setListFormState({ mode: "create" })}
+                    >
+                      Créer une liste
+                    </Button>
+                  ) : null}
                   <span className="welcome-metric">
                     <strong>{store.lists.length}</strong>
-                    {store.lists.length <= 1
-                      ? " liste enregistrée"
-                      : " listes enregistrées"}
+                    {canEditLibrary
+                      ? store.lists.length <= 1
+                        ? " liste enregistrée"
+                        : " listes enregistrées"
+                      : store.lists.length <= 1
+                        ? " liste disponible"
+                        : " listes disponibles"}
                   </span>
                 </div>
               </div>
